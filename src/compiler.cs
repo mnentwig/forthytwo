@@ -114,13 +114,15 @@ class compiler {
     List<token> pass_extractMacros(List<token> tokensIn) {
         List<token> tokensOut = new List<token>();
         string activeMacroName = null;
+        token activeMacroToken = null;
         foreach(token t in tokensIn) {
             if(t.body.StartsWith("::")) {
-                if(activeMacroName != null) throw new Exception("macro recursion is not allowed");
-                activeMacroName = t.body.Substring(2); if(activeMacroName.Length == 0) throw new Exception("missing macro name");
-                if(util.tryParseNum(activeMacroName, out UInt32 dummy)) throw new Exception("invalid macro name (must not be a number)");
+                if(activeMacroName != null) throw t.buildException("macro recursion is not allowed");
+                activeMacroToken = t;
+                activeMacroName = t.body.Substring(2); if(activeMacroName.Length == 0) throw t.buildException("missing macro name");
+                if(util.tryParseNum(activeMacroName, out UInt32 dummy)) throw t.buildException("invalid macro name (must not be a number)");
                 string prevDef = this.nameExists(activeMacroName);
-                if(prevDef != null) throw new Exception(":: name already exists as "+prevDef);
+                if(prevDef != null) throw t.buildException(":: name already exists as "+prevDef);
                 this.macros[activeMacroName] = new List<token>();
             } else {
                 if(activeMacroName != null) {
@@ -133,13 +135,15 @@ class compiler {
                 }
 
                 if(t.body == ";") {
-                    if(activeMacroName != null)
+                    if(activeMacroName != null) {
                         activeMacroName = null;
+                        activeMacroToken = null;
+                    }
                 }
             }
         }
         if(activeMacroName != null)
-            throw new Exception("open macro at end of input: >>>"+activeMacroName+"<<<");
+            throw activeMacroToken.buildException("open macro at end of input: >>>"+activeMacroName+"<<<");
         return tokensOut;
     }
 
@@ -212,7 +216,7 @@ class compiler {
         this.opcodes["core.xor"] = opcode.ALU(op: opcode.ALU_e.T_xor_N, dDataStack: -1);
         this.opcodes["core.and"] = opcode.ALU(op: opcode.ALU_e.T_and_N, dDataStack: -1);
         this.opcodes["core.or"] = opcode.ALU(op: opcode.ALU_e.T_or_N, dDataStack: -1);
-        this.opcodes["core.invert"] = opcode.ALU(op: opcode.ALU_e.T);
+        this.opcodes["core.invert"] = opcode.ALU(op: opcode.ALU_e.not_T);
         this.opcodes["core.equals"] = opcode.ALU(op: opcode.ALU_e.N_equals_T, dDataStack: -1);
         this.opcodes["core.lessThanSigned"] = opcode.ALU(op: opcode.ALU_e.N_lts_T, dDataStack: -1);
         this.opcodes["core.lessThanUnsigned"] = opcode.ALU(op: opcode.ALU_e.N_ltu_T, dDataStack: -1);

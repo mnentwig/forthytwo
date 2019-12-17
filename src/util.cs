@@ -11,6 +11,8 @@ static class util {
         // === check minus sign ===
         bool negate = false;
         if(text.StartsWith("-")) {
+            if(text.Length < 2)
+                return false; 
             negate = true;
             text = text.Substring(1);
         }

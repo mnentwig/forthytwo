@@ -6,7 +6,7 @@ This page: At the time of writing a (largely) unordered collection of notes
 
 ## Introduction / Summary
 
-The J1 embedded CPU is an outstanding processor for embedded FPGA applications, remarkable for its minimum size, simplicity and accessibility through Verilator simulation. Unfortunately, the same cannot be said for the Forth-based development environment, a recursion of rabbit holes to trap unwary programmers trying a non-trivial modification to the system.
+The J1 embedded CPU is an outstanding processor for embedded FPGA applications, remarkable for its minimum size, simplicity and accessibility through Verilator simulation. Unfortunately, the same cannot be said for the Forth-based development environment, a recursion of rabbit holes to trap unwary programmers attempting a non-trivial modification to the system.
 
 J1comp starts from a clean slate - it is fully independent of the original build system.
 The input language is very similar to FORTH thanks to the stack machine processor architecture. It makes no claims of formal compatibility.
@@ -102,6 +102,7 @@ Equivalent to C "for (signed int i = myCounterInitVal; i < myLoopLimit; ++i){ ..
 * The comparison is performed at the start of the loop (that is, will iterate zero or more times)
 * The comparison is signed. E.g. looping from -10 to -1 will work, but loop limits -10 to 0 will exit immediately.
 * The loop limit is exclusive. For example, >>>0 3 DO ... LOOP<<< will iterate over 0, 1, and 2
+* The construct uses the return stack for the loop limit
 
 ### Immediate values
 Numbers may be decimal, binary (0b1001), octal (0O12345678) or hexadecimal (0xdeadbeef).

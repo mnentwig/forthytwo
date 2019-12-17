@@ -1,12 +1,24 @@
 // this is a toplevel source file. Give as command line argument to j1comp.
 
 #include(CPU.txt)
+#include(system.txt)
+#include(system.ASCII.txt)
 
 :one
-0x40 0x43 DO
-   dup 0x1000 !io 
- LOOP
-//:end BRA:end
+0				// i loop start
+10				// i loop end 
+DO				// for i
+    >r				// save i
+    system.ascii.a r@ +		// j loop start
+    system.ascii.z 1 + 9 - r@ +		// j loop end
+    DO	// for j
+	dup system.emit
+    LOOP
+    system.ascii.cr 0x1000 !io 
+    system.ascii.nl 0x1000 !io 
+    r>				// restore loop var, clear return stack
+LOOP
+:end BRA:end
 
 BRA:one
 

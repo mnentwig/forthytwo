@@ -1,0 +1,6 @@
+::system.terminate
+	0 0 io! // simulator control register
+;
+::system.emit
+	0x1000 !io
+;
