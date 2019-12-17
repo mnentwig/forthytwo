@@ -7,8 +7,15 @@
 VAR:offset=0
 
 :main
-	CALL:looptest
+	looptestOuter
 	system.terminate
+:looptestOuter
+	-3 3 DO	
+		dup offset !		
+		looptest
+	LOOP
+;
+
 :looptest
 0				// i loop start
 10				// i loop end 
