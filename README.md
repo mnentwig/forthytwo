@@ -6,7 +6,7 @@ This page: At the time of writing a (largely) unordered collection of notes
 
 ## Introduction / Summary
 
-The J1 embedded CPU is an outstanding processor for embedded FPGA applications, remarkable for its minimum size, simplicity and accessibility through Verilator simulation. Unfortunately, the same cannot be said for the Forth-based development environment, a recursion of rabbit holes to trap the unwary programmer foolishly trying a non-trivial modification to the system.
+The J1 embedded CPU is an outstanding processor for embedded FPGA applications, remarkable for its minimum size, simplicity and accessibility through Verilator simulation. Unfortunately, the same cannot be said for the Forth-based development environment, a recursion of rabbit holes to trap unwary programmers trying a non-trivial modification to the system.
 
 J1comp starts from a clean slate - it is fully independent of the original build system.
 The input language is very similar to FORTH thanks to the stack machine processor architecture. It makes no claims of formal compatibility.
