@@ -1,5 +1,5 @@
-# j1comp
-A macro assembler / compiler for the J1 embedded processor
+# forthytwo
+A FORTH-free compiler / macro assembler for the J1 embedded processor
 
 __under construction / partly untested__
 This page: At the time of writing a (largely) unordered collection of notes
@@ -15,6 +15,11 @@ With few exceptions (e.g. 0x1 or 0X1 will be accepted) it is case sensitive.
 
 ### Hardware version
 j1comp targets the J1b CPU (16 bit opcodes, 32 bit data). Note that some of the opcodes differ from older version (e.g. there is no "-1" instruction). If in doubt, compare with "basewords.fs" from the original J1b repo.
+
+### building 
+* Visual Studio: Open .sln file, "Build solution"
+* Mono on Windows: use "Open Mono command prompt" from windows start menu. Navigate to folder containing "buildFromMonoPrompt.bat" and run from command line
+* Mono on Linux: Use same .bat file contents (one-liner) with slash instead of backslash
 
 ### Convention
 In this document, >>><<< is used for code-related punctuation. For example, a double-colon >>>::<<< in combination with a label starts a macro, as in >>>::thisIsMyMacro<<<.
