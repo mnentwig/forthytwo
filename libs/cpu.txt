@@ -1,0 +1,33 @@
+// ============================
+// === J1 Forth-like keywords 
+// ============================
+
+// === 1-cycle ===
+::noop core.noop ;
+::; core.return ;
+::+ core.plus ;
+::^ core.xor ;
+::and core.and ;
+::or core.or ;
+::invert core.invert ;
+::= core.equals ;
+::<s core.lessThanSigned ;
+::<u core.lessThanUnsigned ;
+::swap core.swap ;
+::dup core.dup ;
+::drop core.drop ;
+::over core.over ;
+::nip core.nip ;
+::>r core.pushR ;
+::r@ core.fetchR ;
+::r> core.popR ;
+::>> core.rshift ;
+::<< core.lshift ;
+
+// === 2-cycle ===
+// note, :: creates macro definitions, inserted literally into the code (not via CALL as functions with : ... ; )
+::@ core.fetch1 core.fetch2 ;
+::! core.sto1 core.sto2 ;
+::@io core.ioFetch1 core.ioFetch2 ;
+::!io core.ioSto1 core.ioSto2 ;
+
