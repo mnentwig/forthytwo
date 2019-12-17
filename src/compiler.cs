@@ -401,6 +401,10 @@ class compiler {
                 flowcontrol exitBranch = fc.Pop(); if(exitBranch.t != flowcontrol.t_e.DO_EXITBRANCH) throw tt.buildException("LOOP without DO (check for open flow control e.g. IF without ENDIF)");
                 flowcontrol startLabel = fc.Pop(); if(startLabel.t != flowcontrol.t_e.DO_STARTLABEL) throw tt.buildException("LOOP internal error");
 
+                // === increase counter ===
+                this.writeCode("core.imm"+util.hex4((UInt16)1), "'DO' counter increment value" + tt.getAnnotation() + " ");
+                this.writeCode("core.plus", "'DO' counter increment " + tt.getAnnotation() + " ");
+
                 // === jump back to start of loop ===
                 this.writeCode("core.bra"+util.hex4((UInt16)startLabel.addr), "'DO' jump backwards to comparison " + tt.getAnnotation() + " ");
 

@@ -2,6 +2,15 @@
 
 #include(CPU.txt)
 
+:one
+0x40 0x43 DO
+   dup 0x1000 !io 
+ LOOP
+//:end BRA:end
+
+BRA:one
+
+
 :start
 0x40	// @
 :nextChar
