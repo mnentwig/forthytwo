@@ -1,6 +1,6 @@
 .vs
-forthytwo/out/*
-forthytwo/bin/*
-forthytwo/obj/*
+src/out/*
+src/bin/*
+src/obj/*
 libs/out/*
 *~

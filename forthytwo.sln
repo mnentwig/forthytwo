@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28307.421
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "forthytwo", "forthytwo\forthytwo.csproj", "{C855F4FD-5F74-4F90-AD16-62648E9D4A4A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "forthytwo", "src\forthytwo.csproj", "{C855F4FD-5F74-4F90-AD16-62648E9D4A4A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

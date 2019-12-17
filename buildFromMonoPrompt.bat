@@ -1,0 +1,1 @@
+csc -out:bin\forthytwo.exe src\main.cs src\preprocessor.cs src\compiler.cs src\lstFileWriter.cs src\util.cs
