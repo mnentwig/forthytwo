@@ -28,8 +28,8 @@
 // note, :: creates macro definitions, inserted literally into the code (not via CALL as functions with : ... ; )
 ::@ core.fetch1 core.fetch2 ;
 ::! core.sto1 core.sto2 ;
-::@io core.ioFetch1 core.ioFetch2 ;
-::!io core.ioSto1 core.ioSto2 ;
+::io@ core.ioFetch1 core.ioFetch2 ;
+::io! core.ioSto1 core.ioSto2 ;
 
 // === software-implemented standard operations ===
 ::- core.invert core.plus 1 core.plus ;

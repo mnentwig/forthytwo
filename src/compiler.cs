@@ -342,14 +342,6 @@ class compiler {
                 continue;
             }
 
-            if(t.StartsWith("CALL:")) {
-                t = t.Substring(3);
-                fcBranch.Add(new flowcontrol2() { t = flowcontrol2.t_e.CALL, addr = this.codeMemPtr, label = t, src = tt });
-                string m = "core.call"+util.hex4(/*will be updated in the 2nd pass */0);
-                this.writeCode(mnemonic: m, annotation: tt.body + " " + tt.getAnnotation() + " ");
-                continue;
-            }
-
             if(t == "IF") {
                 fc.Push(new flowcontrol() { t = flowcontrol.t_e.IF, addr = this.codeMemPtr, src = tt });
                 string m = "core.bz"+util.hex4(/*will be updated when the destination address is reached*/0);
@@ -459,18 +451,24 @@ class compiler {
             }
 
             // === Mnemonic to numerical opcode ===
-            if(!this.opcodes.ContainsKey(t)) throw tt.buildException("unknown token '"+t+"'");
+            if(this.opcodes.ContainsKey(t)) {
+                this.writeCode(t, tt.getAnnotation());
+                continue;
+            }
 
-            UInt16 opc = this.opcodes[t];
+            if(t.StartsWith("CALL:"))
+                t = t.Substring(5);
 
-            // === write to memory ===
-            this.writeCode(t, tt.getAnnotation());
+            fcBranch.Add(new flowcontrol2() { t = flowcontrol2.t_e.CALL, addr = this.codeMemPtr, label = t, src = tt });
+            string m5 = "core.call"+util.hex4(/*will be updated in the 2nd pass */0);
+            this.writeCode(mnemonic: m5, annotation: tt.body + " " + tt.getAnnotation() + " ");
         }
 
         // === update (possibly) backwards branches)
         foreach(flowcontrol2 f in fcBranch) {
             string m = null;
-            if(!this.codeSymbols.ContainsKey(f.label)) throw f.src.buildException("label not found (must be defined using : )");
+            if(!this.codeSymbols.ContainsKey(f.label))
+                throw f.src.buildException("label '"+f.label+"' not found (must be defined using : )");
             string aHex = util.hex4((UInt16)this.codeSymbols[f.label]);
             switch(f.t) {
                 case flowcontrol2.t_e.BRA:

@@ -100,7 +100,7 @@ Equivalent to C "for (signed int i = myCounterInitVal; i < myLoopLimit; ++i){ ..
 
 * The loop variable i is available to code1 and expected on the stack at >>>LOOP<<<. It may be modified by the loop body.
 * The comparison is performed at the start of the loop (that is, will iterate zero or more times)
-* The comparison is signed. E.g. looping from -10 to -1 will work, but loop limits -10 to 0 will exit immediately.
+* The comparison is signed.
 * The loop limit is exclusive. For example, >>>0 3 DO ... LOOP<<< will iterate over 0, 1, and 2
 * The construct uses the return stack for the loop limit
 

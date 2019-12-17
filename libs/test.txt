@@ -4,7 +4,12 @@
 #include(system.txt)
 #include(system.ASCII.txt)
 
-:one
+VAR:offset=0
+
+:main
+	CALL:looptest
+	system.terminate
+:looptest
 0				// i loop start
 10				// i loop end 
 DO				// for i
@@ -12,21 +17,20 @@ DO				// for i
     system.ascii.a r@ +		// j loop start
     system.ascii.z 1 + 9 - r@ +		// j loop end
     DO	// for j
-	dup system.emit
+	dup offset @ + system.emit
     LOOP
-    system.ascii.cr 0x1000 !io 
-    system.ascii.nl 0x1000 !io 
+    system.ascii.cr system.emit
+    system.ascii.nl system.emit
     r>				// restore loop var, clear return stack
 LOOP
-:end BRA:end
+;
 
-BRA:one
 
 
 :start
 0x40	// @
 :nextChar
-dup 0x1000 !io 
+dup 0x1000 io!
 
 dup 0x60 = IF 
      drop 
