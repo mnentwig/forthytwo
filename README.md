@@ -8,13 +8,13 @@ This page: At the time of writing a (largely) unordered collection of notes
 
 The J1 embedded CPU is an outstanding processor for embedded FPGA applications, remarkable for its minimum size, simplicity and accessibility through Verilator simulation. Unfortunately, the same cannot be said for the Forth-based development environment, a recursion of rabbit holes to trap unwary programmers attempting a non-trivial modification to the system.
 
-J1comp starts from a clean slate - it is fully independent of the original build system.
+Forthytwo starts from a clean slate - it is fully independent of the original build system.
 The input language is very similar to FORTH thanks to the stack machine processor architecture. It makes no claims of formal compatibility.
 
 With few exceptions (e.g. 0x1 or 0X1 will be accepted) it is case sensitive.
 
 ### Hardware version
-j1comp targets the J1b CPU (16 bit opcodes, 32 bit data). Note that some of the opcodes differ from older version (e.g. there is no "-1" instruction). If in doubt, compare with "basewords.fs" from the original J1b repo.
+forthytwo targets the J1b CPU (16 bit opcodes, 32 bit data). Note that some of the opcodes differ from older version (e.g. there is no "-1" instruction). If in doubt, compare with "basewords.fs" from the original J1b repo.
 
 ### building 
 * Visual Studio: Open .sln file, "Build solution"
@@ -26,7 +26,7 @@ In this document, >>><<< is used for code-related punctuation. For example, a do
 As a general guideline, directives involving compiler "magic" e.g. IF-ELSE-ENDIF generation, BRA(nch) label resolution or VAR(iable) creation use upper case.
 
 ### Usage
-Build the C# project (Visual Studio, mono or any C# compiler should be sufficient) and run j1comp.exe, giving the top level source file as arguments (or several).
+Build the C# project (Visual Studio, mono or any C# compiler should be sufficient) and run forthytwo.exe, giving the top level source file as arguments (or several).
 The path of the source file defines the top level folder for including other files.
 
 Output is generated at the location of the first input file in a (possibly new) folder out/
@@ -34,16 +34,16 @@ The mySource.hex output can be read using the unmodified J1B Verilator simulatio
 
 The mySource.lst output provides a human-readable description of the generated output.
 
-### Note on whitespace and comments 
-j1comp uses compound keywords such as >>>var:myVariable=1234<<< that may not contain whitespace characters for formatting.
-
-Filenames may contain space characters (use the exact operating system file name without "escaping" spaces). 
-
-There are no special rules for punctuation characters, e.g. >>>;<<< is no different from any other token and therefore must be separated by whitespace
+### Note on whitespace characters (space, tab, newline)
+* forthytwo makes heavy use of compound keywords such as >>>var:myVariable=1234<<< that may _not_ contain whitespace characters for formatting.
+* Filenames in >>>#include(...)<<< _may_ contain space characters (use the exact operating system file name without "escaping" spaces). 
+* There are no special rules for punctuation characters, e.g. >>>;<<< is no different from any other token and therefore must be separated by whitespace
+* In code, whitespace characters serve no other role than token separation
 
 ### Note on symbol names
 Any character sequence free of whitespaces that fails to parse as a number may be used as symbol. A symbol may be used only for one purpose (macro, code label, data label) at a time.
 Redefining any symbol (built-in and user) is not possible and leads to an error.
+Lower- and mixed case variants of built-in ALL-CAPS words are forbidden.
 
 ### Note on library.symbol naming scheme in the included libraries
 The dot-separated hierarchical naming scheme (e.g. >>>core.drop<<< is an arbitrary coding convention to improve readibility and avoid name clashes. The dot itself has no special meaning to the compiler.

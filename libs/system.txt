@@ -1,6 +1,16 @@
 ::system.terminate
 	0 0 io! // simulator control register
 ;
-::system.emit
-	0x1000 io!
+:system.emit
+    BEGIN
+	 0x2000 io@ 
+	 1 and 0 =
+	 core.invert
+    UNTIL
+    0x1000 io!
+;
+
+:system.emit.cr
+    system.ascii.cr system.emit
+    system.ascii.nl system.emit
 ;

@@ -293,7 +293,8 @@ class compiler {
     class flowcontrol {
         public enum t_e {
             IF, ELSE,
-            DO_STARTLABEL, DO_EXITBRANCH
+            DO_STARTLABEL, DO_EXITBRANCH,
+            BEGIN, UNTIL
         };
         public t_e t;
         public UInt32 addr;
@@ -308,6 +309,8 @@ class compiler {
         public token src;
     }
 
+    static readonly HashSet<string> builtinKeywords = new HashSet<string>() { "IF", "ELSE", "ENDIF", "DO", "LOOP", "BEGIN", "UNTIL"};
+
     public void renderBinary(List<token> tokens) {
         // backannotation for flow control constructs
         Stack<flowcontrol> fc = new Stack<flowcontrol>();
@@ -317,6 +320,9 @@ class compiler {
         for(int ix = 0; ix < tokens.Count; ++ix) {
             token tt = tokens[ix];
             string t = tt.body;
+
+            if(builtinKeywords.Contains(t.ToUpper()) && !builtinKeywords.Contains(t))
+                throw tt.buildException("lower-/mixed case variants of built-in keywords ('"+t+"') are not permitted");
 
             if(t == "#EOF") {
                 if(fc.Count > 0) {
@@ -342,6 +348,21 @@ class compiler {
                 continue;
             }
 
+            if(t == "BEGIN") {
+                this.lstFileWriter.annotateCodeLabel(this.codeMemPtr, "__BEGIN__ loop label");
+                fc.Push(new flowcontrol() { t = flowcontrol.t_e.BEGIN, addr = this.codeMemPtr, src = tt });
+                continue;
+            }
+
+            if(t == "UNTIL") {
+                if(fc.Peek().t != flowcontrol.t_e.BEGIN) throw new Exception("'UNTIL' without matching 'BEGIN'");
+                //this.writeCode("core.invert", "UNTIL invert exit condition" + tt.getAnnotation() + " ");
+                string m = "core.bz"+util.hex4((UInt16)fc.Peek().addr);
+                this.writeCode(m, "UNTIL loop if-not-exit" + tt.getAnnotation() + " ");
+                fc.Pop();
+                continue;
+            }
+
             if(t == "IF") {
                 fc.Push(new flowcontrol() { t = flowcontrol.t_e.IF, addr = this.codeMemPtr, src = tt });
                 string m = "core.bz"+util.hex4(/*will be updated when the destination address is reached*/0);
@@ -352,29 +373,39 @@ class compiler {
             if(t == "ELSE") {
                 if(fc.Count < 1) throw tt.buildException("'else' without 'if'");
                 if(fc.Peek().t != flowcontrol.t_e.IF) throw new Exception("'else' without matching 'if'");
-                fc.Push(new flowcontrol() { t = flowcontrol.t_e.ELSE, addr = this.codeMemPtr, src = tt });
                 string m = "core.bra"+util.hex4(/*will be updated when the destination address is reached*/0);
                 this.writeCode(m, "'skip-else' branch" + tt.getAnnotation() + " ");
+                // note: the flowcontrol entry is one instruction behind the skip-else branch
+                fc.Push(new flowcontrol() { t = flowcontrol.t_e.ELSE, addr = this.codeMemPtr, src = tt });
                 continue;
             }
 
             if(t == "ENDIF") {
-                if(fc.Count < 1) throw tt.buildException("dangling endif");
-                if(fc.Peek().t == flowcontrol.t_e.ELSE) {
-                    // === modify the unconditional branch before "else" to jump to current address
-                    string m1 = "core.bra"+util.hex4((UInt16)this.codeMemPtr);
-                    this.codeToMem(fc.Peek().addr, m1, /*already annotated*/null);
-                    this.lstFileWriter.annotateCodeLabel(this.codeMemPtr, "else bypass target");
-                    fc.Pop();
-                }
+                if(fc.Count < 1) throw tt.buildException("dangling ENDIF");
 
-                if(fc.Count < 1) throw tt.buildException("dangling endif");
-                if(fc.Peek().t != flowcontrol.t_e.IF) throw tt.buildException("'endif' without matching 'if'");
-                // === modify the "if-not" conditional branch to jump to current address
-                string m2 = "core.bz"+util.hex4((UInt16)this.codeMemPtr);
-                this.codeToMem(fc.Peek().addr, m2, /*already annotated */null);
-                this.lstFileWriter.annotateCodeLabel(this.codeMemPtr, "if (not) target");
-                fc.Pop();
+                if(fc.Peek().t == flowcontrol.t_e.ELSE) {
+                    // === IF-THEN-ENDIF construct ===
+                    flowcontrol fcElse = fc.Pop();
+                    if(fc.Count < 1) throw tt.buildException("dangling ENDIF");
+                    if(fc.Peek().t != flowcontrol.t_e.IF) throw tt.buildException("dangling ENDIF");
+                    flowcontrol fcIf = fc.Pop();
+
+                    // === modify the unconditional branch before "else" to jump to current address
+                    this.codeToMem(fcElse.addr-1, "core.bra"+util.hex4((UInt16)this.codeMemPtr), /*already annotated*/null);
+                    this.lstFileWriter.annotateCodeLabel(this.codeMemPtr, "else bypass target");
+
+                    // === update the IF branch to point to the ELSE section ===
+                    this.codeToMem(fcIf.addr, "core.bz"+util.hex4((UInt16)fcElse.addr), /*already annotated */null);
+                    this.lstFileWriter.annotateCodeLabel(this.codeMemPtr, "if-not target");
+                } else {
+                    // === IF-ENDIF construct ===
+                    if(fc.Count < 1) throw tt.buildException("dangling ENDIF");
+                    if(fc.Peek().t != flowcontrol.t_e.IF) throw tt.buildException("dangling ENDIF");
+                    flowcontrol fcIf = fc.Pop();
+
+                    this.codeToMem(fcIf.addr, "core.bz"+util.hex4((UInt16)this.codeMemPtr), /*already annotated */null);
+                    this.lstFileWriter.annotateCodeLabel(this.codeMemPtr, "if-not target");
+                }
                 continue;
             }
 
@@ -438,7 +469,7 @@ class compiler {
 
             // === direct use of code label => CALL ===
             if(this.codeSymbols.ContainsKey(t)) {
-                string mnem = "core.CALL"+util.hex4((UInt16)this.codeSymbols[t]);
+                string mnem = "core.call"+util.hex4((UInt16)this.codeSymbols[t]);
                 this.writeCode(mnem, "call "+tt.getAnnotation());
                 continue;
             }

@@ -1,5 +1,5 @@
 // this is a toplevel source file. Give as command line argument to j1comp.
-
+BRA:main // skip over function definitions
 #include(CPU.txt)
 #include(system.txt)
 #include(system.ASCII.txt)
@@ -7,8 +7,50 @@
 VAR:offset=0
 
 :main
+	IF_BRA_BC_test
 	looptestOuter
 	system.terminate
+
+:IF_BRA_BC_test
+BRA:label2
+	system.ascii.a
+
+	// ============================================
+	// === test BZ, BRA
+	// ============================================
+  :label1
+	// compare with end-of-loop
+	dup system.ascii.z 1 + core.lessThanSigned BZ:label2
+	1 +
+	BRA:label1
+  :label2
+	
+	// ============================================
+	// === test BEGIN ... UNTIL construct
+	// ============================================
+	system.ascii.A
+	BEGIN
+		// ============================================
+		// === test IF ... ELSE ... ENDIF construct
+		// ============================================
+		dup // value to emit
+		dup 1 and 1 = IF
+		    0x20 core.or // odd characters: to lower case
+		ELSE
+		    dup system.emit // even characters: write twice
+		ENDIF	    
+		system.emit
+
+		// increase loop var
+		1 +
+
+		// exit condition
+		dup system.ascii.Z 1 + =
+	UNTIL
+	drop // clean up loop var
+	system.emit.cr
+;
+
 :looptestOuter
 	-3 3 DO	
 		dup offset !		
@@ -24,7 +66,8 @@ DO				// for i
     system.ascii.a r@ +		// j loop start
     system.ascii.z 1 + 9 - r@ +		// j loop end
     DO	// for j
-	dup offset @ + system.emit
+	dup offset @ + 
+	system.emit
     LOOP
     system.ascii.cr system.emit
     system.ascii.nl system.emit

@@ -7,7 +7,7 @@ static class main {
         string destHexFilename = null;
         string destLstFilename = null;
         try {
-             //args = new string[] { "../../../libs/test.txt" }; Console.WriteLine("DEBUG: hardcoded args");
+            // args = new string[] { "../../../libs/test.txt" }; Console.WriteLine("DEBUG: hardcoded args");
 
             if(args.Length < 1) throw new Exception("no input files");
 
