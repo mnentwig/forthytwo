@@ -239,6 +239,7 @@ class compiler {
         this.opcodes["core.rshift"] = opcode.ALU(op: opcode.ALU_e.N_rshift_T, dDataStack: -1);
         this.opcodes["core.lshift"] = opcode.ALU(op: opcode.ALU_e.N_lshift_T, dDataStack: -1);
         this.opcodes["core.return"] = opcode.ALU(op: opcode.ALU_e.T, doRet: true, dRetStack: -1);
+        this.opcodes["core.depth"] = opcode.ALU(op: opcode.ALU_e.depth, path: opcode.path_e.T2N, dDataStack: 1);
 
         // replace any literal numbers with instructions that push the value
         tokens = this.pass_num2IMM(tokens);

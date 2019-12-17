@@ -33,3 +33,5 @@
 
 // === software-implemented standard operations ===
 ::- core.invert core.plus 1 core.plus ;
+::>s swap core.lessThanSigned ;
+::>u swap core.lessThanUnsigned ;

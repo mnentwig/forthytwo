@@ -14,3 +14,17 @@
     system.ascii.cr system.emit
     system.ascii.nl system.emit
 ;
+
+:system.emit.hex8 dup 0x10 core.rshift CALL:system.emit.hex4
+:system.emit.hex4 dup 0x8 core.rshift CALL:system.emit.hex2
+:system.emit.hex2 dup 0x4 core.rshift CALL:system.emit.hex1
+:system.emit.hex1
+    0xf and
+    dup 10 <s IF
+        system.ascii.0
+    ELSE
+        87 // 'a'-10 (use lower case for C sprintf compatibility)
+    ENDIF
+    +
+    system.emit
+;

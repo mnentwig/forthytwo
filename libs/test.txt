@@ -6,7 +6,16 @@ BRA:main // skip over function definitions
 
 VAR:offset=0
 
+:ok	system.ascii.o system.emit system.ascii.k system.emit system.emit.cr ;
+:err	system.ascii.e system.emit system.ascii.r system.emit system.ascii.r system.emit system.emit.cr ;
+
 :main
+
+	// ============================================
+	// === test initial stack depth 0
+	// ============================================
+	core.depth 0 = IF ok ELSE err ENDIF
+
 	IF_BRA_BC_test
 	looptestOuter
 	system.terminate
@@ -52,6 +61,9 @@ BRA:label2
 ;
 
 :looptestOuter
+	// ============================================
+	// === test variable
+	// ============================================
 	-3 3 DO	
 		dup offset !		
 		looptest
@@ -59,20 +71,23 @@ BRA:label2
 ;
 
 :looptest
-0				// i loop start
-10				// i loop end 
-DO				// for i
-    >r				// save i
-    system.ascii.a r@ +		// j loop start
-    system.ascii.z 1 + 9 - r@ +		// j loop end
-    DO	// for j
-	dup offset @ + 
-	system.emit
-    LOOP
-    system.ascii.cr system.emit
-    system.ascii.nl system.emit
-    r>				// restore loop var, clear return stack
-LOOP
+	// ============================================
+	// === test DO-LOOP construct
+	// ============================================
+	0				// i loop start
+	10				// i loop end 
+	DO				// for i
+		>r				// save i
+		system.ascii.a r@ +		// j loop start
+		system.ascii.z 1 + 9 - r@ +		// j loop end
+		DO	// for j
+			dup offset @ + 
+			system.emit
+		LOOP
+		system.ascii.cr system.emit
+		system.ascii.nl system.emit
+	r>				// restore loop var, clear return stack
+	LOOP
 ;
 
 
