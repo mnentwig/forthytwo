@@ -22,19 +22,16 @@ int main(void){
       uint64_t C = (int64_t)B;
       uint32_t D = C;
       uint32_t E = C >> 32;
-      printf("%08x %08x %08x\r\n",
-	     //%08x %08x %08x %08x %08x \r\n",
+      printf("%08x %08x %08x %08x %08x %08x %08x %08x \r\n",
 	     arg1, 
 	     arg2, 
-	     prod32x32
-	     //, 
-	     //	     prod16x32, 
-	     //	     prod32x32Lo, 
-	     //	     prod32x32Hi,
-	     //	     D, 
-	     //	     E
-	     );
-
+	     prod32x32,
+	     prod16x32, 
+	     prod32x32Lo, 
+	     prod32x32Hi,
+	     D, 
+	     E);
+      
       SHIFT32(arg1); SHIFT32(arg2);
     }
   return EXIT_SUCCESS;

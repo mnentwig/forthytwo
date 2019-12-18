@@ -55,7 +55,7 @@ static class main {
 
             return 0; // EXIT_SUCCESS 
         } catch(Exception e) {            
-            Console.Error.WriteLine(e.Message);
+            Console.Error.WriteLine("Error: "+e.Message);
             return -1; // EXIT_FAILURE 
         }
     }

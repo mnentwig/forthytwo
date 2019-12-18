@@ -3,7 +3,7 @@
 // address 0 (reset vector)
 BRA:main // skip over code from included files
 
-#include(../CPU.txt)
+#include(../core.txt)
 #include(../system.txt)
 #include(../system.ASCII.txt)
 #include(../math.txt)
@@ -47,6 +47,30 @@ VAR:testMath.arg2=0x98765432 // state of LFSR2 pseudorandom number
 	math.u32*u32
 	system.emit.hex8 system.emit.space
 
+	// ====================================================
+	// write col4 u16*u32
+	// ====================================================
+	__pushBothLfsr
+	swap 
+	0xFFFF and swap	//mask arg1 to 16 bit
+	math.u16*u32
+	system.emit.hex8 system.emit.space
+
+	// ====================================================
+	// wire col5 (L) and col 6 (H) of u32xu32x2
+	// ====================================================
+	__pushBothLfsr
+	math.u32*u32x2
+	system.emit.hex8 system.emit.space
+	system.emit.hex8 system.emit.space
+
+	// ====================================================
+	// wire col7 (L) and col 8 (H) of s32xs32x2
+	// ====================================================
+   	__pushBothLfsr
+	math.s32*s32x2
+	system.emit.hex8 system.emit.space
+	system.emit.hex8 system.emit.space
 
 	// ====================================================
 	// end of line

@@ -14,32 +14,6 @@ create math.scratchMidSum 0 ,
 
 : math.negate    invert d# 1 + ;
 
-\ input u1 : modifA
-\ input u2 : acc
-\ input: multiplicandB in "math.scratch"
-\ output u2 : updated acc
-\ output u1 : new modifA
-: __mul32step ( u2 u1 -- u2 u1 )
-    DOUBLE 			\ binary iteration for 2x 16 bits
-: __mul16step
-    DOUBLE DOUBLE DOUBLE DOUBLE \ binary iteration over 16 bits
-    >r 				\ save modifA
-    d# 1 lshift			\ shift acc further left
-    r@ d# 0 < if 		\ test MSB of modifA
-        math.scratch @ +	\ if bit is set, add B to acc
-    then 		
-    r> d# 1 lshift		\ restore modifA and shift
-;
-
-\ input: A32 multiplicand
-\ input: B32 multiplicand
-\ output: product
-: math.u32*u32 ( u32 u32 -- u32 )
-    math.scratch !	\ store B32
-    d# 0 swap 		\ initialize acc
-    __mul32step 	\ run multiplication
-    drop		\ remove modified A
-;
 
 \ input: A16 multiplicand
 \ input: B32 multiplicand

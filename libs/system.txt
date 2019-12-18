@@ -32,3 +32,12 @@
     +
     system.emit
 ;
+
+:system.dumpStack
+	system.emit.cr 
+	system.emit.cr
+:__system.dumpStack
+	core.depth 0 = IF core.return ENDIF
+	core.depth -1 + system.emit.hex2 system.emit.space system.emit.hex8 system.emit.cr
+	BRA:__system.dumpStack
+	

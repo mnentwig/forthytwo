@@ -50,6 +50,4 @@ static class util {
     public static string hex8(UInt32 val) {
         return String.Format("0x{0:X08}", val);
     }
-
-
 }

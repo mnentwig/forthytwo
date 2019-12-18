@@ -149,7 +149,6 @@ public static class preprocessor {
             tokens = new List<token>();
         foreach(token t in tokens3) {
             if(t.body.StartsWith("#include(")) {
-                Console.WriteLine(t.body);
                string dirAndFilename = t.body.Substring(/* remove left side #include" */9, t.body.Length-9/*remove right-side double quote*/-1);
                string filename = System.IO.Path.GetFileName(dirAndFilename);
 

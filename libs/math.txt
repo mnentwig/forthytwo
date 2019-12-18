@@ -4,7 +4,7 @@ VAR:math.scratchALo=0
 VAR:math.scratchAHi=0
 VAR:math.scratchBLo=0
 VAR:math.scratchBHi=0
-\ partial products for 32x32=>64 multiplication
+// partial products for 32x32=>64 multiplication
 VAR:math.scratchLL=0
 VAR:math.scratchLH=0
 VAR:math.scratchHL=0
@@ -49,24 +49,24 @@ VAR:math.scratchMidSum=0
 // output: product
 :math.u16*u32		// ( u16 u32 -- u32 )
     'math.scratch !	// store B32
-    16 lshift	  	// adjust A16 for MSB check in 32 hardware bits
+    16 core.lshift	  	// adjust A16 for MSB check in 32 hardware bits
     0 swap 		// initialize acc
     __mul16step 	// run multiplication
     drop		// remove modified A
 ;
 
-/ input: A32 multiplicand
-/ input: B32 multiplicand
-/ output: product [63:32]
-/ output: product [31:0]
+// input: A32 multiplicand
+// input: B32 multiplicand
+// output: product [63:32]
+// output: product [31:0]
 :math.u32*u32x2			// ( u32 u32 -- u32 u32 )
     0xFFFF >r			// 16 low bit mask on rstack
     dup r@ and 'math.scratchBLo !
     swap 			// push back B, continue on A
     dup r> and 'math.scratchALo ! 
 
-    16 rshift 'math.scratchAHi ! 
-    16 rshift 'math.scratchBHi ! 
+    16 core.rshift 'math.scratchAHi ! 
+    16 core.rshift 'math.scratchBHi ! 
     	 			// stack is now empty
 
     // === cross terms ====				
@@ -88,8 +88,8 @@ VAR:math.scratchMidSum=0
 
     // === add cross terms to low result ===
     'math.scratchLL @
-    'math.scratchLH @ 16 lshift +
-    'math.scratchHL @ 16 lshift +
+    'math.scratchLH @ 16 core.lshift +
+    'math.scratchHL @ 16 core.lshift +
 
     // === high result ===
     'math.scratchAHi @		// HH
@@ -97,17 +97,17 @@ VAR:math.scratchMidSum=0
     math.u16*u32
 
     // === add cross terms to high result ===
-    'math.scratchLH @ 16 rshift +
-    'math.scratchHL @ 16 rshift +
+    'math.scratchLH @ 16 core.rshift +
+    'math.scratchHL @ 16 core.rshift +
 
     // === carry === // TBD omit one "and"?
-    'math.scratchLL @ 16 rshift
+    'math.scratchLL @ 16 core.rshift
     'math.scratchLH @ 0xFFFF and
     'math.scratchHL @ 0xFFFF and
     +    
     +
 
-    16 rshift			// carry = ((LL >> 16) + (LH+HL)[31:0]) >> 16
+    16 core.rshift		// carry = ((LL >> 16) + (LH+HL)[31:0]) >> 16
     + 				// add carry to high result
 
     swap			// return 0:lowRes, 1:highRes
@@ -123,16 +123,16 @@ VAR:math.scratchMidSum=0
 	swap 			// flip word order: correction will be applied to res[63:32]
 
 	'math.scratch.A @	
-	0 < if 
+	0 <s IF 
 		'math.scratch.B @
-	else
+	ELSE
 		0
-	then
+	ENDIF
 	'math.scratch.B @
-	0 0 < if 
+	0 <s IF 
 		'math.scratch.A @
 		+
-	then
+	ENDIF
 
 	math.negate		// subtract correction term
 	+

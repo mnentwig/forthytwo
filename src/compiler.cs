@@ -50,50 +50,40 @@ class compiler {
         // === TBD: use fetch ===
         // also in support of shift register reduction (32 bit barrel shifter is expensive...)
 
-        if(val <= 0x7FFF) {
-            tokens.Add(new token("core.imm"+util.hex4((UInt16)val), tRef, annotation));
-        } else if(~val <= 0x7FFFF) {
-            tokens.Add(new token("core.imm"+util.hex4((UInt16)~val), tRef, annotation));
-            tokens.Add(new token("core.invert", tRef));
+        if(val == 0) {
+            tokens.Add(new token("core.imm"+util.hex4(0), tRef, annotation));
         } else {
-            UInt32 hi = val >> 16;
-            UInt32 lo = val & 0xFFFF;
 
-            if((hi > 0x7FFF) && (lo > 0x7FFF)) {
-                tokens.Add(new token("core.imm"+util.hex4((UInt16)~hi), tRef, annotation));
-                tokens.Add(new token("core.imm"+util.hex4(16), tRef));
-                tokens.Add(new token("core.lshift", tRef));    // 0:[~high,0000]
-                tokens.Add(new token("core.imm"+util.hex4((UInt16)~lo), tRef));
-                tokens.Add(new token("core.or", tRef));        // 0:[~high,~low]
-                tokens.Add(new token("core.invert", tRef));    // 0: [high,low]
-            } else if(hi > 0x7FFF) {
-                tokens.Add(new token("core.imm"+util.hex4((UInt16)~hi), tRef, annotation));
-                tokens.Add(new token("core.invert", tRef));
-                tokens.Add(new token("core.imm"+util.hex4(16), tRef));
-                tokens.Add(new token("core.lshift", tRef));    // 0: [high, 0000]
-                tokens.Add(new token("core.imm"+util.hex4((UInt16)lo), tRef));
-                tokens.Add(new token("core.or", tRef));
-            } else if(lo > 0x7FFF) {
-                // difficulty: cannot invert lo in 16 bits
+            UInt32 hi = val >> 16;
+            UInt32 lo = (val & 0xFFFF);
+            int nStack = 0;
+            if((hi & 0x8000) != 0) {
+                UInt16 hi16 = (UInt16)~hi;
+                tokens.Add(new token("core.imm"+util.hex4(hi16), tRef, annotation));
+                tokens.Add(new token("core.invert", tRef, annotation));
+                tokens.Add(new token("core.imm"+util.hex4(16), tRef, annotation));
+                tokens.Add(new token("core.lshift", tRef, annotation));
+                ++nStack;
+            } else if(hi != 0) {
                 tokens.Add(new token("core.imm"+util.hex4((UInt16)hi), tRef, annotation));
-                tokens.Add(new token("core.imm"+util.hex4((UInt16)16), tRef));
-                tokens.Add(new token("core.lshift", tRef));
-                tokens.Add(new token("core.invert", tRef));    // 0:[~high,FFFF]
-                tokens.Add(new token("core.imm"+util.hex4((UInt16)~lo), tRef));     // 1:[~high,FFFF] 0: [0000,~low]
-                tokens.Add(new token("core.invert", tRef));    // 1:[~high,FFFF] 0: [FFFF,low]
-                tokens.Add(new token("core.xor", tRef));       // 0: [high,low]
-            } else {
-                if(hi != 0) {
-                    tokens.Add(new token("core.imm"+util.hex4((UInt16)hi), tRef, annotation));
-                    tokens.Add(new token("core.imm"+util.hex4(16), tRef));
-                    tokens.Add(new token("core.lshift", tRef));
-                }
-                if((lo != 0) || (hi == 0)) {
-                    tokens.Add(new token("core.imm"+util.hex4((UInt16)lo), tRef, annotation));
-                }
-                if(hi != 0)
-                    tokens.Add(new token("core.xor", tRef));
+                tokens.Add(new token("core.imm"+util.hex4(16), tRef, annotation));
+                tokens.Add(new token("core.lshift", tRef, annotation));
+                ++nStack;
             }
+
+            if(lo != 0) {
+                while(lo != 0) {
+                    int delta = Math.Min((int)lo, 0x7FFF);
+                    tokens.Add(new token("core.imm"+util.hex4((UInt16)delta), tRef, annotation));
+                    lo -= (UInt32)delta;
+                    ++nStack;
+                    while(nStack > 1) {
+                        tokens.Add(new token("core.plus", tRef, annotation));
+                        --nStack;
+                    }
+                }
+            }
+            if(nStack != 1) throw new Exception();
         }
     }
 
@@ -283,6 +273,10 @@ class compiler {
         // code memory is native 32 bit but to the CPU it appears as 16 bit
         // with low-high multiplexed in RTL
         UInt32 wordAddr = addr >> 1;
+
+        if(wordAddr >= this.mem.Length)
+            throw new Exception("code exceeds memory size");
+
         bool isLow = (addr & 1) == 0;
         if(isLow) {
             this.mem[wordAddr] &= 0xFFFF0000;
@@ -302,7 +296,10 @@ class compiler {
 
     void writeData(UInt32 data, string token) {
         this.lstFileWriter.annotateData(this.dataMemPtr, data, token);
-        this.mem[this.dataMemPtr >> 2] = data;
+        UInt32 wrAddr = this.dataMemPtr >> 2;
+        if(wrAddr > this.mem.Length)
+            throw new Exception("data write exceeds memory size");
+        this.mem[wrAddr] = data;
         this.dataMemPtr += 4;
     }
 
@@ -338,7 +335,7 @@ class compiler {
             string t = tt.body;
 
             if(builtinKeywords.Contains(t.ToUpper()) && !builtinKeywords.Contains(t))
-                throw tt.buildException("lower-/mixed case variants of built-in keywords ('"+t+"') are not permitted");
+                throw tt.buildException("lower-/mixed case variants of built-in keyword >>>"+t+"<<< is not permitted");
 
             if(t == "#EOF") {
                 if(fc.Count > 0) {
@@ -466,7 +463,15 @@ class compiler {
                 string[] t3 = t2.Split('=');
                 if(t3.Length != 2) throw tt.buildException("VAR: invalid syntax, expecting VAR:name:value");
                 string n = t3[0];
-                if(!util.tryParseNum(t3[1], out uint val)) throw tt.buildException("VAR: invalid syntax. Failed to parse value in VAR:name=value");
+
+                bool flag; uint val;
+                try {
+                    flag = util.tryParseNum(t3[1], out val);
+                } catch(Exception e) {
+                    throw tt.buildException(e);
+                }
+
+                if(!flag) throw tt.buildException("VAR: invalid syntax. Failed to parse value in VAR:name=value");
                 string prevDef = this.nameExists(n);
                 if(prevDef != null) throw tt.buildException("VAR: name already exists as "+prevDef);
                 this.dataSymbols[n] = this.dataMemPtr;
