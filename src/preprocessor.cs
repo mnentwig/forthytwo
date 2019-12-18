@@ -60,7 +60,6 @@ public static class preprocessor {
         // === collect atomic sections (strings, comments) ===
         int cursor = 0;
         string[] groups = new string[] { // opener-closer pairs
-            " '", "' ",
             " \"", "\" ",
             " /*", "*/ ",
             "//", "#newline",
@@ -150,26 +149,32 @@ public static class preprocessor {
             tokens = new List<token>();
         foreach(token t in tokens3) {
             if(t.body.StartsWith("#include(")) {
-                string fname = t.body.Substring(/* remove left side #include" */9, t.body.Length-9/*remove right-side double quote*/-1);
+                Console.WriteLine(t.body);
+               string dirAndFilename = t.body.Substring(/* remove left side #include" */9, t.body.Length-9/*remove right-side double quote*/-1);
+               string filename = System.IO.Path.GetFileName(dirAndFilename);
 
-                string dir = System.IO.Path.GetDirectoryName(fname);
-                string fnameNoDir = System.IO.Path.GetFileName(fname);
-
-                // === relative path? Start from current directory ===
-                if(!System.IO.Path.IsPathRooted(fname))
-                    dir = System.IO.Path.Combine(currentDirectory, dir);
+                // === determine search path for included file ===
+                string newSearchPath;
+                if(System.IO.Path.IsPathRooted(dirAndFilename)) {
+                    // === absolute path ===
+                    newSearchPath = System.IO.Path.GetDirectoryName(dirAndFilename);
+                } else {
+                    // === relative path ===
+                    // add to current directory
+                    newSearchPath = System.IO.Path.Combine(currentDirectory, System.IO.Path.GetDirectoryName(dirAndFilename));
+                }
 
                 // === read file contents ===
                 string incContent;
                 try {
-                    incContent = System.IO.File.ReadAllText(System.IO.Path.Combine(dir, fnameNoDir));
+                    incContent = System.IO.File.ReadAllText(System.IO.Path.Combine(newSearchPath, filename));
                 } catch(Exception e) {
                     throw t.buildException(e);
                 }
 
                 List<string> filerefInc = new List<string>(filerefs);
-                filerefInc.Add(System.IO.Path.Combine(dir, fname));
-                parse(incContent, filerefInc, dir, tokens);
+                filerefInc.Add(System.IO.Path.Combine(newSearchPath, dirAndFilename));
+                parse(incContent, filerefInc, newSearchPath, tokens);
             } else {
                 // === drop newlines ===
                 if(t.body != "#newline")

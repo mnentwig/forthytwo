@@ -2,7 +2,14 @@ all:
 	bin/forthytwo.exe libs/test.txt
 	bin/sim.exe libs/out/test.hex
 
-
+testMath2:
+# run J1 sim
+	bin/forthytwo.exe libs/selftest/testMath.txt
+	bin/sim.exe libs/selftest/out/testMath.hex > testMathResult_sim.txt
+# run reference C code
+	gcc -Wall -o testMath.exe libs/selftest/testMath.c
+	./testMath.exe > testMathResult_C.txt
+	diff -w testMathResult_sim.txt testMathResult_C.txt
 
 # runs reference code on C against Fortran implementation
 # make will fail here if diff observes that outputs don't match
@@ -22,4 +29,4 @@ clean:
 #	rm -Rf build/*
 	rm bin/*
 
-.PHONY: clean sim testMath all
+.PHONY: clean sim testMath all testMath2

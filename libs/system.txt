@@ -15,6 +15,10 @@
     system.ascii.nl system.emit
 ;
 
+:system.emit.space
+    system.ascii.space system.emit
+;
+
 :system.emit.hex8 dup 0x10 core.rshift CALL:system.emit.hex4
 :system.emit.hex4 dup 0x8 core.rshift CALL:system.emit.hex2
 :system.emit.hex2 dup 0x4 core.rshift CALL:system.emit.hex1

@@ -310,7 +310,7 @@ class compiler {
         public token src;
     }
 
-    static readonly HashSet<string> builtinKeywords = new HashSet<string>() { "IF", "ELSE", "ENDIF", "DO", "LOOP", "BEGIN", "UNTIL"};
+    static readonly HashSet<string> builtinKeywords = new HashSet<string>() { "IF", "ELSE", "ENDIF", "DO", "LOOP", "BEGIN", "UNTIL", "VAR", "CALL", "BRA", "BZ"};
 
     public void renderBinary(List<token> tokens) {
         // backannotation for flow control constructs
@@ -449,11 +449,11 @@ class compiler {
             if(t.StartsWith("VAR:")) {
                 string t2 = t.Substring(4);
                 string[] t3 = t2.Split('=');
-                if(t3.Length != 2) throw tt.buildException("var: invalid syntax, expecting var:name:value");
+                if(t3.Length != 2) throw tt.buildException("VAR: invalid syntax, expecting VAR:name:value");
                 string n = t3[0];
-                if(!util.tryParseNum(t3[1], out uint val)) throw tt.buildException("var: invalid syntax. Failed to parse value in var:name:value");
+                if(!util.tryParseNum(t3[1], out uint val)) throw tt.buildException("VAR: invalid syntax. Failed to parse value in VAR:name=value");
                 string prevDef = this.nameExists(n);
-                if(prevDef != null) throw tt.buildException("var: name already exists as "+prevDef);
+                if(prevDef != null) throw tt.buildException("VAR: name already exists as "+prevDef);
                 this.dataSymbols[n] = this.dataMemPtr;
                 this.writeData(val, t);
                 continue;
@@ -468,17 +468,29 @@ class compiler {
                 continue;
             }
 
+            if(t.StartsWith("'")) {
+                t = t.Substring(1);
+
+                // === load address of variable ===
+                if(this.dataSymbols.ContainsKey(t)) {
+                    string mnem = "core.imm"+util.hex4((UInt16)this.dataSymbols[t]);
+                    this.writeCode(mnem, "data addr: '"+t+"'"+tt.getAnnotation());
+                    continue;
+                }
+
+                // === load address of code label ===
+                if(this.codeSymbols.ContainsKey(t)) {
+                    string mnem = "core.imm"+util.hex4((UInt16)this.codeSymbols[t]);
+                    this.writeCode(mnem, "code addr: '"+t+"'"+tt.getAnnotation());
+                    continue;
+                }
+                throw tt.buildException(t + " address: label is neither code nor data");
+            }
+
             // === direct use of code label => CALL ===
             if(this.codeSymbols.ContainsKey(t)) {
                 string mnem = "core.call"+util.hex4((UInt16)this.codeSymbols[t]);
                 this.writeCode(mnem, "call "+tt.getAnnotation());
-                continue;
-            }
-
-            // === load address of variable ===
-            if(this.dataSymbols.ContainsKey(t)) {
-                string mnem = "core.imm"+util.hex4((UInt16)this.dataSymbols[t]);
-                this.writeCode(mnem, "data addr: '"+t+"'"+tt.getAnnotation());
                 continue;
             }
 

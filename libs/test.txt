@@ -1,4 +1,4 @@
-// this is a toplevel source file. Give as command line argument to j1comp.
+// this is a toplevel source file. Give as command line argument to fourthytwo.exe
 BRA:main // skip over function definitions
 #include(CPU.txt)
 #include(system.txt)

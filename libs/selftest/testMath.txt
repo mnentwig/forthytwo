@@ -1,0 +1,58 @@
+// this is a toplevel source file. Give as command line argument to fourthytwo.exe
+
+// address 0 (reset vector)
+BRA:main // skip over code from included files
+
+#include(../CPU.txt)
+#include(../system.txt)
+#include(../system.ASCII.txt)
+#include(../math.txt)
+
+VAR:testMath.arg1=0x12345678 // state of LFSR1 pseudorandom number
+VAR:testMath.arg2=0x98765432 // state of LFSR2 pseudorandom number
+
+// runs an XOR-style LFSR permutation on the stack value
+:testMath.LFSR32
+	dup 13 core.lshift core.xor
+	dup 17 core.rshift core.xor
+	dup 5 core.lshift core.xor
+;
+
+// applies LFSR32 on two variables
+:__advanceBothLfsr 
+	'testMath.arg1 @ testMath.LFSR32 'testMath.arg1 ! 
+	'testMath.arg2 @ testMath.LFSR32 'testMath.arg2 ! 
+;
+
+// recalls both LFSR variables
+:__pushBothLfsr
+	'testMath.arg1 @ 
+	'testMath.arg2 @
+;
+
+:main
+
+0 100 DO
+	// ====================================================
+	// write col1:arg1; col2:arg2 (check LFSR state)
+	// ====================================================
+	__pushBothLfsr
+	swap system.emit.hex8 system.emit.space 
+	system.emit.hex8 system.emit.space
+
+	// ====================================================
+	// write col3: u32*u32
+	// ====================================================
+	__pushBothLfsr
+	math.u32*u32
+	system.emit.hex8 system.emit.space
+
+
+	// ====================================================
+	// end of line
+	// ====================================================
+	__advanceBothLfsr
+	system.emit.cr
+LOOP
+system.terminate
+;

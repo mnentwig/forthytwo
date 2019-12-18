@@ -78,7 +78,7 @@ Internally, the >>>:functionName<<< creates only a label (no assembly code is em
 
 ### Labels
 Similar to a function, a code label (for low-level branch opcodes) is defined with >>>:labelNameGoesHere<<<. Again, it emits no assembly code by itself.
-A common (somewhat advanced) use case is to define multiple labels for variants of a function that end with the same >>>core.return<<< statement.
+A common use case is to have multiple entry points for a function, using a common >>>core.return<<< instruction.
 (TBD add hex1..hex8 DUPLICATE example)
 
 ### Branches
@@ -110,4 +110,7 @@ Numbers may be decimal, binary (0b1001), octal (0O12345678) or hexadecimal (0xde
 Any number appearing in the code is loaded to the data stack (note, the number of instructions differs on the value, since J1b can only load 15 bits at a time).
 
 ### VAR
-\>>>VAR:myVariableName=12345678<<< allocates a 32-bit word in the data segment. Its address can be loaded with >>>myVariableName<<<. 
+\>>>VAR:myVariableName=12345678<<< allocates a 32-bit word in the data segment. Its address can be loaded with the single-quote built-in function >>>'myVariableName<<<. 
+
+### single-quote "address-of"
+The single-quote built-in >>>'myLabel<<< pushes the address of myLabel (code or variable).

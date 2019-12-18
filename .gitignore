@@ -3,4 +3,6 @@ src/out/*
 src/bin/*
 src/obj/*
 libs/out/*
+libs/selftest/*.exe
+testMathResult_*.txt
 *~
