@@ -103,7 +103,14 @@ class compiler {
         List<token> tokensOut = new List<token>();
         foreach(token t in tokensIn) {
             UInt32 val;
-            if(util.tryParseNum(t.body, out val))
+
+            bool flag;
+            try {
+                flag = util.tryParseNum(t.body, out val);
+            } catch(Exception e) {
+                throw t.buildException(e);
+            }
+            if(flag)
                 generate_IMM(tokensOut, val, t);
             else
                 tokensOut.Add(t);
@@ -120,7 +127,15 @@ class compiler {
                 if(activeMacroName != null) throw t.buildException("macro recursion is not allowed");
                 activeMacroToken = t;
                 activeMacroName = t.body.Substring(2); if(activeMacroName.Length == 0) throw t.buildException("missing macro name");
-                if(util.tryParseNum(activeMacroName, out UInt32 dummy)) throw t.buildException("invalid macro name (must not be a number)");
+
+
+                bool flag;
+                try {
+                    flag = util.tryParseNum(activeMacroName, out UInt32 dummy);
+                } catch(Exception e) {
+                    throw t.buildException(e);
+                }
+                if(flag) throw t.buildException("invalid macro name (must not be a number)");
                 string prevDef = this.nameExists(activeMacroName);
                 if(prevDef != null) throw t.buildException(":: name already exists as "+prevDef);
                 this.macros[activeMacroName] = new List<token>();

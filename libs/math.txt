@@ -1,5 +1,19 @@
 VAR:math.scratch=0
 
+VAR:math.scratchALo=0
+VAR:math.scratchAHi=0
+VAR:math.scratchBLo=0
+VAR:math.scratchBHi=0
+\ partial products for 32x32=>64 multiplication
+VAR:math.scratchLL=0
+VAR:math.scratchLH=0
+VAR:math.scratchHL=0
+VAR:math.scratch.A=0
+VAR:math.scratch.B=0
+VAR:math.scratchMidSum=0
+
+::math.negate    core.invert 1 core.plus ;
+
 // input u1 : modifA
 // input u2 : acc
 // input: multiplicandB in "math.scratch"
@@ -28,4 +42,100 @@ VAR:math.scratch=0
     0 swap 		// initialize acc
     __mul32step 	// run multiplication
     drop		// remove modified A
+;
+
+// input: A16 multiplicand
+// input: B32 multiplicand
+// output: product
+:math.u16*u32		// ( u16 u32 -- u32 )
+    'math.scratch !	// store B32
+    16 lshift	  	// adjust A16 for MSB check in 32 hardware bits
+    0 swap 		// initialize acc
+    __mul16step 	// run multiplication
+    drop		// remove modified A
+;
+
+/ input: A32 multiplicand
+/ input: B32 multiplicand
+/ output: product [63:32]
+/ output: product [31:0]
+:math.u32*u32x2			// ( u32 u32 -- u32 u32 )
+    0xFFFF >r			// 16 low bit mask on rstack
+    dup r@ and 'math.scratchBLo !
+    swap 			// push back B, continue on A
+    dup r> and 'math.scratchALo ! 
+
+    16 rshift 'math.scratchAHi ! 
+    16 rshift 'math.scratchBHi ! 
+    	 			// stack is now empty
+
+    // === cross terms ====				
+    'math.scratchALo @
+    'math.scratchBHi @
+    math.u16*u32		// mid product LH
+    'math.scratchLH !
+
+    'math.scratchAHi @
+    'math.scratchBLo @
+    math.u16*u32		// mid product HL
+    'math.scratchHL !	    
+
+    // === low result ===
+    'math.scratchALo @		// LL
+    'math.scratchBLo @
+    math.u16*u32
+    'math.scratchLL !
+
+    // === add cross terms to low result ===
+    'math.scratchLL @
+    'math.scratchLH @ 16 lshift +
+    'math.scratchHL @ 16 lshift +
+
+    // === high result ===
+    'math.scratchAHi @		// HH
+    'math.scratchBHi @
+    math.u16*u32
+
+    // === add cross terms to high result ===
+    'math.scratchLH @ 16 rshift +
+    'math.scratchHL @ 16 rshift +
+
+    // === carry === // TBD omit one "and"?
+    'math.scratchLL @ 16 rshift
+    'math.scratchLH @ 0xFFFF and
+    'math.scratchHL @ 0xFFFF and
+    +    
+    +
+
+    16 rshift			// carry = ((LL >> 16) + (LH+HL)[31:0]) >> 16
+    + 				// add carry to high result
+
+    swap			// return 0:lowRes, 1:highRes
+;
+
+:math.s32*s32x2
+	dup
+	'math.scratch.A !
+	swap dup 
+	'math.scratch.B !
+
+	math.u32*u32x2		// start with unsigned multiplication	
+	swap 			// flip word order: correction will be applied to res[63:32]
+
+	'math.scratch.A @	
+	0 < if 
+		'math.scratch.B @
+	else
+		0
+	then
+	'math.scratch.B @
+	0 0 < if 
+		'math.scratch.A @
+		+
+	then
+
+	math.negate		// subtract correction term
+	+
+
+	swap 			// un-flip word order
 ;
