@@ -535,13 +535,6 @@ class compiler {
                 throw tt.buildException(t + " address: label is neither code nor data");
             }
 
-            // === direct use of code label => CALL ===
-            if(this.codeSymbols.ContainsKey(t)) {
-                string mnem = "core.call"+util.hex4((UInt16)this.codeSymbols[t]);
-                this.writeCode(mnem, "call "+tt.getAnnotation());
-                continue;
-            }
-
             // === Mnemonic to numerical opcode ===
             if(this.opcodes.ContainsKey(t)) {
                 this.writeCode(t, tt.getAnnotation());
@@ -553,7 +546,7 @@ class compiler {
 
             fcBranch.Add(new flowcontrol2() { t = flowcontrol2.t_e.CALL, addr = this.codeMemPtr, label = t, src = tt });
             string m5 = "core.call"+util.hex4(/*will be updated in the 2nd pass */0);
-            this.writeCode(mnemonic: m5, annotation: tt.body + " " + tt.getAnnotation() + " ");
+            this.writeCode(mnemonic: m5, annotation: "call '" + t + "' " + tt.getAnnotation() + " ");
         }
 
         // === update (possibly) backwards branches)

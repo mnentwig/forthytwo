@@ -139,40 +139,62 @@ VAR:math.scratchMidSum=0
 
 	swap 			// un-flip word order
 ;
-/*
-:VAR:math.__r=0;
-:VAR:math.__b=0;
-:VAR:math.__q=0;
-:math.sqrtS7Q24
-	// initialize vars
-	' math.__r !
 
- sqrtF2F2 ( int32_t x ){  
-    uint32_t t, q, b, r;
-    //uint64_t r;
-    r = x;
-    b = 0x40000000;
-    q = 0;
-    // input has 8 integer bits
-    // output must be adjusted by half the amount
-    int nFrac = 4;
-    while( b > 0x08 ){
-      t = q + b;
-      if( r >= t ){
-	r -= t;
-	q += (b << 1);
-      }
-      if (r & 0x80000000){
-	// adjust fixed point position
-	r >>= 1;
-	q >>= 1;
-	b >>= 1;
-	--nFrac;
-      }
-      r <<= 1;
-      b >>= 1;
-    }
-    q >>= nFrac;
-    return q;
-}
-*/
+// fixed point square root (sign bit, 7 integer bits, 24 fractional bits)
+VAR:math.__t=0
+VAR:math.__r=0
+VAR:math.__b=0
+VAR:math.__q=0
+VAR:math.__nFrac=0
+:math.sqrtS7Q24
+					// initialize vars
+	'math.__r !			// r = x;
+	0x40000000 'math.__b !		// b = 0x40000000;
+	0	   'math.__q !		// q = 0;
+					// input has 8 integer bits
+					// output must be adjusted by half the amount
+	4	   'math.__nFrac !	// int nFrac = 4;
+
+	BEGIN				//   while( b > 0x08 ){
+		'math.__b @ 8 >s
+	WHILE
+
+	  	'math.__q @ 
+	  	'math.__b @
+	  	+
+		'math.__t			//      t = q + b;
+		!
+	
+	 	'math.__r @ 	
+		1 + 
+		'math.__t @ 
+		>s				//	 if( r >= t ){
+	 IF
+		'math.__r @			//	     r -= t;
+		'math.__t @ 
+		math.negate 
+		+
+		'math.__r !	
+						// q += (b << 1);
+		'math.__q @
+		'math.__b @
+		1 core.lshift +
+		'math.__q !
+	ENDIF
+
+	'math.__r @ 0 <s 			// if (r & 0x80000000){
+	IF					// adjust fixed point position
+		'math.__r @ 1 core.rshift 'math.__r ! // r >>= 1;
+		'math.__q @ 1 core.rshift 'math.__q ! // q >>= 1;
+		'math.__b @ 1 core.rshift 'math.__b ! // b >>= 1;
+		'math.__nFrac @ 0 core.invert + 'math.__nFrac ! // --nFrac;
+	ENDIF
+
+		'math.__r @ 1 core.lshift 'math.__r ! // r <<= 1;
+		'math.__b @ 1 core.rshift 'math.__b ! // b >>= 1;
+	REPEAT		
+	
+	'math.__q @					// q >>= nFrac;
+	'math.__nFrac @
+	core.rshift
+;							// return q;
