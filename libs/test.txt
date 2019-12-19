@@ -18,6 +18,7 @@ VAR:offset=0
 
 	IF_BRA_BC_test
 	looptestOuter
+	beginWhileRepeatTest
 	system.terminate
 
 :IF_BRA_BC_test
@@ -65,7 +66,7 @@ BRA:label2
 	// === test variable
 	// ============================================
 	-3 3 DO	
-		dup offset !		
+		dup 'offset !		
 		looptest
 	LOOP
 ;
@@ -81,7 +82,7 @@ BRA:label2
 		system.ascii.a r@ +		// j loop start
 		system.ascii.z 1 + 9 - r@ +		// j loop end
 		DO	// for j
-			dup offset @ + 
+			dup 'offset @ + 
 			system.emit
 		LOOP
 		system.ascii.cr system.emit
@@ -90,6 +91,15 @@ BRA:label2
 	LOOP
 ;
 
+:beginWhileRepeatTest
+	system.ascii.a
+	BEGIN
+		dup system.ascii.z 1 + <s
+	WHILE
+		dup system.emit
+		1 +
+	REPEAT
+;
 
 
 :start

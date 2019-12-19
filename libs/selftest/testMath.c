@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
+// xor-style LFSR pseudorandom sequences
 #define SHIFT64(x)x ^= x << 13; x ^= x >> 7; x ^= x << 17;
 #define SHIFT32(x)x ^= x << 13;	x ^= x >> 17; x ^= x << 5;
 
