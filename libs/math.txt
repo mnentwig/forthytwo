@@ -162,13 +162,12 @@ VAR:math.__nFrac=0
 	  	'math.__q @ 
 	  	'math.__b @
 	  	+
-		'math.__t			//      t = q + b;
-		!
+		'math.__t !			//      t = q + b
 	
 	 	'math.__r @ 	
 		1 + 
 		'math.__t @ 
-		>s				//	 if( r >= t ){
+		>u				//	 if( r >= t ) note: unsigned comparison
 	 IF
 		'math.__r @			//	     r -= t;
 		'math.__t @ 
