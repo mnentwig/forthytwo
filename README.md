@@ -93,7 +93,7 @@ A common use case is to have multiple entry points for a function, using a commo
 \>>>IF ...code1... ELSE ... code2 ... ENDIF<<<
 \>>>IF<<< pops one entry from the stack and executes code1 if at least one bit is set, or code2 otherwise. The ELSE keyword is optional.
 
-### Loops 
+### For loop: 
 \>>>(myStartValueOnStack) (myLoopLimitOnStack) DO ...code1... LOOP<<<
 Takes two parameters from the stack. 
 Equivalent to C "for (signed int i = myCounterInitVal; i < myLoopLimit; ++i){ ... }
@@ -103,6 +103,9 @@ Equivalent to C "for (signed int i = myCounterInitVal; i < myLoopLimit; ++i){ ..
 * The comparison is signed.
 * The loop limit is exclusive. For example, >>>0 3 DO ... LOOP<<< will iterate over 0, 1, and 2
 * The construct uses the return stack for the loop limit
+
+### BEGIN...WHILE...REPEAT loop:
+The first ... code blocks puts a value on the stack that is consumed by WHILE. If all bits are zero, execution continues after REPEAT. Otherwise, the second ... code block is executed, then the loop is re-entered at BEGIN.
 
 ### Immediate values
 Numbers may be decimal, binary (0b1001), octal (0O12345678) or hexadecimal (0xdeadbeef).
