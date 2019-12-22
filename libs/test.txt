@@ -11,22 +11,20 @@ VAR:offset=0
 :err	system.ascii.e system.emit system.ascii.r system.emit system.ascii.r system.emit system.emit.cr ;
 
 :main
-	1 24 core.lshift
-	math.sqrtS7Q24
-	system.dumpStack system.terminate
-
 	// ============================================
 	// === test initial stack depth 0
 	// ============================================
 	core.depth 0 = IF ok ELSE err ENDIF
 
 	IF_BRA_BC_test
+	beginAgainTest
+	beginUntilTest
 	looptestOuter
 	beginWhileRepeatTest
 	system.terminate
+	
 
 :IF_BRA_BC_test
-BRA:label2
 	system.ascii.a
 
 	// ============================================
@@ -38,7 +36,22 @@ BRA:label2
 	1 +
 	BRA:label1
   :label2
-	
+;
+
+:beginAgainTest
+system.ascii.a
+BEGIN
+	dup system.emit
+	1 +
+
+	dup system.ascii.z >s 
+	IF 
+	   BRA:beginAgainExit
+	ENDIF
+AGAIN
+:beginAgainExit ;
+
+:beginUntilTest
 	// ============================================
 	// === test BEGIN ... UNTIL construct
 	// ============================================
@@ -71,11 +84,11 @@ BRA:label2
 	// ============================================
 	-3 3 DO	
 		dup 'offset !		
-		looptest
+		looptestInner
 	LOOP
 ;
 
-:looptest
+:looptestInner
 	// ============================================
 	// === test DO-LOOP construct
 	// ============================================
@@ -104,39 +117,3 @@ BRA:label2
 		1 +
 	REPEAT
 ;
-
-
-:start
-0x40	// @
-:nextChar
-dup 0x1000 io!
-
-dup 0x60 = IF 
-     drop 
-     BRA:start 
-ENDIF
-1 +
-BRA:nextChar
-BRA:start
-/*
-
-:myFun dup drop ;
-::deadbeef 0xDEADBEEF swap drop ;
-deadbeef deadbeef
-VAR:gumbo=1024
-VAR:gumbo2=1025
-VAR:gumbo3=1026
-gumbo dup @ 1 + ! gumbo2 gumbo3
-
-IF
--1
-ELSE
-1
-ENDIF
-core.noop
-:hello
-BRA:hello
-*/
-1
-DO
-LOOP

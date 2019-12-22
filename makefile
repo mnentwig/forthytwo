@@ -1,7 +1,16 @@
+VERILATOR=verilator_bin.exe
+VINCLUDE=/usr/share/verilator/include
 all:
 	bin/forthytwo.exe libs/test.txt
 	bin/sim.exe libs/out/test.hex
 
+simulator:
+	${VERILATOR} -Wall -cc J1B/j1b.v -Ij1B --exe sim_main.cpp
+	g++ -I obj_dir -I ${VINCLUDE} -I ${VINCLUDE}/vltstd J1B/sim_main.cpp obj_dir/Vj1b.cpp obj_dir/Vj1b__Syms.cpp ${VINCLUDE}/verilated.cpp -o bin/sim.exe
+
+
+# runs reference code on C against Fortran implementation
+# make will fail here if diff observes that outputs don't match
 testMath2:
 # run J1 sim
 	bin/forthytwo.exe libs/selftest/testMath.txt
@@ -10,17 +19,7 @@ testMath2:
 	gcc -Wall -o testMath.exe libs/selftest/testMath.c
 	./testMath.exe > testMathResult_C.txt
 	diff -w testMathResult_sim.txt testMathResult_C.txt
-
-# runs reference code on C against Fortran implementation
-# make will fail here if diff observes that outputs don't match
-testMath:
-	gcc -Wall -o build/testMath.exe testMath.c
-	${GFORTH} cross.fs basewords.fs testMath.fs
-	./sim.exe build/testMath.hex > build/testMath_simOut.txt
-	./build/testMath.exe > build/testMath_ref.txt
-	diff -w build/testMath_simOut.txt build/testMath_ref.txt
 	echo "no difference - test passed"
-
 
 clean:
 	rm -f *~

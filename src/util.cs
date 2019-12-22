@@ -30,7 +30,8 @@ static class util {
         // === parse resulting value ===
         for(int ix = 0; ix < text.Length; ++ix) {
             val *= b;
-            if(!parseChar.TryGetValue(text[ix], out int charVal)) throw new Exception("invalid character in number: >>>"+text+"<<<"); ;
+            int charVal;
+            if(!parseChar.TryGetValue(text[ix], out charVal)) throw new Exception("invalid character in number: >>>"+text+"<<<"); ;
             if(charVal >= b)
                 throw new Exception("number digit out of range in >>>"+text+"<<<");
             val += (UInt32)charVal;

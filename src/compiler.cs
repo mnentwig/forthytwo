@@ -121,7 +121,8 @@ class compiler {
 
                 bool flag;
                 try {
-                    flag = util.tryParseNum(activeMacroName, out UInt32 dummy);
+                    UInt32 dummy;
+                    flag = util.tryParseNum(activeMacroName, out dummy);
                 } catch(Exception e) {
                     throw t.buildException(e);
                 }
@@ -323,7 +324,7 @@ class compiler {
         public token src;
     }
 
-    static readonly HashSet<string> builtinKeywords = new HashSet<string>() { "IF", "ELSE", "ENDIF", "DO", "LOOP", "BEGIN", "UNTIL", "WHILE", "REPEAT", "VAR", "CALL", "BRA", "BZ"};
+    static readonly HashSet<string> builtinKeywords = new HashSet<string>() { "IF", "ELSE", "ENDIF", "DO", "LOOP", "BEGIN", "UNTIL", "WHILE", "REPEAT", "VAR", "CALL", "BRA", "BZ", "AGAIN"};
 
     public void renderBinary(List<token> tokens) {
         // backannotation for flow control constructs
@@ -373,6 +374,7 @@ class compiler {
                 flowcontrol fcBegin = (fc.Count > 0) && (fc.Peek().t == flowcontrol.t_e.BEGIN) ? fc.Pop() : null;
                 if (fcBegin == null) throw new Exception("'AGAIN' without matching 'BEGIN'");
                 this.writeCode("core.bra"+util.hex4((UInt16)fcBegin.addr), "__AGAIN__" + tt.body + " " + tt.getAnnotation() + " ");
+                continue;
             }
 
             if(t == "UNTIL") {
@@ -572,6 +574,8 @@ class compiler {
         for(int ix = 0; ix < this.mem.Length; ++ix) {
             sb.AppendLine(util.hex8(this.mem[ix]));
         }
+
+        // === end-of-transmission ESC character ===
         System.IO.File.WriteAllText(filename, sb.ToString());
     }
 

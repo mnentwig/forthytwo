@@ -1,5 +1,6 @@
 ::system.terminate
-	0 0 io! // simulator control register
+	//0 0 io! // simulator control register
+	4 system.emit
 ;
 :system.emit
     BEGIN
