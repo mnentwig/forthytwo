@@ -98,7 +98,7 @@ A common use case is to have multiple entry points for a function, using a commo
 Takes two parameters from the stack. 
 Equivalent to C "for (signed int i = myCounterInitVal; i < myLoopLimit; ++i){ ... }
 
-* The loop variable i is available to code1 and expected on the stack at >>>LOOP<<<. It may be modified by the loop body.
+* _DIFFERENCE TO REGULAR FORTH:_ The loop variable i is provided to code1 on the stack and expected again on the stack at >>>LOOP<<<. It may be modified by the loop body.
 * The comparison is performed at the start of the loop (that is, will iterate zero or more times)
 * The comparison is signed.
 * The loop limit is exclusive. For example, >>>0 3 DO ... LOOP<<< will iterate over 0, 1, and 2
@@ -107,6 +107,8 @@ Equivalent to C "for (signed int i = myCounterInitVal; i < myLoopLimit; ++i){ ..
 ### BEGIN...WHILE...REPEAT loop:
 The first ... code blocks puts a value on the stack that is consumed by WHILE. If all bits are zero, execution continues after REPEAT. Otherwise, the second ... code block is executed, then the loop is re-entered at BEGIN.
 
+### BEGIN...AGAIN
+Infinite loop. Use e.g. BRA: to exit
 ### Immediate values
 Numbers may be decimal, binary (0b1001), octal (0O12345678) or hexadecimal (0xdeadbeef).
 
