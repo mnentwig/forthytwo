@@ -1,5 +1,7 @@
 // this is a toplevel source file. Give as command line argument to fourthytwo.exe
 BRA:main // skip over function definitions
+#CODEADDR:0x0200
+#DATAADDR:0x1000
 #include(core.txt)
 #include(system.txt)
 #include(system.ASCII.txt)

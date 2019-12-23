@@ -51,4 +51,20 @@ static class util {
     public static string hex8(UInt32 val) {
         return String.Format("0x{0:X08}", val);
     }
+
+#if false
+    public static bool parsePreprocToken(string input, out string tokenNoBracket, out string arg) {
+        tokenNoBracket = null;
+        arg = null;
+        if (!input.StartsWith("#")) return false;
+        int ixOpenBracket = input.IndexOf("(");
+        int ixClosingBracket = input.IndexOf(")");
+        if (ixOpenBracket < 0) return false;
+        if (ixClosingBracket < ixOpenBracket) return false;
+        tokenNoBracket=input.Substring(0, ixOpenBracket);
+        UInt32 retVal = UInt32.MinValue;
+        arg = input.Substring(ixOpenBracket+1, ixClosingBracket-ixOpenBracket-1);
+        return true;
+    }
+#endif
 }

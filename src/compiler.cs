@@ -347,6 +347,42 @@ class compiler {
                 continue;
             }
 
+            if(t.StartsWith("#CODEADDR:")) {
+                t = t.Substring(10);
+                string[] t3 = t.Split('=');
+                if(t3.Length != 1) throw tt.buildException("#CODEADDR: invalid syntax, expecting CODEADDR:value");
+
+                bool flag; uint val;
+                try {
+                    flag = util.tryParseNum(t3[0],out val);
+                }
+                catch(Exception e) {
+                    throw tt.buildException(e);
+                }
+
+                if(!flag) throw tt.buildException("#CODEADDR:value invalid syntax. Failed to parse value");
+                this.codeMemPtr = val;
+                continue;
+            }
+
+            if(t.StartsWith("#DATAADDR:")) {
+                t = t.Substring(10);
+                string[] t3 = t.Split('=');
+                if(t3.Length != 1) throw tt.buildException("#DATAADDR: invalid syntax, expecting DATAADDR:value");
+
+                bool flag; uint val;
+                try {
+                    flag = util.tryParseNum(t3[0],out val);
+                }
+                catch(Exception e) {
+                    throw tt.buildException(e);
+                }
+
+                if(!flag) throw tt.buildException("#DATAADDR:value invalid syntax. Failed to parse value");
+                this.dataMemPtr = val;
+                continue;
+            }
+
             if(t.StartsWith("BRA:")) {
                 t = t.Substring(4);
                 fcBranch.Add(new flowcontrol2() { t = flowcontrol2.t_e.BRA, addr = this.codeMemPtr, label = t, src = tt });
