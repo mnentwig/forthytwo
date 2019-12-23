@@ -50,7 +50,7 @@ public class token {
 /// <summary>ASCII-level manipulation, include handling, tokenization of input files</summary>
 public static class preprocessor {
     static char[] whitespace = new char[] { '\r', '\n', '\t', ' ' };
-    public static void parse(string fileContent, List<string> filerefs, string currentDirectory, List<token>tokens) {
+    public static void parse(string fileContent, List<string> filerefs, string currentDirectory, List<token>tokens, Dictionary<string, UInt32> defines) {
         // === newline processing ===
         fileContent = " " + fileContent + System.Environment.NewLine; // sentinels
         fileContent = fileContent.Replace(System.Environment.NewLine, " #newline ");
@@ -148,6 +148,20 @@ public static class preprocessor {
         if (tokens == null)
             tokens = new List<token>();
         foreach(token t in tokens3) {
+            // === #abc defining commands ===
+            foreach(string def in defines.Keys) {
+                if(t.body.StartsWith(def)) {
+                    if(!t.body.EndsWith(")"))
+                        throw new Exception(filerefs[filerefs.Count-1] + "line " + t.lineBase0 +":"+def+" without closing bracket");
+                    string arg = t.body.Substring(def.Length,t.body.Length - def.Length - 1);
+                    UInt32 valNum;
+                    if(!util.tryParseNum(arg,out valNum))
+                        throw new Exception(filerefs[filerefs.Count-1] + "line " + t.lineBase0 +":"+def+" cannot parse argument");
+                    defines[def] = valNum;
+                    continue;
+                }
+            }
+            
             if(t.body.StartsWith("#include(")) {
                string dirAndFilename = t.body.Substring(/* remove left side #include" */9, t.body.Length-9/*remove right-side double quote*/-1);
                string filename = System.IO.Path.GetFileName(dirAndFilename);
@@ -173,7 +187,7 @@ public static class preprocessor {
 
                 List<string> filerefInc = new List<string>(filerefs);
                 filerefInc.Add(System.IO.Path.Combine(newSearchPath, dirAndFilename));
-                parse(incContent, filerefInc, newSearchPath, tokens);
+                parse(incContent, filerefInc, newSearchPath, tokens, defines);
             } else {
                 // === drop newlines ===
                 if(t.body != "#newline")

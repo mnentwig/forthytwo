@@ -7,7 +7,8 @@ static class main {
         string destHexFilename = null;
         string destLstFilename = null;
         try {
-             // args = new string[] { "../../../libs/test.txt" }; Console.WriteLine("DEBUG: hardcoded args");
+              // args = new string[] { "../../../libs/test.txt" }; Console.WriteLine("DEBUG: hardcoded args");
+            Dictionary<string,UInt32> defines = new Dictionary<string,uint>() { { "#MEMSIZE_BYTES(",8192*4 } };
 
             if(args.Length < 1) throw new Exception("no input files");
 
@@ -42,12 +43,11 @@ static class main {
                 string content = System.IO.File.ReadAllText(fname);
                 filerefs.Add(fname);
 
-                preprocessor.parse(content, filerefs, dir, tokens);
+                preprocessor.parse(content, filerefs, dir, tokens, defines);
             }
 
             // === compile ===
-            // note: original J1B.v has a bug with bit 0 in the instruction memory addressing
-            compiler comp = new compiler(tokens, baseAddrCode_bytes: 0, baseAddrData_bytes: 4000, memSize_bytes: 8192*4);
+            compiler comp = new compiler(tokens,baseAddrCode_bytes :0,baseAddrData_bytes :4000,memSize_bytes :defines["#MEMSIZE_BYTES("]);
 
             // === write output files ===
             comp.dumpHex(destHexFilename);

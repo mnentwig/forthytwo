@@ -324,7 +324,7 @@ class compiler {
         public token src;
     }
 
-    static readonly HashSet<string> builtinKeywords = new HashSet<string>() { "IF", "ELSE", "ENDIF", "DO", "LOOP", "BEGIN", "UNTIL", "WHILE", "REPEAT", "VAR", "CALL", "BRA", "BZ", "AGAIN"};
+    static readonly HashSet<string> builtinKeywords = new HashSet<string>() { "IF","ELSE","ENDIF","DO","LOOP","BEGIN","UNTIL","WHILE","REPEAT","VAR","CALL","BRA","BZ","AGAIN","#MEMSIZE_BYTES(" };
 
     public void renderBinary(List<token> tokens) {
         // backannotation for flow control constructs

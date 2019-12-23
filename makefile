@@ -2,7 +2,10 @@ VERILATOR=verilator_bin.exe
 VINCLUDE=/usr/share/verilator/include
 all:
 	bin/forthytwo.exe libs/test.txt
-	bin/sim.exe libs/out/test.hex
+	bin/sim.exe libs/out/test.hex > libs/out/testResult.txt
+	diff -w libs/testResultRef.txt libs/out/testResult.txt
+	echo "no difference - test passed"
+
 
 simulator:
 	${VERILATOR} -Wall -cc J1B/j1b.v -Ij1B --exe sim_main.cpp
