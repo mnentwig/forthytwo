@@ -147,9 +147,10 @@ public static class preprocessor {
         // === process "include..." directive ===
         if (tokens == null)
             tokens = new List<token>();
+        List<string> defKeys = new List<string>(defines.Keys);
         foreach(token t in tokens3) {
             // === #abc defining commands ===
-            foreach(string def in defines.Keys) {
+            foreach(string def in defKeys) {
                 if(t.body.StartsWith(def)) {
                     if(!t.body.EndsWith(")"))
                         throw new Exception(filerefs[filerefs.Count-1] + "line " + t.lineBase0 +":"+def+" without closing bracket");
@@ -158,7 +159,7 @@ public static class preprocessor {
                     if(!util.tryParseNum(arg,out valNum))
                         throw new Exception(filerefs[filerefs.Count-1] + "line " + t.lineBase0 +":"+def+" cannot parse argument");
                     defines[def] = valNum;
-                    continue;
+                    goto tokenDone;
                 }
             }
             
@@ -193,6 +194,7 @@ public static class preprocessor {
                 if(t.body != "#newline")
                     tokens.Add(t);
             }
+        tokenDone: { }
         }
 
         // add end-of-file token

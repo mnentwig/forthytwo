@@ -4,5 +4,12 @@ src/bin/*
 src/obj/*
 libs/out/*
 libs/selftest/*.exe
+libs/selftest/out
 testMathResult_*.txt
 *~
+a.exe
+testMath.exe
+res.txt
+obj_dir
+div.c
+*.suo

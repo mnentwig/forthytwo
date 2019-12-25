@@ -6,6 +6,9 @@ all:
 	diff -w libs/testResultRef.txt libs/out/testResult.txt
 	echo "no difference - test passed"
 
+main:
+	bin/forthytwo.exe main.txt
+	bin/sim.exe out/main.hex
 
 simulator:
 	${VERILATOR} -Wall -cc J1B/j1b.v -Ij1B --exe sim_main.cpp
