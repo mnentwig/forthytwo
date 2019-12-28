@@ -13,3 +13,6 @@ res.txt
 obj_dir
 div.c
 *.suo
+libs/flm/out
+libs/flm/flm_test.exe
+libs/flm/flm_test.txt
