@@ -60,14 +60,16 @@ int unpackedPositiveMantissa_mustShiftUp(int32_t mantissa){
 void unpackedNormalize_negative(int32_t* mantissa, int32_t* exponent){
  again:
     if (unpackedNegativeMantissa_mustShiftDown(*mantissa)){
-      *exponent = *exponent+1;
-      *mantissa = *mantissa >> 1; // note: arithmetic shift
-      goto again;
+	*exponent = *exponent+1;
+	*mantissa = *mantissa >> 1; // note: arithmetic shift
+	goto again;
     }
     if (unpackedNegativeMantissa_mustShiftUp(*mantissa)){
-      *exponent = *exponent-1;
-      *mantissa = *mantissa << 1;
-      goto again;
+      if (*exponent != 0x20){
+	*exponent = *exponent-1;
+	*mantissa = *mantissa << 1;
+	goto again;
+      }
     }
 }
 //|:__unpackedNormalize_negative
@@ -80,9 +82,13 @@ void unpackedNormalize_negative(int32_t* mantissa, int32_t* exponent){
 //|ENDIF
 //|dup __unpackedNegativeMantissa_mustShiftUp
 //|IF
-//|	swap -1 +
-//|	swap 1 core.lshift
-//|	BRA:__unpackedNormalize_negative
+//| 	// check whether exponent is already at clip limit
+//|	core.over 0x20 core.equals core.invert
+//|	IF
+//|		swap -1 +
+//|		swap 1 core.lshift
+//|		BRA:__unpackedNormalize_negative
+//|	ENDIF
 //|ENDIF
 //|;
 
@@ -96,9 +102,11 @@ void unpackedNormalize_positive(int32_t* mantissa, int32_t* exponent){
       goto again;
     }
     if (unpackedPositiveMantissa_mustShiftUp(*mantissa)){
-      *exponent = *exponent-1;
-      *mantissa = *mantissa << 1;
-      goto again;
+      if (*exponent != 0x20){
+	*exponent = *exponent-1;
+	*mantissa = *mantissa << 1;
+	goto again;
+      }
     }
 }
 
@@ -111,9 +119,13 @@ void unpackedNormalize_positive(int32_t* mantissa, int32_t* exponent){
 //|ENDIF
 //|dup __unpackedPositiveMantissa_mustShiftUp
 //|IF
-//|	swap -1 +
-//|	swap 1 core.lshift
-//|	BRA:__unpackedNormalize_positive
+//| 	// check whether exponent is already at clip limit
+//|	core.over 0x20 core.equals core.invert
+//|	IF
+//|		swap -1 +
+//|		swap 1 core.lshift
+//|		BRA:__unpackedNormalize_positive
+//|	ENDIF
 //|ENDIF
 //|;
 

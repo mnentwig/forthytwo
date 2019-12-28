@@ -21,9 +21,13 @@ IF
 ENDIF
 dup __unpackedNegativeMantissa_mustShiftUp
 IF
-	swap -1 +
-	swap 1 core.lshift
-	BRA:__unpackedNormalize_negative
+ 	// check whether exponent is already at clip limit
+	core.over 0x20 core.equals core.invert
+	IF
+		swap -1 +
+		swap 1 core.lshift
+		BRA:__unpackedNormalize_negative
+	ENDIF
 ENDIF
 ;
 :__unpackedNormalize_positive
@@ -35,9 +39,13 @@ IF
 ENDIF
 dup __unpackedPositiveMantissa_mustShiftUp
 IF
-	swap -1 +
-	swap 1 core.lshift
-	BRA:__unpackedNormalize_positive
+ 	// check whether exponent is already at clip limit
+	core.over 0x20 core.equals core.invert
+	IF
+		swap -1 +
+		swap 1 core.lshift
+		BRA:__unpackedNormalize_positive
+	ENDIF
 ENDIF
 ;
 // 1: exponent; 0: mantissa
