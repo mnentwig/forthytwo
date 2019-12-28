@@ -4,7 +4,7 @@ use warnings;
 while (<>) {   # Read input from command-line into default variable $_
     if ($_ =~ /\/\/\|(.*)$/){
 	print $1;
-	print "\r\n";
+	print "\n";
     }
 #print $_;
 #print "xxx";

@@ -20,7 +20,7 @@ static class main {
                 string dir = System.IO.Path.GetDirectoryName(fname);
                 string fnameNoDir = System.IO.Path.GetFileName(fname);
                 string dirOut = System.IO.Path.Combine(dir, "out");
-/
+
                 fname = System.IO.Path.Combine(dir, fnameNoDir);
                 string fnameOut = System.IO.Path.Combine(dirOut, fnameNoDir);
 

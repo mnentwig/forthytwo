@@ -52,8 +52,10 @@ class compiler {
 
         if(val == 0) {
             tokens.Add(new token("core.imm"+util.hex4(0), tRef, annotation));
+        } else if(val == 0xFFFFFFFF) {
+            tokens.Add(new token("core.imm"+util.hex4(0), tRef, annotation));
+            tokens.Add(new token("core.invert", tRef, annotation));
         } else {
-
             UInt32 hi = val >> 16;
             UInt32 lo = (val & 0xFFFF);
             int nStack = 0;
@@ -117,7 +119,6 @@ class compiler {
                 if(activeMacroName != null) throw t.buildException("macro recursion is not allowed");
                 activeMacroToken = t;
                 activeMacroName = t.body.Substring(2); if(activeMacroName.Length == 0) throw t.buildException("missing macro name");
-
 
                 bool flag;
                 try {
@@ -324,6 +325,7 @@ class compiler {
         public token src;
     }
 
+    // TBD check for e.g. VAR does not work (needs "startsWith" and "VAR:")
     static readonly HashSet<string> builtinKeywords = new HashSet<string>() { "IF","ELSE","ENDIF","DO","LOOP","BEGIN","UNTIL","WHILE","REPEAT","VAR","CALL","BRA","BZ","AGAIN","#MEMSIZE_BYTES(" };
 
     public void renderBinary(List<token> tokens) {
@@ -459,13 +461,13 @@ class compiler {
             }
 
             if(t == "ENDIF") {
-                if(fc.Count < 1) throw tt.buildException("dangling ENDIF");
+                if(fc.Count < 1) throw tt.buildException("dangling ENDIF (empty stack)");
 
                 if(fc.Peek().t == flowcontrol.t_e.ELSE) {
                     // === IF-THEN-ENDIF construct ===
                     flowcontrol fcElse = fc.Pop();
-                    if(fc.Count < 1) throw tt.buildException("dangling ENDIF");
-                    if(fc.Peek().t != flowcontrol.t_e.IF) throw tt.buildException("dangling ENDIF");
+                    if(fc.Count < 1) throw tt.buildException("dangling ENDIF (??? 1)");
+                    if(fc.Peek().t != flowcontrol.t_e.IF) throw tt.buildException("dangling ENDIF (??? 2)");
                     flowcontrol fcIf = fc.Pop();
 
                     // === modify the unconditional branch before "else" to jump to current address
@@ -475,15 +477,15 @@ class compiler {
                     // === update the IF branch to point to the ELSE section ===
                     this.codeToMem(fcIf.addr, "core.bz"+util.hex4((UInt16)fcElse.addr), /*already annotated */null);
                     this.lstFileWriter.annotateCodeLabel(this.codeMemPtr, "if-not target");
-                } else {
+                } else if(fc.Peek().t == flowcontrol.t_e.IF) {
                     // === IF-ENDIF construct ===
-                    if(fc.Count < 1) throw tt.buildException("dangling ENDIF");
-                    if(fc.Peek().t != flowcontrol.t_e.IF) throw tt.buildException("dangling ENDIF");
                     flowcontrol fcIf = fc.Pop();
 
                     this.codeToMem(fcIf.addr, "core.bz"+util.hex4((UInt16)this.codeMemPtr), /*already annotated */null);
                     this.lstFileWriter.annotateCodeLabel(this.codeMemPtr, "if-not target");
-                }
+                } else {
+                    throw tt.buildException("ENDIF expected opening IF or ELSE but got "+fc.Peek().t+" from "+fc.Peek().src.getAnnotation());
+                 }
                 continue;
             }
 
