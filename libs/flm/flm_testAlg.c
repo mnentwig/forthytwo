@@ -43,19 +43,21 @@ void flm_testAlg(){
   int32_t argB;
   int32_t resPacked;
   tol_t tol;
-
-  // TBD add 0 arg
+  double v1Startup;
+  double v2Startup;
 
   double sign1; double sign2;
   double resRef;
   for (sign1 = -1; sign1 <= 1; sign1 += 2){
     for (sign2 = -1; sign2 <= 1; sign2 += 2){
+      v1Startup = 0; // first v1 value is zero
       for (vv1 = 2e-10; vv1 < 2e9; vv1 *= 1.01){
-	double v1 = vv1 * sign1;
+	double v1 = vv1 * sign1 * v1Startup; v1Startup = 1;
 	//if (v1 < 0.000000157163043) continue;
 	argA = double2flm(v1);
+	v2Startup = 0; // first v2 value is zero
 	for (vv2 = 2e-10; vv2 < 2e9; vv2 *= 1.01){
-	  double v2 = vv2 * sign2;
+	  double v2 = vv2 * sign2 * v2Startup; v2Startup = 1;
 	  //if (v2 < 15761642.972850094000000) continue;
 	  //printf("v1: %1.15f v2: %1.15f\n", v1, v2);
 	  argB = double2flm(v2);
