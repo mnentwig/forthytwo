@@ -22,7 +22,7 @@ ENDIF
 dup __unpackedNegativeMantissa_mustShiftUp
 IF
  	// check whether exponent is already at clip limit
-	core.over 0x20 core.equals core.invert
+	core.over 0x2F core.and 0x20 core.equals core.invert
 	IF
 		swap -1 +
 		swap 1 core.lshift
@@ -40,7 +40,7 @@ ENDIF
 dup __unpackedPositiveMantissa_mustShiftUp
 IF
  	// check whether exponent is already at clip limit
-	core.over 0x20 core.equals core.invert
+	core.over 0x2F core.and 0x20 core.equals core.invert
 	IF
 		swap -1 +
 		swap 1 core.lshift
@@ -82,10 +82,6 @@ swap
 0x0000003F core.and
 core.or
 ;
-VAR:__flm.mantissaA=0
-VAR:__flm.mantissaB=0
-VAR:__flm.exponentA=0
-VAR:__flm.exponentB=0
 // returns number with n bits set, starting from bit 31
 ::__flm.nMsbMask core.invert 33 + 
 1 swap core.lshift 
@@ -93,11 +89,28 @@ VAR:__flm.exponentB=0
 
 //arithmetic right shift (MSB replica stays in place)
 :flm.rshiftArith
->r 
-dup 0 <s IF
-r@ __flm.nMsbMask swap r> core.rshift core.or ;
+// special case:shift by 0 
+core.dup 0 core.equals IF drop ; ENDIF
+>r // store shift amount
+r@ 32 core.lessThanSigned 
+IF
+	dup 0 <s 
+	IF
+		// shift and set new MSBs
+		r@ __flm.nMsbMask swap r> core.rshift core.or ;
+	ENDIF
+	r> core.rshift ;
 ENDIF
-r> core.rshift ;
+r> drop // clean up shift amount
+0 core.lessThanSigned BZ:__flm.rshiftArithResultAllZero
+0 core.invert ; // return 0xFFFFFFFF
+:__flm.rshiftArithResultAllZero
+0 ; // return 0x00000000
+VAR:__flm.mantissaA=0
+VAR:__flm.mantissaB=0
+VAR:__flm.exponentA=0
+VAR:__flm.exponentB=0
+
 
 :flm.add
 flm.unpack
@@ -115,10 +128,10 @@ ENDIF
 >r
 
 '__flm.mantissaA @
-'__flm.exponentA @ core.invert 1 + r@ + core.lshift
+'__flm.exponentA @ core.invert 1 + r@ + flm.rshiftArith
 
 '__flm.mantissaB @
-'__flm.exponentB @ core.invert 1 + r@ + core.lshift
+'__flm.exponentB @ core.invert 1 + r@ + flm.rshiftArith
 
 // === mantissa A and B are now aligned, common exponent in r@ ===
 core.plus
@@ -126,6 +139,19 @@ core.plus
 r>		 // recall mantissa
 swap		 // restore unpacked order
 
+__flm.unpackedNormalize
+flm.pack
+;
+:flm.mul
+flm.unpack
+'__flm.mantissaA ! '__flm.exponentA !
+flm.unpack
+'__flm.mantissaB ! '__flm.exponentB !
+
+// === result exponent ===
+'__flm.exponentA @ '__flm.exponentB @ + 32 +
+// === result mantissa ===
+'__flm.mantissaA @ '__flm.mantissaB @ math.s32*s32x2 drop
 __flm.unpackedNormalize
 flm.pack
 ;

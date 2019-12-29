@@ -65,7 +65,7 @@ void unpackedNormalize_negative(int32_t* mantissa, int32_t* exponent){
 	goto again;
     }
     if (unpackedNegativeMantissa_mustShiftUp(*mantissa)){
-      if (*exponent != 0x20){
+      if ((*exponent & 0x2F) != 0x20){
 	*exponent = *exponent-1;
 	*mantissa = *mantissa << 1;
 	goto again;
@@ -83,7 +83,7 @@ void unpackedNormalize_negative(int32_t* mantissa, int32_t* exponent){
 //|dup __unpackedNegativeMantissa_mustShiftUp
 //|IF
 //| 	// check whether exponent is already at clip limit
-//|	core.over 0x20 core.equals core.invert
+//|	core.over 0x2F core.and 0x20 core.equals core.invert
 //|	IF
 //|		swap -1 +
 //|		swap 1 core.lshift
@@ -102,7 +102,7 @@ void unpackedNormalize_positive(int32_t* mantissa, int32_t* exponent){
       goto again;
     }
     if (unpackedPositiveMantissa_mustShiftUp(*mantissa)){
-      if (*exponent != 0x20){
+      if ((*exponent & 0x2F) != 0x20){
 	*exponent = *exponent-1;
 	*mantissa = *mantissa << 1;
 	goto again;
@@ -120,7 +120,7 @@ void unpackedNormalize_positive(int32_t* mantissa, int32_t* exponent){
 //|dup __unpackedPositiveMantissa_mustShiftUp
 //|IF
 //| 	// check whether exponent is already at clip limit
-//|	core.over 0x20 core.equals core.invert
+//|	core.over 0x2F core.and 0x20 core.equals core.invert
 //|	IF
 //|		swap -1 +
 //|		swap 1 core.lshift
@@ -184,6 +184,7 @@ void flm_unpack(int32_t packed, int32_t* mantissa, int32_t* exponent){
 
 void flm_pack(int32_t mantissa, int32_t exponent, int32_t* packed){
   *packed = (mantissa << 6) | (exponent & 0x3F);
+  //printf("flm_pack m:%08x e:%08x r:%08x\n", mantissa, exponent, *packed);
 }
 //|:flm.pack
 //|6 core.lshift
@@ -194,29 +195,13 @@ void flm_pack(int32_t mantissa, int32_t exponent, int32_t* packed){
 
 // =================================================================================================
 
-void flm_add(int32_t packedA, int32_t packedB, int32_t* result){
-  int32_t mantissaA;
-  int32_t exponentA;
-  int32_t mantissaB;
-  int32_t exponentB;
-  flm_unpack(packedA, &mantissaA, &exponentA);
-  flm_unpack(packedB, &mantissaB, &exponentB);
-  //  printf("xxx%08x %08x %08x %08x \n", exponentA, mantissaA, exponentB, mantissaB);
-  int32_t exponentResult = exponentA > exponentB ? exponentA : exponentB;
-  mantissaA <<= (exponentResult-exponentA);
-  mantissaB <<= (exponentResult-exponentB);
-  int32_t mantissaResult = mantissaA + mantissaB;
-  //printf("yyy%08x %08x\n", exponentResult, mantissaResult);
-
-  unpackedNormalize(&mantissaResult, &exponentResult);
-  //printf("zzz%08x %08x\n", exponentResult, mantissaResult);
-  flm_pack(mantissaResult, exponentResult, result);
+int32_t flm_rshiftArith(int32_t val, int32_t amount){
+  if (amount < 32)
+    return val >> amount;
+  if (val < 0)
+    return 0xFFFFFFFF;
+  return 0;
 }
-
-//|VAR:__flm.mantissaA=0
-//|VAR:__flm.mantissaB=0
-//|VAR:__flm.exponentA=0
-//|VAR:__flm.exponentB=0
 
 //|// returns number with n bits set, starting from bit 31
 //|::__flm.nMsbMask core.invert 33 + 
@@ -225,11 +210,58 @@ void flm_add(int32_t packedA, int32_t packedB, int32_t* result){
 //|
 //|//arithmetic right shift (MSB replica stays in place)
 //|:flm.rshiftArith
-//|>r 
-//|dup 0 <s IF
-//|r@ __flm.nMsbMask swap r> core.rshift core.or ;
+//|// special case:shift by 0 
+//|core.dup 0 core.equals IF drop ; ENDIF
+//|>r // store shift amount
+//|r@ 32 core.lessThanSigned 
+//|IF
+//|	dup 0 <s 
+//|	IF
+//|		// shift and set new MSBs
+//|		r@ __flm.nMsbMask swap r> core.rshift core.or ;
+//|	ENDIF
+//|	r> core.rshift ;
 //|ENDIF
-//|r> core.rshift ;
+//|r> drop // clean up shift amount
+//|0 core.lessThanSigned BZ:__flm.rshiftArithResultAllZero
+//|0 core.invert ; // return 0xFFFFFFFF
+//|:__flm.rshiftArithResultAllZero
+//|0 ; // return 0x00000000
+
+
+// =================================================================================================
+
+void flm_add(int32_t packedA, int32_t packedB, int32_t* result){
+  int32_t mantissaA;
+  int32_t exponentA;
+  int32_t mantissaB;
+  int32_t exponentB;
+  flm_unpack(packedA, &mantissaA, &exponentA);
+  flm_unpack(packedB, &mantissaB, &exponentB);
+  //printf("flm_add mA:%08x eA: %08x mB:%08x eB:%08x\n", mantissaA, exponentA, mantissaB, exponentB);
+  int32_t exponentResult = exponentA > exponentB ? exponentA : exponentB;
+  int32_t deltaA = exponentResult-exponentA;
+  int32_t deltaB = exponentResult-exponentB;
+  //printf("shift A by %i: before %08x\n", deltaA, mantissaA); 
+
+  mantissaA = flm_rshiftArith(mantissaA, deltaA);
+  mantissaB = flm_rshiftArith(mantissaB, deltaB);
+
+  //printf("flm_add (shifted) mA:%08x mB:%08x eCommon: %08x\n", mantissaA, mantissaB, exponentResult);
+  int32_t mantissaResult = mantissaA + mantissaB;
+  //printf("flm_add (prenorm) mR:%08x eR: %08x\n", mantissaResult, exponentResult);
+
+  unpackedNormalize(&mantissaResult, &exponentResult);
+  //printf("flm_add (postnorm) mR:%08x eR: %08x\n", mantissaResult, exponentResult);
+  flm_pack(mantissaResult, exponentResult, result);
+  //printf("flm_add res:%08x\n", *result);
+}
+
+//|VAR:__flm.mantissaA=0
+//|VAR:__flm.mantissaB=0
+//|VAR:__flm.exponentA=0
+//|VAR:__flm.exponentB=0
+//|
 //|
 //|:flm.add
 //|flm.unpack
@@ -247,10 +279,10 @@ void flm_add(int32_t packedA, int32_t packedB, int32_t* result){
 //|>r
 //|
 //|'__flm.mantissaA @
-//|'__flm.exponentA @ core.invert 1 + r@ + core.lshift
+//|'__flm.exponentA @ core.invert 1 + r@ + flm.rshiftArith
 //|
 //|'__flm.mantissaB @
-//|'__flm.exponentB @ core.invert 1 + r@ + core.lshift
+//|'__flm.exponentB @ core.invert 1 + r@ + flm.rshiftArith
 //|
 //|// === mantissa A and B are now aligned, common exponent in r@ ===
 //|core.plus
@@ -262,25 +294,36 @@ void flm_add(int32_t packedA, int32_t packedB, int32_t* result){
 //|flm.pack
 //|;
 
-#if false
-double flm2double(int32_t val){
-  int32_t exponent = (val << 26) >>> 26;
-  int32_t mantissa = val >>> 6;
-  double val = (double)mantissa;
-  val = val * pow(2.0, exponent);
+// =================================================================================================
+
+void flm_mul(int32_t packedA, int32_t packedB, int32_t* result){
+  int32_t mantissaA;
+  int32_t exponentA;
+  int32_t mantissaB;
+  int32_t exponentB;
+  flm_unpack(packedA, &mantissaA, &exponentA);
+  flm_unpack(packedB, &mantissaB, &exponentB);
+  int64_t prod = (int64_t)mantissaA * (int64_t)mantissaB;
+  int32_t mantissaResult;
+  int32_t exponentResult;
+  mantissaResult = prod >> 32;
+  exponentResult = exponentA + exponentB + 32;
+
+  unpackedNormalize(&mantissaResult, &exponentResult);
+  flm_pack(mantissaResult, exponentResult, result);  
 }
 
-double double2flm(double val){
-  uint32_t exponent = 0;
-  if (val > 0){
-    while (val >= (int32_t)0x7C00000){
-      val /= 2; ++exponent;
-    }
-    while (val 
-  } else {
-    while (val < (int32_t)0xFC000000){
-      val /= 2; ++exponent;
-    }
-  }
-}
-#endif
+//|:flm.mul
+//|flm.unpack
+//|'__flm.mantissaA ! '__flm.exponentA !
+//|flm.unpack
+//|'__flm.mantissaB ! '__flm.exponentB !
+//|
+//|// === result exponent ===
+//|'__flm.exponentA @ '__flm.exponentB @ + 32 +
+//|// === result mantissa ===
+//|'__flm.mantissaA @ '__flm.mantissaB @ math.s32*s32x2 drop
+//|__flm.unpackedNormalize
+//|flm.pack
+//|;
+

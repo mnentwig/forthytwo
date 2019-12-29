@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <assert.h>
+#include <math.h>
 
 // xor-style LFSR pseudorandom sequences
 #define SHIFT32(x)x ^= x << 13;	x ^= x >> 17; x ^= x << 5;
@@ -17,6 +18,7 @@
 //|#include(../core.txt)
 //|#include(../system.txt)
 //|#include(../system.ASCII.txt)
+//|#include(../math.txt)
 
 #include "flm.c"
 //|#include(../flm.txt)
@@ -47,13 +49,109 @@ static uint32_t arg2 = 0x98765432;
 //|;
 //|
 
-int main(void){    
+double flm2double(int32_t val){
+  int32_t exponent = (val << 26) >> 26;
+  int32_t mantissa = val >> 6;
+  double res = (double)mantissa;
+  res = res * pow(2.0, exponent);
+  return res;
+}
+
+int32_t double2flm(double val){
+  int32_t exponent = 0;
+  if (val > 0){
+    while (val > (int32_t)0x01FFFFFF){
+      val /= 2.0; ++exponent;
+      if (exponent == 31) break;
+    }
+    while (val < (int32_t)0x01000000){
+      val *= 2.0; --exponent;
+      if (exponent == -32) break;
+    }
+  } else {
+    while (val < (int32_t)0xFE000000){
+      val /= 2.0; ++exponent;
+      if (exponent == 31) break;
+    }
+    while (val > (int32_t)0xFEFFFFFF){
+      val *= 2.0; --exponent;
+      if (exponent == -32) break;
+    }
+  }
+
+  int32_t mantissa = (int32_t)(val + 0.5);
+  int32_t res;
+  flm_pack(mantissa, exponent, &res);
+  return res;  
+}
+
+#include "flm_testAlg.c"
+
+int main(void){
   // check C compiler handling of signed int 32 right shift (relying on arithmetic shift)
   assert((((int32_t)0x80000000) >> 31) == 0xFFFFFFFF);
+
+  flm_testAlg();
+  //return EXIT_SUCCESS;
   int ix;
   int32_t exponent; int32_t mantissa;
-
+  int32_t res;
+  
   //|:main
+
+  for (ix = 0; ix < 50; ++ix){
+    //|0 50 DO >r
+    printf("%08x ", flm_rshiftArith(0x40000000, ix));
+    //|0x40000000 r@ flm.rshiftArith system.emit.hex8 system.emit.space
+
+    printf("%08x\n", flm_rshiftArith(0x80000000, ix));
+    //|0x80000000 r@ flm.rshiftArith system.emit.hex8 system.emit.cr
+  }
+  //|r> LOOP
+  
+  // |system.terminate
+  //return EXIT_SUCCESS;
+
+  // === random pattern test ===
+  for (ix = 0; ix < 100; ++ix){
+    //|0 100 DO >r
+    
+    printf("%08x %08x ", arg1, arg2);
+    //|// ====================================================
+    //|// write col1:arg1; col2:arg2 (check LFSR state)
+    //|// ====================================================
+    //|__pushBothLfsr
+    //|swap system.emit.hex8 system.emit.space 
+    //|system.emit.hex8 system.emit.space
+    
+    flm_add(arg1, arg2, &res);
+
+    //|__pushBothLfsr
+    //|flm.add
+
+    //|system.emit.hex8 system.emit.space
+    printf("%08x ", res);      
+
+    flm_mul(arg1, arg2, &res);
+    //|__pushBothLfsr
+    //|flm.mul
+
+    //|system.emit.hex8 system.emit.space
+    printf("%08x ", res);      
+    
+    //|// ====================================================
+    //|// end of line
+    //|// ====================================================
+    //|system.emit.cr
+    printf("\n");
+
+    // === update shift registers ===
+    SHIFT32(arg1); SHIFT32(arg2);
+    //|__advanceBothLfsr    
+
+  } // for i
+  //|r> LOOP
+
 
   // === test special normalization case zero ===
   mantissa = 0x00000000; exponent=1; unpackedNormalize(&mantissa, &exponent);
@@ -103,8 +201,8 @@ int main(void){
     for (ix2 = 0; ix2 < 64; ++ix2){
       //|0 64 DO dup 'ix2 ! >r
 
-      for (ix3 = 0; ix3 < 26; ++ix3){
-	//|0 26 DO dup 'ix3 ! >r
+      for (ix3 = 23; ix3 < 26; ++ix3){
+	//|23 26 DO dup 'ix3 ! >r
 	
 	int32_t packed1 = (0x40 << ix3) | ix1;
 	//| 0x40 'ix3 @ core.lshift 'ix1 @ core.or
@@ -126,40 +224,6 @@ int main(void){
     //|r> LOOP
     
   } // for ix1
-  //|r> LOOP
-
-  // === random pattern test ===
-  for (ix = 0; ix < 1000; ++ix){
-    //|0 1000 DO >r
-    
-    printf("%08x %08x ", arg1, arg2);
-    //|// ====================================================
-    //|// write col1:arg1; col2:arg2 (check LFSR state)
-    //|// ====================================================
-    //|__pushBothLfsr
-    //|swap system.emit.hex8 system.emit.space 
-    //|system.emit.hex8 system.emit.space
-    
-    int32_t res;
-    flm_add(arg1, arg2, &res);
-
-    //|__pushBothLfsr
-    //|flm.add
-
-    //|system.emit.hex8 system.emit.space
-    printf("%08x ", res);      
-
-    // === update shift registers ===
-    SHIFT32(arg1); SHIFT32(arg2);
-    //|__advanceBothLfsr
-    
-    //|// ====================================================
-    //|// end of line
-    //|// ====================================================
-    //|system.emit.cr
-    printf("\n");
-    
-  } // for i
   //|r> LOOP
   
   return EXIT_SUCCESS;
