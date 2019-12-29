@@ -73,20 +73,20 @@ void flm_testAlg(){
 	    printf("flm_add tolcheck fail at v1: %1.15f v2: %1.15f\n", v1, v2);
 	    exit(EXIT_FAILURE);
 	  }
-
-#if 0
-	  flm_mul(argA, argB, &resPacked);
-	  //printf("%08x %08x %08x\n", argA, argB, resPacked);
-      
-	  resRef = v1 * v2;
-	  //double resImpl =  flm2double(resPacked);
-	  //printf("%1.15f\t%1.15f\n", resRef, resImpl);
-
-	  if (!tol_check(&tol, resRef, resPacked)){
-	    printf("flm_mul tolcheck fail at v1: %1.15f v2: %1.15f\n", v1, v2);
-	    exit(EXIT_FAILURE);
-	  }      
-#endif
+	  
+	  if ((v1 > 1e-9) && (v2 > 1e-9) && (v1 < 1e8) && (v2 < 1e8)){
+	    flm_mul(argA, argB, &resPacked);
+	    //printf("%08x %08x %08x\n", argA, argB, resPacked);
+	    
+	    resRef = v1 * v2;
+	    //double resImpl =  flm2double(resPacked);
+	    //printf("%1.15f\t%1.15f\n", resRef, resImpl);
+	    
+	    if (!tol_check(&tol, resRef, resPacked)){
+	      printf("flm_mul tolcheck fail at v1: %1.15f v2: %1.15f\n", v1, v2);
+	      exit(EXIT_FAILURE);
+	    }      
+	  }
 	}
       }
     }
