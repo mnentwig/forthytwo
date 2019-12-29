@@ -2,7 +2,7 @@ FORTHYTWO=../../bin/forthytwo.exe
 GCC=gcc
 SIM=../../bin/sim.exe
 all: buildLib testLib
-buildLib: flm.c flm_test.c
+buildLib: flm.c flm_test.c flm_testAlg.c
 	@echo "=== separate the FORTH code in flm.c from its reference implementation ==="
 	cat flm.c | perl extractor.pl > ../flm.txt
 	@echo "=== separate the FORTH code in flm_test.c from its reference implementation ==="

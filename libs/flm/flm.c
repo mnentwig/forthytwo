@@ -131,70 +131,6 @@ void unpackedNormalize_positive(int32_t* mantissa, int32_t* exponent){
 
 // =================================================================================================
 
-void unpackedNormalize(int32_t* mantissa, int32_t* exponent){
-  //assert((*exponent >= -32) && (*exponent <= 31));
-  if (*mantissa == 0)
-    *exponent = 0;
-  else if (*mantissa & 0x80000000)
-    unpackedNormalize_negative(mantissa, exponent);
-  else
-    unpackedNormalize_positive(mantissa, exponent);
-}
-
-//|// 1: exponent; 0: mantissa
-//|:__flm.unpackedNormalize
-//|dup 
-//|IF // mantissa is non-zero? YES
-//|	dup 0x80000000 core.and 
-//|	IF // mantissa is negative? YES
-//|		__unpackedNormalize_negative     
-//|	ELSE // mantissa is negative? NO
-//|		__unpackedNormalize_positive
-//|	ENDIF // mantissa is negative?
-//|ELSE // mantissa is non-zero? NO
-//|	swap drop 0
-//|ENDIF // mantissa is zero?
-//|;
-
-// =================================================================================================
-
-void flm_unpack(int32_t packed, int32_t* mantissa, int32_t* exponent){
-  *exponent = packed & 0x3F;
-  if (*exponent & 0x20)
-    *exponent |= 0xFFFFFFC0;
-  *mantissa = packed >> 6; // note, arithmetic shift
-}
-
-//|:flm.unpack
-//|// === mask to return stack ===
-//|0x0000003F >r
-//|// === extract exponent ===
-//|dup r@ core.and 
-//|// === negative sign extension ===
-//|dup 0x00000020 core.and IF
-//|0xFFFFFFC0 core.or 
-//|ENDIF
-//|
-//|// === extract mantissa ===
-//|swap r> core.invert core.and
-//|6 flm.rshiftArith
-//|;
-
-// =================================================================================================
-
-void flm_pack(int32_t mantissa, int32_t exponent, int32_t* packed){
-  *packed = (mantissa << 6) | (exponent & 0x3F);
-  //printf("flm_pack m:%08x e:%08x r:%08x\n", mantissa, exponent, *packed);
-}
-//|:flm.pack
-//|6 core.lshift
-//|swap
-//|0x0000003F core.and
-//|core.or
-//|;
-
-// =================================================================================================
-
 int32_t flm_rshiftArith(int32_t val, int32_t amount){
   if (amount < 32)
     return val >> amount;
@@ -227,7 +163,116 @@ int32_t flm_rshiftArith(int32_t val, int32_t amount){
 //|0 core.invert ; // return 0xFFFFFFFF
 //|:__flm.rshiftArithResultAllZero
 //|0 ; // return 0x00000000
+//|
+// =================================================================================================
 
+void unpackedNormalize(int32_t* mantissa, int32_t* exponent){
+  if (*mantissa == 0){
+    *exponent = 0;
+    return;
+  }
+  
+  // keep exponent in range
+  while (*exponent < -32){
+    ++*exponent; *mantissa = flm_rshiftArith(*mantissa, 1);
+  }  
+  while (*exponent > 31){
+    --*exponent; *mantissa <<= 1; 
+  }
+  
+  if (*mantissa & 0x80000000)
+    unpackedNormalize_negative(mantissa, exponent);
+  else
+    unpackedNormalize_positive(mantissa, exponent);
+}
+
+//|// 1: exponent; 0: mantissa
+//|:__flm.unpackedNormalize
+//|dup 
+//|IF // mantissa is non-zero? YES
+//|	swap // 0: exponent; 1: mantissa
+//|	// ===fix exponent below -32===
+//|	BEGIN
+//|		/*exponent*/ dup -32 core.lessThanSigned 
+//|    	WHILE
+//|		1 + swap 1 flm.rshiftArith swap
+//|	REPEAT
+//|	// ===fix exponent above 31===
+//|	BEGIN
+//|		/*exponent*/ dup 31 swap core.lessThanSigned 
+//|    	WHILE
+//|		/*-1*/ 0 core.invert + swap 1 core.lshift swap
+//|	REPEAT
+//|	swap // 0: mantissa; 1: exponent
+//|	/*mantissa*/ dup 0x80000000 core.and 
+//|	IF // mantissa is negative? YES
+//|		__unpackedNormalize_negative     
+//|	ELSE // mantissa is negative? NO
+//|		__unpackedNormalize_positive
+//|	ENDIF // mantissa is negative?
+//|ELSE // mantissa is non-zero? NO
+//|	swap drop 0
+//|ENDIF // mantissa is zero?
+//|;
+
+// =================================================================================================
+
+void flm_unpack(int32_t packed, int32_t* mantissa, int32_t* exponent){
+  *exponent = packed & 0x3F;
+  if (*exponent & 0x20)
+    *exponent |= 0xFFFFFFC0;
+  *mantissa = packed >> 6; // note, arithmetic shift
+}
+
+//|:flm.unpack
+//|// === mask to return stack ===
+//|0x0000003F >r
+//|// === extract exponent ===
+//|dup r@ core.and 
+//|// === negative sign extension ===
+//|dup 0x00000020 core.and IF
+//|0xFFFFFFC0 core.or 
+//|ENDIF
+//|
+//|// === extract mantissa ===
+//|swap r> core.invert core.and
+//|6 flm.rshiftArith ;
+//|
+
+void flm_unpackUp6(int32_t packed, int32_t* mantissa, int32_t* exponent){
+  *exponent = packed & 0x3F;
+  if (*exponent & 0x20)
+    *exponent |= 0xFFFFFFC0;
+  *mantissa = packed & ~0x3F;
+}
+//|:flm.unpackUp6
+//|// === mask to return stack ===
+//|0x0000003F >r
+//|// === extract exponent ===
+//|dup r@ core.and 
+//|// === negative sign extension ===
+//|dup 0x00000020 core.and IF
+//|0xFFFFFFC0 core.or 
+//|ENDIF
+//|
+//|// === extract mantissa, shifted 6 bits up ===
+//|swap r> core.invert core.and ;
+//|
+
+// =================================================================================================
+
+void flm_pack(int32_t mantissa, int32_t exponent, int32_t* packed){
+  *packed = (mantissa << 6) | (exponent & 0x3F);
+  //printf("flm_pack m:%08x e:%08x r:%08x\n", mantissa, exponent, *packed);
+}
+//|:flm.pack
+//|6 core.lshift
+//|swap
+//|0x0000003F core.and
+//|core.or
+//|;
+
+// =================================================================================================
 
 // =================================================================================================
 
@@ -301,26 +346,30 @@ void flm_mul(int32_t packedA, int32_t packedB, int32_t* result){
   int32_t exponentA;
   int32_t mantissaB;
   int32_t exponentB;
-  flm_unpack(packedA, &mantissaA, &exponentA);
-  flm_unpack(packedB, &mantissaB, &exponentB);
+  flm_unpackUp6(packedA, &mantissaA, &exponentA);
+  flm_unpackUp6(packedB, &mantissaB, &exponentB);
+  //printf("flm_mul mA:%08x(%i) eA:%08x(%i) mB:%08x(%i) eB:%08x(%i)\n", mantissaA, mantissaA, exponentA, exponentA, mantissaB, mantissaB, exponentB, exponentB);
   int64_t prod = (int64_t)mantissaA * (int64_t)mantissaB;
+  //printf("flm_mul p64:%016" PRIx64 "\n", (uint64_t)prod);
   int32_t mantissaResult;
   int32_t exponentResult;
   mantissaResult = prod >> 32;
-  exponentResult = exponentA + exponentB + 32;
+  exponentResult = exponentA + exponentB + (32-6-6);
+  //printf("flm_mul (prenorm) mr:%08x er:%08x\n", mantissaResult, exponentResult);
 
   unpackedNormalize(&mantissaResult, &exponentResult);
+  //printf("flm_mul (postnorm) mr:%08x er:%08x\n", mantissaResult, exponentResult);
   flm_pack(mantissaResult, exponentResult, result);  
 }
 
 //|:flm.mul
-//|flm.unpack
+//|flm.unpackUp6
 //|'__flm.mantissaA ! '__flm.exponentA !
-//|flm.unpack
+//|flm.unpackUp6
 //|'__flm.mantissaB ! '__flm.exponentB !
 //|
 //|// === result exponent ===
-//|'__flm.exponentA @ '__flm.exponentB @ + 32 +
+//|'__flm.exponentA @ '__flm.exponentB @ + 20 +
 //|// === result mantissa ===
 //|'__flm.mantissaA @ '__flm.mantissaB @ math.s32*s32x2 drop
 //|__flm.unpackedNormalize

@@ -48,40 +48,6 @@ IF
 	ENDIF
 ENDIF
 ;
-// 1: exponent; 0: mantissa
-:__flm.unpackedNormalize
-dup 
-IF // mantissa is non-zero? YES
-	dup 0x80000000 core.and 
-	IF // mantissa is negative? YES
-		__unpackedNormalize_negative     
-	ELSE // mantissa is negative? NO
-		__unpackedNormalize_positive
-	ENDIF // mantissa is negative?
-ELSE // mantissa is non-zero? NO
-	swap drop 0
-ENDIF // mantissa is zero?
-;
-:flm.unpack
-// === mask to return stack ===
-0x0000003F >r
-// === extract exponent ===
-dup r@ core.and 
-// === negative sign extension ===
-dup 0x00000020 core.and IF
-0xFFFFFFC0 core.or 
-ENDIF
-
-// === extract mantissa ===
-swap r> core.invert core.and
-6 flm.rshiftArith
-;
-:flm.pack
-6 core.lshift
-swap
-0x0000003F core.and
-core.or
-;
 // returns number with n bits set, starting from bit 31
 ::__flm.nMsbMask core.invert 33 + 
 1 swap core.lshift 
@@ -106,6 +72,68 @@ r> drop // clean up shift amount
 0 core.invert ; // return 0xFFFFFFFF
 :__flm.rshiftArithResultAllZero
 0 ; // return 0x00000000
+
+// 1: exponent; 0: mantissa
+:__flm.unpackedNormalize
+dup 
+IF // mantissa is non-zero? YES
+	swap // 0: exponent; 1: mantissa
+	// ===fix exponent below -32===
+	BEGIN
+		/*exponent*/ dup -32 core.lessThanSigned 
+    	WHILE
+		1 + swap 1 flm.rshiftArith swap
+	REPEAT
+	// ===fix exponent above 31===
+	BEGIN
+		/*exponent*/ dup 31 swap core.lessThanSigned 
+    	WHILE
+		/*-1*/ 0 core.invert + swap 1 core.lshift swap
+	REPEAT
+	swap // 0: mantissa; 1: exponent
+	/*mantissa*/ dup 0x80000000 core.and 
+	IF // mantissa is negative? YES
+		__unpackedNormalize_negative     
+	ELSE // mantissa is negative? NO
+		__unpackedNormalize_positive
+	ENDIF // mantissa is negative?
+ELSE // mantissa is non-zero? NO
+	swap drop 0
+ENDIF // mantissa is zero?
+;
+:flm.unpack
+// === mask to return stack ===
+0x0000003F >r
+// === extract exponent ===
+dup r@ core.and 
+// === negative sign extension ===
+dup 0x00000020 core.and IF
+0xFFFFFFC0 core.or 
+ENDIF
+
+// === extract mantissa ===
+swap r> core.invert core.and
+6 flm.rshiftArith ;
+
+:flm.unpackUp6
+// === mask to return stack ===
+0x0000003F >r
+// === extract exponent ===
+dup r@ core.and 
+// === negative sign extension ===
+dup 0x00000020 core.and IF
+0xFFFFFFC0 core.or 
+ENDIF
+
+// === extract mantissa, shifted 6 bits up ===
+swap r> core.invert core.and ;
+
+:flm.pack
+6 core.lshift
+swap
+0x0000003F core.and
+core.or
+;
 VAR:__flm.mantissaA=0
 VAR:__flm.mantissaB=0
 VAR:__flm.exponentA=0
@@ -143,13 +171,13 @@ __flm.unpackedNormalize
 flm.pack
 ;
 :flm.mul
-flm.unpack
+flm.unpackUp6
 '__flm.mantissaA ! '__flm.exponentA !
-flm.unpack
+flm.unpackUp6
 '__flm.mantissaB ! '__flm.exponentB !
 
 // === result exponent ===
-'__flm.exponentA @ '__flm.exponentB @ + 32 +
+'__flm.exponentA @ '__flm.exponentB @ + 20 +
 // === result mantissa ===
 '__flm.mantissaA @ '__flm.mantissaB @ math.s32*s32x2 drop
 __flm.unpackedNormalize

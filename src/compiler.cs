@@ -410,21 +410,21 @@ class compiler {
 
             if(t == "AGAIN") {
                 flowcontrol fcBegin = (fc.Count > 0) && (fc.Peek().t == flowcontrol.t_e.BEGIN) ? fc.Pop() : null;
-                if (fcBegin == null) throw new Exception("'AGAIN' without matching 'BEGIN'");
+                if (fcBegin == null) throw tt.buildException("'AGAIN' without matching 'BEGIN'");
                 this.writeCode("core.bra"+util.hex4((UInt16)fcBegin.addr), "__AGAIN__" + tt.body + " " + tt.getAnnotation() + " ");
                 continue;
             }
 
             if(t == "UNTIL") {
                 flowcontrol fcBegin = (fc.Count > 0) && (fc.Peek().t == flowcontrol.t_e.BEGIN) ? fc.Pop() : null;
-                if(fcBegin == null) throw new Exception("'UNTIL' without matching 'BEGIN'");
+                if(fcBegin == null) throw tt.buildException("'UNTIL' without matching 'BEGIN'");
                 this.writeCode("core.bz"+util.hex4((UInt16)fcBegin.addr), "UNTIL loop if-not-exit" + tt.getAnnotation() + " ");
                 continue;
             }
 
             if(t == "WHILE") {
                 flowcontrol fcBegin = (fc.Count > 0) && (fc.Peek().t == flowcontrol.t_e.BEGIN) ? fc.Peek() : null; // note, does not pop
-                if(fcBegin == null) throw new Exception("'WHILE' without matching 'BEGIN'");
+                if(fcBegin == null) throw tt.buildException("'WHILE' without matching 'BEGIN'");
                 fc.Push(new flowcontrol() { t = flowcontrol.t_e.WHILE, addr = this.codeMemPtr, src = tt });
                 this.writeCode(mnemonic: "core.bz"+util.hex4(0), annotation: "__WHILE__ loop test" + tt.body + " " + tt.getAnnotation() + " ");
                 continue;
@@ -434,8 +434,8 @@ class compiler {
                 flowcontrol fcWhile = fc.Count > 0 ? fc.Pop() : null;
                 flowcontrol fcBegin = fc.Count > 0 ? fc.Pop() : null;
 
-                if((fcWhile == null) || fcWhile.t != flowcontrol.t_e.WHILE) throw new Exception("'REPEAT' without matching 'WHILE'");
-                if((fcBegin == null) || fcBegin.t != flowcontrol.t_e.BEGIN) throw new Exception("'REPEAT' without matching 'BEGIN'");
+                if((fcWhile == null) || fcWhile.t != flowcontrol.t_e.WHILE) throw tt.buildException("'REPEAT' without matching 'WHILE'");
+                if((fcBegin == null) || fcBegin.t != flowcontrol.t_e.BEGIN) throw tt.buildException("'REPEAT' without matching 'BEGIN'");
 
                 this.writeCode("core.bra"+util.hex4((UInt16)fcBegin.addr), "__REPEAT__" + tt.body + " " + tt.getAnnotation() + " ");
                 this.codeToMem(fcWhile.addr, "core.bz"+util.hex4((UInt16)this.codeMemPtr), null);
@@ -452,7 +452,7 @@ class compiler {
 
             if(t == "ELSE") {
                 flowcontrol fcIf = (fc.Count > 0) && (fc.Peek().t == flowcontrol.t_e.IF) ? fc.Peek() : null; // note, does not pop
-                if(fcIf == null) throw new Exception("'else' without matching 'if'");
+                if(fcIf == null) throw tt.buildException("'else' without matching 'if'");
                 string m = "core.bra"+util.hex4(/*will be updated when the destination address is reached*/0);
                 this.writeCode(m, "'skip-else' branch" + tt.getAnnotation() + " ");
                 // note: the flowcontrol entry is one instruction behind the skip-else branch

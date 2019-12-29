@@ -8,7 +8,10 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <assert.h>
+// pow
 #include <math.h>
+// PRIx64
+#include <inttypes.h>
 
 // xor-style LFSR pseudorandom sequences
 #define SHIFT32(x)x ^= x << 13;	x ^= x >> 17; x ^= x << 5;
