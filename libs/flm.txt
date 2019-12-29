@@ -183,6 +183,19 @@ flm.unpackUp6
 __flm.unpackedNormalize
 flm.pack
 ;
+:flm.__forceNormalizePositive
+/*mantissa*/core.dup 0 core.equals core.invert
+IF
+	0x40000000 core.pushR // create mask
+	BEGIN
+		dup core.fetchR core.and 0 core.equals
+	WHILE
+		1 core.lshift swap
+		0 core.invert core.plus swap 
+	REPEAT
+	core.popR core.drop // clean up mask
+ENDIF
+;
 VAR:__flm.result=0
 VAR:__flm.negFlag=0
 :flm.__divSignHandling 
@@ -199,12 +212,13 @@ ENDIF
 0 '__flm.result ! 
 // === prepare arg B (divisor) ===
 flm.unpackUp6 
-flm.__divSignHandling '__flm.mantissaB ! '__flm.exponentB !
+flm.__divSignHandling 
+flm.__forceNormalizePositive '__flm.mantissaB ! '__flm.exponentB !
 // === prepare arg A (dividend) ===
 flm.unpackUp6 
 flm.__divSignHandling '__flm.mantissaA ! '__flm.exponentA !
 //=== init mask ===
-0x400000000 core.pushR
+0x40000000 core.pushR
 // === prepare stack 0:a 1:b
 '__flm.mantissaB @ 
 '__flm.mantissaA @

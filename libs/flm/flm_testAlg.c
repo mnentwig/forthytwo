@@ -46,18 +46,6 @@ void flm_testAlg(){
 
   // TBD add 0 arg
 
-#if 0
-  argA = double2flm(1.0);
-  argB = double2flm(2.0);
-  flm_div(argA, argB, &resPacked);
-  printf("%08x %08x %08x\n", argA, argB, resPacked);
-	    
-  double resImpl =  flm2double(resPacked);
-  printf("%1.15f\n", resImpl);
-  exit(0);
-
-#endif
-
   double sign1; double sign2;
   double resRef;
   for (sign1 = -1; sign1 <= 1; sign1 += 2){

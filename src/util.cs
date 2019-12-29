@@ -5,6 +5,7 @@ static class util {
     static Dictionary<char, int> parseChar = new Dictionary<char, int>() { { '0', 0 }, { '1', 1 }, { '2', 2 }, { '3', 3 }, { '4', 4 }, { '5', 5 }, { '6', 6 }, { '7', 7 }, { '8', 8 }, { '9', 9 }, { 'A', 10 }, { 'B', 11 }, { 'C', 12 }, { 'D', 13 }, { 'E', 14 }, { 'F', 15 } };
 
     public static bool tryParseNum(string text, out UInt32 val) {
+        string textOrig = text;
         text = text.ToUpper();
         val = 0;
         UInt64 _val = 0;
@@ -25,8 +26,13 @@ static class util {
 
         // === determine base ===
         UInt32 b = 10;
-        if(text.StartsWith("0B")) { b = 2; text = text.Substring(2); } else if(text.StartsWith("0O")) { b = 8; text = text.Substring(2); } // octal, non-standard
-                                                                       else if(text.StartsWith("0X")) { b = 16; text = text.Substring(2); }
+        if(text.StartsWith("0B")) {
+            b = 2; text = text.Substring(2);
+        } else if(text.StartsWith("0O")) {
+            b = 8; text = text.Substring(2); // octal, non-standard
+        } else if(text.StartsWith("0X")) {
+            b = 16; text = text.Substring(2);
+        }
 
         // === parse resulting value ===
         for(int ix = 0; ix < text.Length; ++ix) {
@@ -40,11 +46,13 @@ static class util {
 
         // === apply two's complement negation ===
         if(negate) {
-            _val = ~_val + 1u;
+            if(_val > (UInt64)UInt32.MaxValue+1) throw new Exception("constant '"+textOrig+"' exceeds 32-bit range");
+            val = (UInt32)(~_val + 1);
+        } else {
+            if(_val > UInt32.MaxValue) throw new Exception("constant '"+textOrig+"' exceeds 32-bit range");
+            val = (UInt32)_val;
         }
 
-        if(_val > UInt32.MaxValue) throw new Exception("constant '+text+' exceeds 32-bit range");
-        val = (UInt32)_val;
         return true;
     }
 

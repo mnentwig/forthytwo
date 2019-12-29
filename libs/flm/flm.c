@@ -377,6 +377,29 @@ void flm_mul(int32_t packedA, int32_t packedB, int32_t* result){
 //|;
 
 // =================================================================================================
+void flm_forceNormalizePositive(int32_t* mantissa, int32_t* exponent){
+  if (mantissa)
+    while ((*mantissa & 0x40000000) == 0){
+      *mantissa <<= 1;
+      *exponent = *exponent-1;
+    }
+}
+
+//|:flm.__forceNormalizePositive
+//|/*mantissa*/core.dup 0 core.equals core.invert
+//|IF
+//|	0x40000000 core.pushR // create mask
+//|	BEGIN
+//|		dup core.fetchR core.and 0 core.equals
+//|	WHILE
+//|		1 core.lshift swap
+//|		0 core.invert core.plus swap 
+//|	REPEAT
+//|	core.popR core.drop // clean up mask
+//|ENDIF
+//|;
+
+// =================================================================================================
 
 void flm_div(int32_t packedA, int32_t packedB, int32_t* result){
   int32_t mantissaA;
@@ -398,6 +421,11 @@ void flm_div(int32_t packedA, int32_t packedB, int32_t* result){
     ++negate;    
   }
 
+  // the dividend must slide in from the left for the algorithm to work correctly
+  // therefore it may not be a denormal number, 
+  // note: exponentB may go temporarily out of range (uses 32 bit number until flm_pack)
+  flm_forceNormalizePositive(&mantissaB, &exponentB);
+  
   uint32_t mask = 0x40000000;
   int32_t mantissaResult = 0;
   uint32_t a = mantissaA;
@@ -442,7 +470,8 @@ void flm_div(int32_t packedA, int32_t packedB, int32_t* result){
 //|0 '__flm.result ! 
 //|// === prepare arg B (divisor) ===
 //|flm.unpackUp6 
-//|flm.__divSignHandling '__flm.mantissaB ! '__flm.exponentB !
+//|flm.__divSignHandling 
+//|flm.__forceNormalizePositive '__flm.mantissaB ! '__flm.exponentB !
 //|// === prepare arg A (dividend) ===
 //|flm.unpackUp6 
 //|flm.__divSignHandling '__flm.mantissaA ! '__flm.exponentA !
