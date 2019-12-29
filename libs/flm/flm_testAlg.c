@@ -119,11 +119,56 @@ void flm_testAlg(){
 	      printf("flm_div tolcheck fail at v1: %1.15f v2: %1.15f\n", v1, v2);
 	      exit(EXIT_FAILURE);
 	    }
-	  } // if test multiplication
-
-	  
+	  } // if test multiplication	  
 	} // for vv2
       } // for vv1
     } // for sign2
   } // for sign1
+}
+
+void flm_plotResults1(){
+  double sign1; double sign2;
+  double vv1;
+  double vv2;
+  int32_t argA;
+  int32_t argB;
+  int32_t resPacked;
+  for (sign1 = -1; sign1 <= 1; sign1 += 2){
+    for (sign2 = -1; sign2 <= 1; sign2 += 2){
+      for (vv1 = 2e-10; vv1 < 2e6; vv1 *= 1.2){
+	double v1 = vv1 * sign1;
+	argA = double2flm(v1);
+	for (vv2 = 2e-10; vv2 < 2e6; vv2 *= 1.2){
+	  double v2 = vv2 * sign2;
+	  argB = double2flm(v2);
+	  printf("%1.12f\t%1.12f\t", v1, v2);
+	  flm_add(argA, argB, &resPacked);
+	  printf("%1.12f\t", flm2double(resPacked));
+	  flm_mul(argA, argB, &resPacked);
+	  printf("%1.12f\t", flm2double(resPacked));
+	  flm_div(argA, argB, &resPacked);
+	  printf("%1.12f\n", flm2double(resPacked));
+	}
+      }
+    }
+  }
+}
+
+void flm_plotResults2(){
+  double sign1;
+  double vv1;
+  int32_t argA;
+  int32_t argB;
+  int32_t resPacked;
+  for (sign1 = -1; sign1 <= 1; sign1 += 2){
+    for (vv1 = 2e-10; vv1 < 2e6; vv1 *= 1.2){
+      double v1 = vv1 * sign1;
+      argA = double2flm(v1);
+      double v2 = v1 * 1.001;
+      argB = double2flm(v2);
+      printf("%1.12f\t%1.12f\t", v1, v2);
+      flm_div(argA, argB, &resPacked);
+      printf("%1.12f\n", flm2double(resPacked));
+    }
+  }
 }

@@ -61,7 +61,7 @@ public static class preprocessor {
         int cursor = 0;
         string[] groups = new string[] { // opener-closer pairs
             " \"", "\" ",
-            " /*", "*/ ",
+            " /*", "*/",
             "//", "#newline",
             " #include(", ") "};
         Stack<int> blkStart = new Stack<int>();

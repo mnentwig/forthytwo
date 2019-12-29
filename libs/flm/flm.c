@@ -376,6 +376,8 @@ void flm_mul(int32_t packedA, int32_t packedB, int32_t* result){
 //|flm.pack
 //|;
 
+// =================================================================================================
+
 void flm_div(int32_t packedA, int32_t packedB, int32_t* result){
   int32_t mantissaA;
   int32_t exponentA;
@@ -401,14 +403,17 @@ void flm_div(int32_t packedA, int32_t packedB, int32_t* result){
   uint32_t a = mantissaA;
   uint32_t b = mantissaB;
   while ((mask != 0) && (a != 0)){
+    //    printf("xxx%08x %08x\n", a, b);
     if (a >= b){
       a -= b;
       mantissaResult |= mask;
+      //printf("yyy%08x %08x\n", a, b);
     }
-    mask >>= 1;
     a <<= 1;
-  }
-
+    mask >>= 1;
+    //printf("zzz%08x %08x\n", a, b);
+    }
+  
   if (negate & 1)
     mantissaResult = -mantissaResult;
 
@@ -419,3 +424,54 @@ void flm_div(int32_t packedA, int32_t packedB, int32_t* result){
   //printf("flm_div (postnorm) mr:%08x er:%08x\n", mantissaResult, exponentResult);
   flm_pack(mantissaResult, exponentResult, result);  
 }
+
+//|VAR:__flm.result=0
+//|VAR:__flm.negFlag=0
+
+//|:flm.__divSignHandling 
+//|dup 0 core.lessThanSigned // is the given mantissa negative? 
+//|IF 
+//|	core.invert 1 core.plus // flip sign
+//|	'__flm.negFlag dup @ core.invert swap ! // flip negFlag
+//|ENDIF 
+//|;
+//|
+//|:flm.div
+//|// === init ===
+//|0 '__flm.negFlag !
+//|0 '__flm.result ! 
+//|// === prepare arg B (divisor) ===
+//|flm.unpackUp6 
+//|flm.__divSignHandling '__flm.mantissaB ! '__flm.exponentB !
+//|// === prepare arg A (dividend) ===
+//|flm.unpackUp6 
+//|flm.__divSignHandling '__flm.mantissaA ! '__flm.exponentA !
+//|//=== init mask ===
+//|0x40000000 core.pushR
+//|// === prepare stack 0:a 1:b
+//|'__flm.mantissaB @ 
+//|'__flm.mantissaA @
+//|BEGIN
+//|	/*a*/ dup 0 core.equals core.invert // a != 0
+//|	core.fetchR 0 core.equals core.invert  // mask != 0
+//|	core.and
+//|WHILE
+//|	core.over core.over // duplicate B and A for comparison
+//|	swap core.lessThanUnsigned core.invert // b >= a?
+//|	IF
+//|		'__flm.result dup @ core.fetchR core.or swap ! // result += mask
+//|		core.over core.invert 1 core.plus core.plus // a -= b
+//|	ENDIF
+//|	1 core.lshift 	// a <<= 1
+//|	core.popR 1 core.rshift core.pushR // mask >>= 1
+//|REPEAT
+//|/*clean up a*/core.drop /*clean up b*/core.drop /*clean up mask*/core.popR core.drop
+//|// === result exponent ===
+//|'__flm.exponentA @ '__flm.exponentB @ core.invert core.plus -29 core.plus
+//|// === result mantissa ===
+//|'__flm.result @
+//|// === restore sign ===
+//|'__flm.negFlag @ IF core.invert 1 core.plus ENDIF
+//|__flm.unpackedNormalize
+//|flm.pack
+//|;

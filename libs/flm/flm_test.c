@@ -94,7 +94,9 @@ int main(void){
   // check C compiler handling of signed int 32 right shift (relying on arithmetic shift)
   assert((((int32_t)0x80000000) >> 31) == 0xFFFFFFFF);
 
-  flm_testAlg();
+  //flm_plotResults2(); return EXIT_SUCCESS;
+
+  //flm_testAlg();
   //return EXIT_SUCCESS;
   int ix;
   int32_t exponent; int32_t mantissa;
@@ -121,12 +123,15 @@ int main(void){
     
     printf("%08x %08x ", arg1, arg2);
     //|// ====================================================
-    //|// write col1:arg1; col2:arg2 (check LFSR state)
+    //|// LFSR raw values
     //|// ====================================================
     //|__pushBothLfsr
     //|swap system.emit.hex8 system.emit.space 
     //|system.emit.hex8 system.emit.space
     
+    //|// ====================================================
+    //|// flm_add
+    //|// ====================================================
     flm_add(arg1, arg2, &res);
 
     //|__pushBothLfsr
@@ -135,13 +140,26 @@ int main(void){
     //|system.emit.hex8 system.emit.space
     printf("%08x ", res);      
 
+    //|// ====================================================
+    //|// flm_mul
+    //|// ====================================================
     flm_mul(arg1, arg2, &res);
     //|__pushBothLfsr
     //|flm.mul
 
     //|system.emit.hex8 system.emit.space
     printf("%08x ", res);      
-    
+
+    //|// ====================================================
+    //|// flm_div
+    //|// ====================================================
+     flm_div(arg1, arg2, &res);
+    //|__pushBothLfsr
+    //|flm.div
+
+    //|system.emit.hex8 system.emit.space
+    printf("%08x ", res);    
+
     //|// ====================================================
     //|// end of line
     //|// ====================================================
