@@ -7,6 +7,7 @@ static class util {
     public static bool tryParseNum(string text, out UInt32 val) {
         text = text.ToUpper();
         val = 0;
+        UInt64 _val = 0;
 
         // === check minus sign ===
         bool negate = false;
@@ -29,18 +30,21 @@ static class util {
 
         // === parse resulting value ===
         for(int ix = 0; ix < text.Length; ++ix) {
-            val *= b;
+            _val *= b;
             int charVal;
             if(!parseChar.TryGetValue(text[ix], out charVal)) throw new Exception("invalid character in number: >>>"+text+"<<<"); ;
             if(charVal >= b)
                 throw new Exception("number digit out of range in >>>"+text+"<<<");
-            val += (UInt32)charVal;
+            _val += (UInt32)charVal;
         }
 
         // === apply two's complement negation ===
         if(negate) {
-            val = ~val + 1u;
+            _val = ~_val + 1u;
         }
+
+        if(_val > UInt32.MaxValue) throw new Exception("constant '+text+' exceeds 32-bit range");
+        val = (UInt32)_val;
         return true;
     }
 
