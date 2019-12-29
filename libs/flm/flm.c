@@ -376,3 +376,46 @@ void flm_mul(int32_t packedA, int32_t packedB, int32_t* result){
 //|flm.pack
 //|;
 
+void flm_div(int32_t packedA, int32_t packedB, int32_t* result){
+  int32_t mantissaA;
+  int32_t exponentA;
+  int32_t mantissaB;
+  int32_t exponentB;
+  flm_unpackUp6(packedA, &mantissaA, &exponentA);
+  flm_unpackUp6(packedB, &mantissaB, &exponentB);
+  //printf("flm_div mA:%08x(%i) eA:%08x(%i) mB:%08x(%i) eB:%08x(%i)\n", mantissaA, mantissaA, exponentA, exponentA, mantissaB, mantissaB, exponentB, exponentB);
+
+  // === convert to signed ===
+  int negate = 0;
+  if (mantissaA < 0){
+    mantissaA = -mantissaA;
+    ++negate;    
+  }
+  if (mantissaB < 0){
+    mantissaB = -mantissaB;
+    ++negate;    
+  }
+
+  uint32_t mask = 0x40000000;
+  int32_t mantissaResult = 0;
+  uint32_t a = mantissaA;
+  uint32_t b = mantissaB;
+  while ((mask != 0) && (a != 0)){
+    if (a >= b){
+      a -= b;
+      mantissaResult |= mask;
+    }
+    mask >>= 1;
+    a <<= 1;
+  }
+
+  if (negate & 1)
+    mantissaResult = -mantissaResult;
+
+  int exponentResult = exponentA - exponentB - 30;
+  //printf("flm_div (prenorm) mr:%08x er:%08x\n", mantissaResult, exponentResult);
+
+  unpackedNormalize(&mantissaResult, &exponentResult);
+  //printf("flm_div (postnorm) mr:%08x er:%08x\n", mantissaResult, exponentResult);
+  flm_pack(mantissaResult, exponentResult, result);  
+}
