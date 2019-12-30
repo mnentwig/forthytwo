@@ -1,5 +1,7 @@
+// ########################################################################
 // this file: validation of fixed point algorithms against C double precision as reference
 // (no implementations on target platform in this file)
+// ########################################################################
 
 typedef struct _tol_t {
   double abstol;
@@ -66,7 +68,6 @@ void flm_testAlg(){
 	  tol_relax(&tol, v1, argA, 3.0);
 	  tol_relax(&tol, v2, argB, 3.0);
 
-#if 1
 	  // === flm_add ===
 	  flm_add(argA, argB, &resPacked);
 	  //printf("%08x %08x %08x\n", argA, argB, resPacked);
@@ -94,7 +95,6 @@ void flm_testAlg(){
 	      exit(EXIT_FAILURE);
 	    }
 	  } // if test multiplication
-#endif
 
 	  // === flm_div ===
 	  resRef = v1 / v2;

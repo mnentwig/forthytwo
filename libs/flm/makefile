@@ -31,5 +31,11 @@ clean:
 	rm -f ../flm.txt
 #forthytwo-generated output directory
 	rm -Rf out/
+#emacs backup files
+	rm -f *~
+#own generated files
+	rm -f flm_test.txt
+	rm -f flm_test.exe
+
 .PHONY: buildLib testLib clean debug
 
