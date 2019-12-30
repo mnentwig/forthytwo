@@ -617,6 +617,16 @@ class compiler {
         System.IO.File.WriteAllText(filename, sb.ToString());
     }
 
+    public void dumpVerilog(string filename) {
+        StringBuilder sb = new StringBuilder();
+        for(int ix = 0; ix < this.mem.Length; ++ix) {
+            sb.AppendLine("mem["+ix+"]="+util.hex8Verilog(this.mem[ix])+";");
+        }
+
+        // === end-of-transmission ESC character ===
+        System.IO.File.WriteAllText(filename, sb.ToString());
+    }
+
     public void dumpLst(string filename) {
         this.lstFileWriter.dumpLst(filename);
     }

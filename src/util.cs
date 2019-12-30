@@ -63,6 +63,9 @@ static class util {
     public static string hex8(UInt32 val) {
         return String.Format("0x{0:X08}", val);
     }
+    public static string hex8Verilog(UInt32 val) {
+        return String.Format("32'h{0:X8}", val);
+    }
 
 #if false
     public static bool parsePreprocToken(string input, out string tokenNoBracket, out string arg) {

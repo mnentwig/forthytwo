@@ -527,6 +527,12 @@ void flm_div(int32_t packedA, int32_t packedB, int32_t* result){
 //|;
 
 // =================================================================================================
+//|:flm.flt2int
+//|flm.unpack swap dup
+//|0 core.lessThanSigned IF core.invert 1 core.plus flm.rshiftArith ELSE core.lshift ENDIF
+//|;
+
+// =================================================================================================
 //|:flm.negate
 //|flm.unpack
 //|core.invert 1 core.plus

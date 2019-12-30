@@ -5,6 +5,7 @@ static class main {
     /// <summary>application entry point</summary>
     static int Main(string[] args) {
         string destHexFilename = null;
+        string destVerilogFilename = null;
         string destLstFilename = null;
         try {
             //args = new string[] { "../../../main.txt" }; Console.WriteLine("DEBUG: hardcoded args");
@@ -28,6 +29,8 @@ static class main {
                 if(destHexFilename == null) {
                     destHexFilename = System.IO.Path.ChangeExtension(fnameOut, "hex");
                     if(destHexFilename == fname) throw new Exception(".hex is not permitted as input file extension");
+                    destVerilogFilename = System.IO.Path.ChangeExtension(fnameOut, "v");
+                    if(destVerilogFilename == fname) throw new Exception(".v is not permitted as input file extension");
                     destLstFilename = System.IO.Path.ChangeExtension(fnameOut, "lst");
                     if(destLstFilename == fname) throw new Exception(".lst is not permitted as input file extension");
 
@@ -36,6 +39,7 @@ static class main {
 
                     // === prevent stale output by deleting first ===
                     System.IO.File.Delete(destHexFilename);
+                    System.IO.File.Delete(destVerilogFilename);
                     System.IO.File.Delete(destLstFilename);
                 }
 
@@ -51,6 +55,7 @@ static class main {
 
             // === write output files ===
             comp.dumpHex(destHexFilename);
+            comp.dumpVerilog(destVerilogFilename);
             comp.dumpLst(destLstFilename);
 
             return 0; // EXIT_SUCCESS 

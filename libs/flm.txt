@@ -254,6 +254,10 @@ flm.pack
 __flm.unpackedNormalize
 flm.pack
 ;
+:flm.flt2int
+flm.unpack swap dup
+0 core.lessThanSigned IF core.invert 1 core.plus flm.rshiftArith ELSE core.lshift ENDIF
+;
 :flm.negate
 flm.unpack
 core.invert 1 core.plus
