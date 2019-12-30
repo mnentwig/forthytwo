@@ -6,7 +6,9 @@ BRA:main // skip over code from included files
 #include(../libs/math.txt)
 #include(../libs/flm.txt)
 #include(pointsImported.txt)
-VAR:dataPtr=0
+VAR:dataEnd=0xdeadbeef
+VAR:dataPtrA=0xdeadbeef
+VAR:dataPtrB=0xdeadbeef
 VAR:x1=0
 VAR:dx1=0
 VAR:ddx1=0
@@ -20,22 +22,13 @@ VAR:y2=0
 VAR:dy2=0
 VAR:ddy2=0
 VAR:nHalfSteps=50
-:returnToFirstDataPoint
-	'myData0 'dataPtr !
-;
 
-:getData
-	'dataPtr @ 
-	dup 4 + 'dataPtr ! 
-	@
-;
+:panic system.dumpStack system.terminate
 
-// expects x1, x2
-// returns x1, ddx
-:calcInterpolation
-	// now: 1:x1 0:x2
-	
-	// x2-x1
+// in 1:v1 0:v2
+// out 1:v1 0:ddv 
+:calcAcceleration	
+	// v2-v1
 	core.over
 	flm.negate
 	flm.add
@@ -55,33 +48,89 @@ VAR:nHalfSteps=50
 	system.dumpStack
 	system.terminate
 
+:fetchAndAdvanceDataPtr
+	dup	// copy pointer address for store
+	@	// retrieve data address
+	dup @ >r // recall and save data
+	4 + 	// advance data addresss
+	dup 'dataEnd core.equals // check for end of data
+	IF drop 'myData0 ENDIF // if yes, replace with start of data
+	swap ! 	// store updated value
+	r>	// return data
+;
+
+:loadNextPoint_fetchAndCalc
+	'dataPtrA fetchAndAdvanceDataPtr // get start value
+	'dataPtrB fetchAndAdvanceDataPtr // get stop value
+	calcAcceleration
+;
+
+:loadNextPointToInterpolators
+	loadNextPoint_fetchAndCalc
+	'ddx1 ! 'x1 ! 0 'dx1 !
+	loadNextPoint_fetchAndCalc
+	'ddy1 ! 'y1 ! 0 'dy1 !
+	loadNextPoint_fetchAndCalc
+	'ddx2 ! 'x2 ! 0 'dx2 !
+	loadNextPoint_fetchAndCalc
+	'ddy2 ! 'y2 ! 0 'dy2 !
+;
+
+:reverseAcceleration
+	dup @ flm.negate swap !
+;
+
 :main
-// === init data ===
-returnToFirstDataPoint
-// 0 10 DO
-	// check for end of list (dataPtr is next in memory to the data)
-	'dataPtr dup @ core.equals
-	IF 
-		returnToFirstDataPoint 
-	ENDIF
-	getData
-	getData
-	calcInterpolation
-	'ddx1 ! 
-	'x1 ! 
-	0 'dx1 !
+	// === init data pointers to first and second point in list ===
+	'myData0 'dataPtrA !
+	'myData4 'dataPtrB !
+
+	0 12 DO >r
+	loadNextPointToInterpolators
+
+	// === accelerating half ===
 	0 'nHalfSteps @ DO >r
-	  'x1 @ flm.emit system.emit.cr
+	  'x1 @ flm.emit system.emit.space
 	  'dx1 'ddx1 varAddFltToVar
 	  'x1 'dx1 varAddFltToVar
+
+	  'y1 @ flm.emit system.emit.space
+	  'dy1 'ddy1 varAddFltToVar
+	  'y1 'dy1 varAddFltToVar
+
+	  'x2 @ flm.emit system.emit.space
+	  'dx2 'ddx2 varAddFltToVar
+	  'x2 'dx2 varAddFltToVar
+
+	  'y2 @ flm.emit system.emit.cr
+	  'dy2 'ddy2 varAddFltToVar
+	  'y2 'dy2 varAddFltToVar
 	r> LOOP
-		system.emit.cr	
-	'ddx1 @ flm.negate 'ddx1 !	
+
+	// === change to deceleration ===
+	'ddx1 reverseAcceleration
+	'ddy1 reverseAcceleration
+	'ddx2 reverseAcceleration
+	'ddy2 reverseAcceleration
+
+	// === decelerating part ===
 	0 'nHalfSteps @ DO >r
-	  'x1 @ flm.emit system.emit.cr
+	  'x1 @ flm.emit system.emit.space
 	  'dx1 'ddx1 varAddFltToVar
 	  'x1 'dx1 varAddFltToVar
+
+	  'y1 @ flm.emit system.emit.space
+	  'dy1 'ddy1 varAddFltToVar
+	  'y1 'dy1 varAddFltToVar
+
+	  'x2 @ flm.emit system.emit.space
+	  'dx2 'ddx2 varAddFltToVar
+	  'x2 'dx2 varAddFltToVar
+
+	  'y2 @ flm.emit system.emit.cr
+	  'dy2 'ddy2 varAddFltToVar
+	  'y2 'dy2 varAddFltToVar
 	r> LOOP
-	system.terminate
-	
-//LOOP
+	system.emit.cr	
+r> LOOP
+system.terminate
