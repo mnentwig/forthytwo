@@ -120,6 +120,14 @@ Any number appearing in the code is loaded to the data stack (note, the number o
 ### single-quote "address-of"
 The single-quote built-in >>>'myLabel<<< pushes the address of myLabel (code or variable).
 
+# FLM floating point library
+- 32 bit (26 bits signed mantissa, 6 bits signed exponent)
+- not compatible with IEEE single precision
+- simplified (no implied "1" for mantissa, no NAN or INF
+- simulator has dedicated IO register 0x4000 to print a float value
+- no internal rounding, minimal code size
+- documentation TBD
+
 # Verilator install
 Verilator is needed to rebuild the simulator executable (e.g. if modifying the CPU or adding peripherals). 
 These notes are for a Windows installation and are only relevant if Verilator standard install does not run through smoothly.
