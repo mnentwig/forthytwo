@@ -3,6 +3,14 @@
 #include "Vj1b.h"
 #include "verilated_vcd_c.h"
 
+double flm2double(int32_t val){
+  int32_t exponent = (val << 26) >> 26;
+  int32_t mantissa = val >> 6;
+  double res = (double)mantissa;
+  res = res * pow(2.0, exponent);
+  return res;
+}
+
 int main(int argc, char **argv)
 {
     Verilated::commandArgs(argc, argv);
@@ -41,10 +49,15 @@ int main(int argc, char **argv)
       }
 
       if (top->uart0_wr) {
-        if (top->uart_w == 4) break;
+        // end character - finish
+	if (top->uart_w == 4) 
+	  break;
         putchar(top->uart_w);
       } else {
-	if (top->j1b__DOT__io_wr_){
+	// printf for flm floating point values
+	if (top->j1b__DOT__io_wr_ && top->j1b__DOT__io_addr_ == 0x4000){
+	  printf("%1.15f", flm2double(top->j1b__DOT__dout_));	
+	} else if (top->j1b__DOT__io_wr_){
 	  printf("IOW:%8x\t%8x\n", top->j1b__DOT__io_addr_, top->j1b__DOT__dout_);
 	}
       }

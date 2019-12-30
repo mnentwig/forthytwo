@@ -260,3 +260,6 @@ core.invert 1 core.plus
 __flm.unpackedNormalize
 flm.pack
 ;
+//simulator has built-in print() for flm format (avoids the need for large on-system crt library)
+::flm.emit
+0x4000 io! ;

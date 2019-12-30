@@ -41,7 +41,7 @@ VAR:nHalfSteps=50
 	flm.add
 	
 	// 4*nSteps^2
-	'nHalfSteps @ 1 core.lshift
+	'nHalfSteps @ 0 core.lshift
 	dup
 	math.u32*u32
 	flm.int2flt
@@ -50,10 +50,8 @@ VAR:nHalfSteps=50
 ;
 
 :varAddFltToVar
-	@ over @ flm.add panic
-!
+	@ over @ flm.add swap !
 ;
-:panic
 	system.dumpStack
 	system.terminate
 
@@ -73,17 +71,17 @@ returnToFirstDataPoint
 	'x1 ! 
 	0 'dx1 !
 	0 'nHalfSteps @ DO >r
+	  'x1 @ flm.emit system.emit.cr
 	  'dx1 'ddx1 varAddFltToVar
 	  'x1 'dx1 varAddFltToVar
-	  'x1 @ system.emit.hex8
 	r> LOOP
-		
+		system.emit.cr	
 	'ddx1 @ flm.negate 'ddx1 !	
-	0 'nHalfSteps @ DO
+	0 'nHalfSteps @ DO >r
+	  'x1 @ flm.emit system.emit.cr
 	  'dx1 'ddx1 varAddFltToVar
 	  'x1 'dx1 varAddFltToVar
-	  'x1 @ system.emit.hex8
-	LOOP
+	r> LOOP
 	system.terminate
 	
 //LOOP
