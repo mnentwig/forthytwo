@@ -1,0 +1,89 @@
+//address 0 (reset vector)
+BRA:main // skip over code from included files
+#include(../libs/core.txt)
+#include(../libs/system.txt)
+#include(../libs/system.ASCII.txt)
+#include(../libs/math.txt)
+#include(../libs/flm.txt)
+#include(pointsImported.txt)
+VAR:dataPtr=0
+VAR:x1=0
+VAR:dx1=0
+VAR:ddx1=0
+VAR:y1=0
+VAR:dy1=0
+VAR:ddy1=0
+VAR:x2=0
+VAR:dx2=0
+VAR:ddx2=0
+VAR:y2=0
+VAR:dy2=0
+VAR:ddy2=0
+VAR:nHalfSteps=50
+:returnToFirstDataPoint
+	'myData0 'dataPtr !
+;
+
+:getData
+	'dataPtr @ 
+	dup 4 + 'dataPtr ! 
+	@
+;
+
+// expects x1, x2
+// returns x1, ddx
+:calcInterpolation
+	// now: 1:x1 0:x2
+	
+	// x2-x1
+	core.over
+	flm.negate
+	flm.add
+	
+	// 4*nSteps^2
+	'nHalfSteps @ 1 core.lshift
+	dup
+	math.u32*u32
+	flm.int2flt
+	
+	flm.div	
+;
+
+:varAddFltToVar
+	@ over @ flm.add panic
+!
+;
+:panic
+	system.dumpStack
+	system.terminate
+
+:main
+// === init data ===
+returnToFirstDataPoint
+// 0 10 DO
+	// check for end of list (dataPtr is next in memory to the data)
+	'dataPtr dup @ core.equals
+	IF 
+		returnToFirstDataPoint 
+	ENDIF
+	getData
+	getData
+	calcInterpolation
+	'ddx1 ! 
+	'x1 ! 
+	0 'dx1 !
+	0 'nHalfSteps @ DO >r
+	  'dx1 'ddx1 varAddFltToVar
+	  'x1 'dx1 varAddFltToVar
+	  'x1 @ system.emit.hex8
+	r> LOOP
+		
+	'ddx1 @ flm.negate 'ddx1 !	
+	0 'nHalfSteps @ DO
+	  'dx1 'ddx1 varAddFltToVar
+	  'x1 'dx1 varAddFltToVar
+	  'x1 @ system.emit.hex8
+	LOOP
+	system.terminate
+	
+//LOOP

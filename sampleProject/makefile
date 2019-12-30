@@ -1,9 +1,13 @@
+FORTHYTWO=../bin/forthytwo.exe 
+GCC=gcc
+SIM=../bin/sim.exe
+
 all: pointsImported.txt
 
 pointsImport.exe: pointsImport.c
 	@echo
 	@echo "=== building data conversion utility ==="
-	gcc -Wall -o pointsImport.exe pointsImport.c
+	${GCC} -Wall -o pointsImport.exe pointsImport.c
 
 pointsImported.txt: pointsImport.exe fractalPoints.txt
 	@echo
@@ -14,4 +18,9 @@ clean:
 	rm -f pointsImported.txt
 	rm -f pointsImport.exe
 
-.PHONY: clean
+sim:
+	${FORTHYTWO} main.txt
+	${SIM} out/main.hex
+
+
+.PHONY: clean sim

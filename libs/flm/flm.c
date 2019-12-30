@@ -281,8 +281,19 @@ void flm_add(int32_t packedA, int32_t packedB, int32_t* result){
   int32_t exponentA;
   int32_t mantissaB;
   int32_t exponentB;
+
+  if (packedA == 0){
+    *result = packedB; 
+    return;
+  }
   flm_unpack(packedA, &mantissaA, &exponentA);
+
+  if (packedB == 0){
+    *result = packedA; 
+    return;
+  }
   flm_unpack(packedB, &mantissaB, &exponentB);
+
   //printf("flm_add mA:%08x eA: %08x mB:%08x eB:%08x\n", mantissaA, exponentA, mantissaB, exponentB);
   int32_t exponentResult = exponentA > exponentB ? exponentA : exponentB;
   int32_t deltaA = exponentResult-exponentA;
@@ -309,6 +320,9 @@ void flm_add(int32_t packedA, int32_t packedB, int32_t* result){
 //|
 //|
 //|:flm.add
+//|//=== zero check (handle as special case because zero exponent would impair accuracy) ===
+//|dup 0 core.equals IF core.drop core.return ENDIF // argA zero check
+//|over 0 core.equals IF core.nip core.return ENDIF // argA zero check
 //|flm.unpack
 //|'__flm.mantissaA ! '__flm.exponentA !
 //|flm.unpack
@@ -501,6 +515,21 @@ void flm_div(int32_t packedA, int32_t packedB, int32_t* result){
 //|'__flm.result @
 //|// === restore sign ===
 //|'__flm.negFlag @ IF core.invert 1 core.plus ENDIF
+//|__flm.unpackedNormalize
+//|flm.pack
+//|;
+
+// =================================================================================================
+//|:flm.int2flt
+//|0 swap // insert exponent (argument becomes mantissa)
+//|__flm.unpackedNormalize
+//|flm.pack
+//|;
+
+// =================================================================================================
+//|:flm.negate
+//|flm.unpack
+//|core.invert 1 core.plus
 //|__flm.unpackedNormalize
 //|flm.pack
 //|;

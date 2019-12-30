@@ -141,6 +141,9 @@ VAR:__flm.exponentB=0
 
 
 :flm.add
+//=== zero check (handle as special case because zero exponent would impair accuracy) ===
+dup 0 core.equals IF core.drop core.return ENDIF // argA zero check
+over 0 core.equals IF core.nip core.return ENDIF // argA zero check
 flm.unpack
 '__flm.mantissaA ! '__flm.exponentA !
 flm.unpack
@@ -243,6 +246,17 @@ REPEAT
 '__flm.result @
 // === restore sign ===
 '__flm.negFlag @ IF core.invert 1 core.plus ENDIF
+__flm.unpackedNormalize
+flm.pack
+;
+:flm.int2flt
+0 swap // insert exponent (argument becomes mantissa)
+__flm.unpackedNormalize
+flm.pack
+;
+:flm.negate
+flm.unpack
+core.invert 1 core.plus
 __flm.unpackedNormalize
 flm.pack
 ;

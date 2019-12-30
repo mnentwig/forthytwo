@@ -60,7 +60,9 @@ int main(void){
 
   //flm_plotResults2(); return EXIT_SUCCESS;
 
-  flm_testAlg();
+  flm_testAlgAdd();
+  flm_testAlgMul();
+  flm_testAlgDiv();
   //return EXIT_SUCCESS;
   int ix;
   int32_t exponent; int32_t mantissa;
