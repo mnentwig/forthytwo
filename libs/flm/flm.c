@@ -504,3 +504,39 @@ void flm_div(int32_t packedA, int32_t packedB, int32_t* result){
 //|__flm.unpackedNormalize
 //|flm.pack
 //|;
+
+int32_t double2flm(double val){
+  int32_t exponent = 0;
+  if (val > 0){
+    while (val > (int32_t)0x01FFFFFF){
+      val /= 2.0; ++exponent;
+      if (exponent == 31) break;
+    }
+    while (val < (int32_t)0x01000000){
+      val *= 2.0; --exponent;
+      if (exponent == -32) break;
+    }
+  } else {
+    while (val < (int32_t)0xFE000000){
+      val /= 2.0; ++exponent;
+      if (exponent == 31) break;
+    }
+    while (val > (int32_t)0xFEFFFFFF){
+      val *= 2.0; --exponent;
+      if (exponent == -32) break;
+    }
+  }
+
+  int32_t mantissa = (int32_t)(val + 0.5);
+  int32_t res;
+  flm_pack(mantissa, exponent, &res);
+  return res;  
+}
+
+double flm2double(int32_t val){
+  int32_t exponent = (val << 26) >> 26;
+  int32_t mantissa = val >> 6;
+  double res = (double)mantissa;
+  res = res * pow(2.0, exponent);
+  return res;
+}
