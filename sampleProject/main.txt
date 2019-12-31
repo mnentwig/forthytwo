@@ -1,3 +1,6 @@
+// Fractal demo control code
+// (c) Markus Nentwig 2019-2020
+
 //address 0 (reset vector)
 BRA:main // skip over code from included files
 #include(../libs/core.txt)
@@ -21,9 +24,26 @@ VAR:ddx2=0
 VAR:y2=0
 VAR:dy2=0
 VAR:ddy2=0
-VAR:nHalfSteps=50
+VAR:nHalfSteps=150
+VAR:lastFrameNum=0xFFFFFFFF
 
 :panic system.dumpStack system.terminate
+
+:getHardwareFrameNum 
+	0x3000 io@
+;
+
+:waitForStartOfFrame
+	BEGIN
+		'lastFrameNum @
+		getHardwareFrameNum
+		core.equals
+		core.invert
+	UNTIL
+	getHardwareFrameNum
+	'lastFrameNum
+	!
+;
 
 // in 1:v1 0:v2
 // out 1:v1 0:ddv 
@@ -99,18 +119,7 @@ VAR:nHalfSteps=50
   0x2003 io! //system.emit.hex8 system.emit.cr
 ;
 
-:main
-	// === init data pointers to first and second point in list ===
-	'myData0 'dataPtrA !
-	'myData4 'dataPtrB !
-
-//	0 12 DO >r
-BEGIN
-	loadNextPointToInterpolators
-
-	// === accelerating half ===
-	0 'nHalfSteps @ DO >r
-	
+:setX1X2Y1Y2
 	  'x1 @ flt2Q19 
 	  setHwX	  
 	  
@@ -122,6 +131,21 @@ BEGIN
 
 	  'y2 @ 'y1 @ flm.negate flm.add 1079 flm.int2flt flm.div flt2Q27 
 	  setHwDY	  
+;
+
+:main
+	// === init data pointers to first and second point in list ===
+	'myData0 'dataPtrA !
+	'myData4 'dataPtrB !
+
+//	0 12 DO >r
+BEGIN
+	loadNextPointToInterpolators
+
+	// === accelerating half ===
+	0 'nHalfSteps @ DO >r
+	  waitForStartOfFrame
+	  setX1X2Y1Y2	
 
 	  // == DEBUG: log the screen corners ===
 	  //'x1 @ flm.emit system.emit.space
@@ -150,6 +174,9 @@ BEGIN
 
 	// === decelerating part ===
 	0 'nHalfSteps @ DO >r
+	  waitForStartOfFrame
+	  setX1X2Y1Y2	
+
 	  'dx1 'ddx1 varAddFltToVar
 	  'x1 'dx1 varAddFltToVar
 

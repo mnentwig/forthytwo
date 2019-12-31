@@ -39,7 +39,7 @@ module j1b(input wire clk,
     .mem_din(mem_din),
     .io_din(io_din),
     .mem_addr(mem_addr),
-    .code_addr16bitWord(code_addr16bitWord),
+    .code_addr(code_addr16bitWord),
     .insn(insn));
 
   // ######   IO SIGNALS   ####################################
