@@ -65,8 +65,8 @@ VAR:nHalfSteps=50
 	calcAcceleration
 ;
 
-:flt2Q22 0x00400000 flm.int2flt flm.mul flm.flt2int ;
-:flt2Q30 0x40000000 flm.int2flt flm.mul flm.flt2int ;
+:flt2Q19 1 19 core.lshift flm.int2flt flm.mul flm.flt2int ;
+:flt2Q27 1 27 core.lshift flm.int2flt flm.mul flm.flt2int ;
 
 :loadNextPointToInterpolators
 	loadNextPoint_fetchAndCalc
@@ -83,21 +83,45 @@ VAR:nHalfSteps=50
 	dup @ flm.negate swap !
 ;
 
+:setHwX 	
+  0x2000 io! //system.emit.hex8 system.emit.space
+;
+
+:setHwDX 	
+  0x2001 io! //system.emit.hex8 system.emit.space
+;
+
+:setHwY
+  0x2002 io! //system.emit.space
+;
+
+:setHwDY
+  0x2003 io! //system.emit.hex8 system.emit.cr
+;
+
 :main
 	// === init data pointers to first and second point in list ===
 	'myData0 'dataPtrA !
 	'myData4 'dataPtrB !
 
-	0 12 DO >r
+//	0 12 DO >r
+BEGIN
 	loadNextPointToInterpolators
 
 	// === accelerating half ===
 	0 'nHalfSteps @ DO >r
 	
-	  'x1 @ flt2Q22 system.emit.hex8 system.emit.space
-	  'x2 @ 'x1 @ flm.negate flm.add 1919 flm.int2flt flm.div flt2Q30 system.emit.hex8 system.emit.space
-	  'y1 @ flt2Q22 system.emit.hex8 system.emit.space
-	  'y2 @ 'y1 @ flm.negate flm.add 1079 flm.int2flt flm.div flt2Q30 system.emit.hex8 system.emit.cr
+	  'x1 @ flt2Q19 
+	  setHwX	  
+	  
+	  'x2 @ 'x1 @ flm.negate flm.add 1919 flm.int2flt flm.div flt2Q27 
+	  setHwDX
+	  
+	  'y1 @ flt2Q19
+	  setHwY
+
+	  'y2 @ 'y1 @ flm.negate flm.add 1079 flm.int2flt flm.div flt2Q27 
+	  setHwDY	  
 
 	  // == DEBUG: log the screen corners ===
 	  //'x1 @ flm.emit system.emit.space
@@ -126,22 +150,18 @@ VAR:nHalfSteps=50
 
 	// === decelerating part ===
 	0 'nHalfSteps @ DO >r
-	  'x1 @ flm.emit system.emit.space
 	  'dx1 'ddx1 varAddFltToVar
 	  'x1 'dx1 varAddFltToVar
 
-	  'y1 @ flm.emit system.emit.space
 	  'dy1 'ddy1 varAddFltToVar
 	  'y1 'dy1 varAddFltToVar
 
-	  'x2 @ flm.emit system.emit.space
 	  'dx2 'ddx2 varAddFltToVar
 	  'x2 'dx2 varAddFltToVar
 
-	  'y2 @ flm.emit system.emit.cr
 	  'dy2 'ddy2 varAddFltToVar
 	  'y2 'dy2 varAddFltToVar
 	r> LOOP
-	system.emit.cr	
-r> LOOP
-system.terminate
+AGAIN
+//r> LOOP
+//system.terminate

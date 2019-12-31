@@ -1,27 +1,25 @@
 module j1(
-  input wire 		   clk,
-  input wire 		   resetq,
+  input wire 		  clk,
+  input wire 		  resetq,
 
-  output wire 		   io_rd,
-  output wire 		   io_wr,
-  output wire [15:0] 	   mem_addr,
-  output wire 		   mem_wr,
+  output wire 		  io_rd,
+  output wire 		  io_wr,
+  output wire [15:0] 	  mem_addr,
+  output wire 		  mem_wr,
   output wire [WIDTH-1:0] dout,
   input wire [WIDTH-1:0]  mem_din,
 
   input wire [WIDTH-1:0]  io_din,
 
-  output wire [12:0] 	   code_addr16bitWord,
-  input wire [15:0] 	   insn);
-
+  output wire [12:0] 	  code_addr16bitWord,
+  input wire [15:0] 	  insn);
    parameter WIDTH=32;
-   
-
 
   reg [4:0] dsp, dspN;      // Data stack pointer
   reg [WIDTH-1:0] st0;     // Top of data stack
   reg [WIDTH-1:0] st0N;
   reg dstkW;                // D stack write
+  reg [1:0] dspI, rspI;
 
   reg [12:0] pc, pcN;      
   reg rstkW;          // R stack write
@@ -79,7 +77,6 @@ module j1(
 
   assign rstkD = (insn[13] == 1'b0) ? {{(WIDTH - 14){1'b0}}, pc_plus_1, 1'b0} : st0;
 
-  reg [1:0] dspI, rspI;
   always @*
   begin
     casez ({insn[15:13]})

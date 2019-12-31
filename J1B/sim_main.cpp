@@ -58,7 +58,7 @@ int main(int argc, char **argv)
 	if (top->j1b__DOT__io_wr_ && top->j1b__DOT__io_addr_ == 0x4000){
 	  printf("%1.15f", flm2double(top->j1b__DOT__dout_));	
 	} else if (top->j1b__DOT__io_wr_){
-	  printf("IOW:%8x\t%8x\n", top->j1b__DOT__io_addr_, top->j1b__DOT__dout_);
+	  printf("IOW:%8x\t%08x\n", top->j1b__DOT__io_addr_, top->j1b__DOT__dout_);
 	}
       }
       if (top->uart0_rd) {

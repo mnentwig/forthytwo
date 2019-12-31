@@ -620,7 +620,7 @@ class compiler {
     public void dumpVerilog(string filename) {
         StringBuilder sb = new StringBuilder();
         for(int ix = 0; ix < this.mem.Length; ++ix) {
-            sb.AppendLine("mem["+ix+"]="+util.hex8Verilog(this.mem[ix])+";");
+            sb.AppendLine("ram["+ix+"]="+util.hex8Verilog(this.mem[ix])+";");
         }
 
         // === end-of-transmission ESC character ===
