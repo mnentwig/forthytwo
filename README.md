@@ -140,6 +140,28 @@ The single-quote built-in >>>'myLabel<<< pushes the address of myLabel (code or 
 # known bugs
 - the forthytwo.exe exit code is not recognized by mingw "make", therefore the makefile will continue. Forthytwo.exe deletes all output files at startup, so the error should show later as a non-existing file.
 
+# boot loader
+A minimal boot loader is included (164 bytes including UART get-/putChar)
+It is recommended to create a copy for each application, with possible modifications (e.g. debug output) in mind.
+
+## Boot loader concept
+The boot loader is built into FPGA BRAM initial contents via the bitstream. For the verilator simulator, it is loaded as application.
+The application binary is then sent via UART using forthytwo.exe's out/*.bootBin output file.
+To reload the application binary, the system needs to be reset externally (reprogram the FPGA or assert the J1 reset input, restart the simulator).
+The application MUST include a replica of the bootloader IDENTICAL TO ROM at address zero0.
+During application upload, the bootloader will simply overwrite itself redundantly with bitwise-identical data. The redundant copy of the bootloader effectively sets the address offset for the user application.
+
+## Boot loader workflow (FPGA)
+- Compile bootloader.txt with forthytwo.exe, independently of the application
+- Put the resulting bootloader.v file into FPGA BRAM (see sampleImpl)
+- Program the FPGA. The bootloader is listening
+- Open (e.g.) Teraterm, Menu:File/send File, check "binary" option, select myApplication.bootBin file.
+- For design iteration, reprogram the FPGA (or use e.g. a button tó reset the J1 core) and repeat
+
+## Boot loader workflow (Verilator simulator in refImpl)
+- invoke sim.exe bootloader.hex myApplication.bootBin
+- the simulator will internally create UART input reading from the .bootBin file and switch UART IO back to console at end of file.
+
 # Verilator install
 Verilator is needed to rebuild the simulator executable (e.g. if modifying the CPU or adding peripherals). 
 These notes are for a Windows installation and are only relevant if Verilator standard install does not run through smoothly.
