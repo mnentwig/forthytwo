@@ -50,7 +50,8 @@ public class token {
 /// <summary>ASCII-level manipulation, include handling, tokenization of input files</summary>
 public static class preprocessor {
     static char[] whitespace = new char[] { '\r', '\n', '\t', ' ' };
-    public static void parse(string fileContent, List<string> filerefs, string currentDirectory, List<token>tokens, Dictionary<string, UInt32> defines) {
+    public static void parse(string fileContent, List<string> filerefs, string currentDirectory, List<token>tokens, Dictionary<string, UInt32> defines, HashSet<string> includeOnce) {
+
         // === newline processing ===
         fileContent = " " + fileContent + System.Environment.NewLine; // sentinels
         fileContent = fileContent.Replace(System.Environment.NewLine, " #newline ");
@@ -149,51 +150,77 @@ public static class preprocessor {
             tokens = new List<token>();
         List<string> defKeys = new List<string>(defines.Keys);
         foreach(token t in tokens3) {
-            // === #abc defining commands ===
-            foreach(string def in defKeys) {
-                if(t.body.StartsWith(def)) {
-                    if(!t.body.EndsWith(")"))
-                        throw new Exception(filerefs[filerefs.Count-1] + "line " + t.lineBase0 +":"+def+" without closing bracket");
-                    string arg = t.body.Substring(def.Length,t.body.Length - def.Length - 1);
-                    UInt32 valNum;
-                    if(!util.tryParseNum(arg,out valNum))
-                        throw new Exception(filerefs[filerefs.Count-1] + "line " + t.lineBase0 +":"+def+" cannot parse argument");
-                    defines[def] = valNum;
+            try {
+                // === #abc defining commands ===
+                foreach(string def in defKeys) {
+                    if(t.body.StartsWith(def)) {
+                        if(!t.body.EndsWith(")"))
+                            throw new Exception(filerefs[filerefs.Count-1] + "line " + t.lineBase0 +":"+def+" without closing bracket");
+                        string arg = t.body.Substring(def.Length, t.body.Length - def.Length - 1);
+                        UInt32 valNum;
+                        if(!util.tryParseNum(arg, out valNum))
+                            throw new Exception(filerefs[filerefs.Count-1] + "line " + t.lineBase0 +":"+def+" cannot parse argument");
+                        defines[def] = valNum;
+                        goto tokenDone;
+                    }
+                }
+
+                string preprocTokenKey;
+                string preprocTokenArg;
+                char preprocTokenDelimiter;
+                if(util.parsePreprocToken(t.body, out preprocTokenKey, out preprocTokenArg, out preprocTokenDelimiter)) {
+                    switch(preprocTokenKey) {
+                        case "#include":
+                            if(preprocTokenDelimiter != '(') throw new Exception(preprocTokenKey+" expects round bracket delimiters");
+                            string dirAndFilename = preprocTokenArg;
+                            string filename = System.IO.Path.GetFileName(dirAndFilename);
+
+                            // === determine search path for included file ===
+                            string newSearchPath;
+                            if(System.IO.Path.IsPathRooted(dirAndFilename)) {
+                                // === absolute path ===
+                                newSearchPath = System.IO.Path.GetDirectoryName(dirAndFilename);
+                            } else {
+                                // === relative path ===
+                                // add to current directory
+                                newSearchPath = System.IO.Path.Combine(currentDirectory, System.IO.Path.GetDirectoryName(dirAndFilename));
+                            }
+
+                            // === read file contents ===
+                            string includeFile = System.IO.Path.GetFullPath(System.IO.Path.Combine(newSearchPath, filename));
+                            if(!includeOnce.Contains(includeFile.ToUpper())) {
+                                Console.WriteLine("include "+System.IO.Path.GetFullPath(includeFile));
+                                List<string> filerefInc = new List<string>(filerefs);
+                                filerefInc.Add(includeFile);
+                                string incContent;
+                                try {
+                                    incContent = System.IO.File.ReadAllText(System.IO.Path.Combine(newSearchPath, filename));
+                                } catch(Exception e) {
+                                    throw t.buildException(e);
+                                }
+                                parse(incContent, filerefInc, newSearchPath, tokens, defines, includeOnce);
+                            }
+
+                            goto tokenDone;
+                        default:
+                            break;
+                    }
+                } // if preproc token with args
+
+                if(t.body == "#include_once") {
+                    string thisFile = filerefs[filerefs.Count-1];
+                    includeOnce.Add(System.IO.Path.GetFullPath(thisFile).ToUpper());
                     goto tokenDone;
                 }
-            }
-            
-            if(t.body.StartsWith("#include(")) {
-               string dirAndFilename = t.body.Substring(/* remove left side #include" */9, t.body.Length-9/*remove right-side double quote*/-1);
-               string filename = System.IO.Path.GetFileName(dirAndFilename);
-
-                // === determine search path for included file ===
-                string newSearchPath;
-                if(System.IO.Path.IsPathRooted(dirAndFilename)) {
-                    // === absolute path ===
-                    newSearchPath = System.IO.Path.GetDirectoryName(dirAndFilename);
-                } else {
-                    // === relative path ===
-                    // add to current directory
-                    newSearchPath = System.IO.Path.Combine(currentDirectory, System.IO.Path.GetDirectoryName(dirAndFilename));
-                }
-
-                // === read file contents ===
-                string incContent;
-                try {
-                    incContent = System.IO.File.ReadAllText(System.IO.Path.Combine(newSearchPath, filename));
-                } catch(Exception e) {
-                    throw t.buildException(e);
-                }
-
-                List<string> filerefInc = new List<string>(filerefs);
-                filerefInc.Add(System.IO.Path.Combine(newSearchPath, dirAndFilename));
-                parse(incContent, filerefInc, newSearchPath, tokens, defines);
-            } else {
+                               
                 // === drop newlines ===
-                if(t.body != "#newline")
-                    tokens.Add(t);
+                if(t.body == "#newline")
+                    goto tokenDone;
+                tokens.Add(t);
+            } catch(Exception e) {
+                throw t.buildException(e);
             }
+
         tokenDone: { }
         }
 

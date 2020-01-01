@@ -7,6 +7,7 @@ static class main {
         string destHexFilename = null;
         string destVerilogFilename = null;
         string destLstFilename = null;
+        string destBootBinFilename = null;
         try {
             //args = new string[] { "../../../main.txt" }; Console.WriteLine("DEBUG: hardcoded args");
             Dictionary<string,UInt32> defines = new Dictionary<string,uint>() { { "#MEMSIZE_BYTES(",8192*4 } };
@@ -33,6 +34,8 @@ static class main {
                     if(destVerilogFilename == fname) throw new Exception(".v is not permitted as input file extension");
                     destLstFilename = System.IO.Path.ChangeExtension(fnameOut, "lst");
                     if(destLstFilename == fname) throw new Exception(".lst is not permitted as input file extension");
+                    destBootBinFilename = System.IO.Path.ChangeExtension(fnameOut, "bootBin");
+                    if(destBootBinFilename == fname) throw new Exception(".bootBin is not permitted as input file extension");
 
                     // === create output directory ===
                     System.IO.Directory.CreateDirectory(dirOut);
@@ -41,13 +44,15 @@ static class main {
                     System.IO.File.Delete(destHexFilename);
                     System.IO.File.Delete(destVerilogFilename);
                     System.IO.File.Delete(destLstFilename);
+                    System.IO.File.Delete(destBootBinFilename);
                 }
 
                 List<string> filerefs = new List<string>();
                 string content = System.IO.File.ReadAllText(fname);
                 filerefs.Add(fname);
 
-                preprocessor.parse(content, filerefs, dir, tokens, defines);
+                HashSet<string> includeOnce = new HashSet<string>();
+                preprocessor.parse(content, filerefs, dir, tokens, defines, includeOnce);
             }
 
             // === compile ===
@@ -57,10 +62,12 @@ static class main {
             comp.dumpHex(destHexFilename);
             comp.dumpVerilog(destVerilogFilename);
             comp.dumpLst(destLstFilename);
-
+            comp.dumpBootBin(destBootBinFilename);
+            Environment.Exit(0);
             return 0; // EXIT_SUCCESS 
         } catch(Exception e) {            
             Console.Error.WriteLine("Error: "+e.Message);
+            Environment.Exit(-1);
             return -1; // EXIT_FAILURE 
         }
     }

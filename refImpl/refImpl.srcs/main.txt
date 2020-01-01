@@ -1,0 +1,23 @@
+// ======================================================================
+// this file: sample application for use with ROM-based bootloader
+// ======================================================================
+// We must include the boot loader bitwise identical as in ROM (it will redundantly overwrite itself)
+// There must not be any code before the following include statement.
+// For final deployment, comment out the include statement (or modify the 
+#include(bootloader.txt)
+
+
+// === user code starts here ===
+#include(../../libs/system.ascii.txt)
+// when upload is finished, the PC will fall through here
+
+// === write "ok" ===
+system.ascii.o system.uart.putChar
+system.ascii.k system.uart.putChar
+
+// === echo modified characters ===
+BEGIN
+	system.uart.getChar
+	1 core.plus
+	system.uart.putChar
+AGAIN

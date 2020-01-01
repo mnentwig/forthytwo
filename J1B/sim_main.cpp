@@ -16,12 +16,17 @@ int main(int argc, char **argv)
     Verilated::commandArgs(argc, argv);
     Vj1b* top = new Vj1b;
 
-    if (argc != 2) {
+    if (argc < 2) {
       fprintf(stderr, "usage: sim <hex-file>\n");
       exit(1);
     }
 
+    // === load memory contents ===
     FILE *hex = fopen(argv[1], "r");
+    if (hex == NULL){
+      fprintf(stderr, "failed to open %s\r\n", argv[1]);
+      return(EXIT_FAILURE);
+    }
     uint64_t i;
     for (i = 0; i < 8192; i++) {
       unsigned int v;
@@ -32,40 +37,58 @@ int main(int argc, char **argv)
       top->j1b__DOT__ram[i] = v;
     }
 
+    // === load firmware (optional) ===
+    char fw[13072];
+    int nBytesFw = 0;
+    char* fwPtr = fw;
+    if (argc > 2){
+      FILE* hFirmware = fopen(argv[2], "rb");
+      if (hFirmware == NULL){
+	fprintf(stderr, "failed to open %s\r\n", argv[2]);
+	return(EXIT_FAILURE);
+      }
+      nBytesFw = fread(fw, /*element bytesize*/1, /*read how many elements*/sizeof(fw), hFirmware);
+      //printf("Firmware to UART: %i bytes\n", nBytesFw);
+    }
+
     top->resetq = 0;
     top->eval();
     top->resetq = 1;
-    top->uart0_valid = 1;   // pretend to always have a character waiting
 
     for (i = 0; ; i++) {
       top->clk = 1;
       top->eval();
       top->clk = 0;
       top->eval();
+      
+      // === UART Rx is data ready? ===
+      if (top->io_rd && top->memIo_addr == 0x1000)
+	top->io_din = 1;
 
-      // IO write to 0x0000: exit
-      if (top->j1b__DOT__io_wr_ && top->j1b__DOT__io_addr_ == 0){
-	break;
-      }
-
-      if (top->uart0_wr) {
-        // end character - finish
-	if (top->uart_w == 4) 
-	  break;
-        putchar(top->uart_w);
-      } else {
-	// printf for flm floating point values
-	if (top->j1b__DOT__io_wr_ && top->j1b__DOT__io_addr_ == 0x4000){
-	  printf("%1.15f", flm2double(top->j1b__DOT__dout_));	
-	} else if (top->j1b__DOT__io_wr_){
-	  printf("IOW:%8x\t%08x\n", top->j1b__DOT__io_addr_, top->j1b__DOT__dout_);
+      // === UART Rx get data ===
+      if (top->io_rd && top->memIo_addr == 0x1001){
+	// === read firmware file ===
+	if (nBytesFw > 0){
+	  top->io_din = (unsigned char)*(fwPtr++);
+	  --nBytesFw;
+	} else {
+	  top->io_din = getchar();
 	}
+	//printf("sim: %02x\n", top->io_din);
       }
-      if (top->uart0_rd) {
-        int c = getchar();
-        if (c == EOF) break;
-        top->uart0_data = (c == '\n') ? '\r' : c;
+
+      // === UART Tx ready to send? ===
+      if (top->io_rd && top->memIo_addr == 0x1002)
+	top->io_din = 1;
+
+      // === UART Tx send ===
+      if (top->io_wr && top->memIo_addr == 0x1003){
+        putchar(top->dout);
       }
+
+      // === end of simulation ===
+      if (top->io_wr && top->memIo_addr == 0x1004)
+	break;
     }
     fprintf(stderr, "NCYC:%li\n", i);
     delete top;

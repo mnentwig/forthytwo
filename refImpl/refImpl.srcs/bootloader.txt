@@ -1,0 +1,78 @@
+// ======================================================================
+// this file: UART bootloader
+// - Build as init values into ROM
+// - Further, include with the application that will be uploaded to 
+//   locate "main" at the address expected by the bootloader
+// ======================================================================
+
+// RESET VECTOR HERE (address 0)
+// skip over included library functions
+BRA:bootloader.main
+// To disable the bootloader for ROM deployment without changing the address location of application code,
+// replace the above line with the following one
+// BRA:bootloader.startApplication
+
+#include(../../libs/core.txt)
+#include(../../libs/system.uart.txt)
+//#include(../../libs/system.txt)
+
+// read word from UART (1:8 bit, 4: 32 bit)
+:bootloader.readNBytes
+	core.pushR
+	0 // init acc
+	0 core.popR // loop limits 	
+	DO core.pushR
+		8 core.lshift // acc <<= 8
+		system.uart.getChar
+		core.or	      // acc |= newChar	
+	core.popR LOOP
+;
+
+// restart bootloader on sync failure
+:bootloader.restart
+	core.popR drop // cleanup
+	// fall through into bootloader.main
+
+// === main bootloader entry point ===	
+:bootloader.main
+
+// === sync sequence (bytes 0x00, 0x01, 0x02, ...0x0E, 0x0F) ===
+// purpose: suppresses random chars from glitches and tests all binary values
+
+	// === init character sequence ===
+	0 core.pushR
+:bootloader.mainLoop
+
+	// === read next character from UART ===
+	system.uart.getChar
+
+	// === test for expected sync character ===
+	core.fetchR core.equals 
+	BZ:bootloader.restart
+
+	// === test for end-of-sync sequence ===
+	core.fetchR
+	0xFF core.equals BZ:bootloader.continueSync
+
+	// === sync done: clean up ===
+	core.popR
+	core.drop
+	BRA:bootloader.syncDone
+:bootloader.continueSync
+	// === increase expected char counter and repeat ===
+	core.popR 1 core.plus core.pushR
+	BRA:bootloader.mainLoop
+
+:bootloader.syncDone
+
+0 // loop start
+2 bootloader.readNBytes // loop end (get as 16-bit value from UART)
+DO
+	dup 2 core.lshift // convert 32-bit word count to data memory byte address (*4)
+	4 bootloader.readNBytes // read 32-bit data word
+	swap ! // write data
+LOOP
+
+// === fall through to application ===
+:bootloader.startApplication
+// ... user code includes a bitwise identical copy of the boot loader from ROM and continues from here

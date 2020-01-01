@@ -1,0 +1,23 @@
+// ======================================================================
+// this file: minimal UART functionality
+// ======================================================================
+#include_once // multiple inclusions of this file are omitted
+
+:system.uart.getChar
+// wait for data
+BEGIN
+	0x1000 io@
+UNTIL
+// get data
+0x1001 io@
+;
+
+:system.uart.putChar
+// wait for Tx ready
+BEGIN
+	0x1002 io@
+UNTIL
+// send byte
+	0x1003 io!
+;
+

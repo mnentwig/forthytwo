@@ -1,3 +1,5 @@
+#include_once // multiple inclusions of this file are omitted
+
 ::system.ascii.cr 0xd ;
 ::system.ascii.nl 0xa ;
 ::system.ascii.space 0x20 ;

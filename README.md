@@ -2,7 +2,7 @@
 A FORTH-free compiler / macro assembler for the J1 embedded processor
 
 __under construction / partly untested__
-This page: At the time of writing a (largely) unordered collection of notes
+This page: At the time of writing a (largely) unordered collection of notes.
 
 ## Introduction / Summary
 
@@ -15,7 +15,13 @@ With few exceptions (e.g. 0x1 or 0X1 will be accepted) it is case sensitive.
 
 ### Hardware version
 forthytwo targets the J1b CPU (16 bit opcodes, 32 bit data). Note that some of the opcodes differ from older version (e.g. there is no "-1" instruction). If in doubt, compare with "basewords.fs" from the original J1b repo.
+Notes: The default shift-register based stack implementation is fairly expensive on Xilinx (TBD should use distributed RAM or one RAM18B block)
+The +/32-bit left-right barrel shifter is probably expensive, could be done in SW at the expense of speed (possible compatible implementation: use modified core.lshift / core.rshift opcodes identified by deltaStack==2'b0 ?)
 
+### Result
+A non-trivial design based on the floating point library has been tested successfully on a Xilinx Artix 7.
+The J1B runs at 100 MHz with some margin (-1 speed grade). The critical path is: instruction memory read => J1B "store" ALU opcode => data memory write)
+ 
 ### building 
 * Visual Studio: Open .sln file, "Build solution"
 * Mono on Windows: use "Open Mono command prompt" from windows start menu. Navigate to folder containing "buildFromMonoPrompt.bat" and run from command line
@@ -30,9 +36,9 @@ Build the C# project (Visual Studio, mono or any C# compiler should be sufficien
 The path of the source file defines the top level folder for including other files.
 
 Output is generated at the location of the first input file in a (possibly new) folder out/
-The mySource.hex output can be read using the unmodified J1B Verilator simulation.
-
-The mySource.lst output provides a human-readable description of the generated output.
+* mySource.hex output can be read using the unmodified J1B Verilator simulation.
+* mySource.v can be used in verilog. Note: in Vivado, set file type to "Verilog header" to avoid syntax errors, then: initial begin `include "mySource.h" end
+* mySource.lst: generated output with human-readable annotations
 
 ### Note on whitespace characters (space, tab, newline)
 * forthytwo makes heavy use of compound keywords such as >>>var:myVariable=1234<<< that may _not_ contain whitespace characters for formatting.
@@ -55,6 +61,9 @@ Block comments may be arbitrarily nested.
 ### >>>#include(file)<<< directive
 Sources a file, equivalent to inserting it verbatim at the same line. Paths may be relative or absolute. 
 For nested inclusions, the search path is always relative to the including file.
+
+### >>>#include_once<<< directive
+Prevents multiple inclusion of the current file (may be located anywhere in the file). See core.txt for an example.
 
 ### code and data segment addresses
 TBD, right now hardcoded in main()
@@ -127,6 +136,9 @@ The single-quote built-in >>>'myLabel<<< pushes the address of myLabel (code or 
 - simulator has dedicated IO register 0x4000 to print a float value
 - no internal rounding, minimal code size
 - documentation TBD
+
+# known bugs
+- the forthytwo.exe exit code is not recognized by mingw "make", therefore the makefile will continue. Forthytwo.exe deletes all output files at startup, so the error should show later as a non-existing file.
 
 # Verilator install
 Verilator is needed to rebuild the simulator executable (e.g. if modifying the CPU or adding peripherals). 

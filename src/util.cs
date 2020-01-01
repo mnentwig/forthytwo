@@ -67,19 +67,28 @@ static class util {
         return String.Format("32'h{0:X8}", val);
     }
 
-#if false
-    public static bool parsePreprocToken(string input, out string tokenNoBracket, out string arg) {
-        tokenNoBracket = null;
+    public static bool parsePreprocToken(string input, out string token, out string arg, out char delimiter) {
+        token = null;
         arg = null;
+        delimiter = (char)0;
+        string delimiter2 = null;
         if (!input.StartsWith("#")) return false;
-        int ixOpenBracket = input.IndexOf("(");
-        int ixClosingBracket = input.IndexOf(")");
-        if (ixOpenBracket < 0) return false;
-        if (ixClosingBracket < ixOpenBracket) return false;
-        tokenNoBracket=input.Substring(0, ixOpenBracket);
-        UInt32 retVal = UInt32.MinValue;
-        arg = input.Substring(ixOpenBracket+1, ixClosingBracket-ixOpenBracket-1);
+
+        int ixOpenDelimiter = input.IndexOf("("); // brackets?
+        if(ixOpenDelimiter >= 0) {
+            delimiter2 = ")";
+        }  else {
+            ixOpenDelimiter = input.IndexOf("\""); // double-quotes?
+            if(ixOpenDelimiter >= 0)
+                delimiter2 = "\"";
+        }
+        if(ixOpenDelimiter < 0) return false;
+
+        token=input.Substring(0, ixOpenDelimiter);
+        int ixClosingDelimiter = input.IndexOf(delimiter2, ixOpenDelimiter+1);
+        if(ixClosingDelimiter <= ixOpenDelimiter) throw new Exception("preprocessor token '"+token+"' is missing closing delimiter '"+delimiter2+"'");
+        arg = input.Substring(ixOpenDelimiter+1, ixClosingDelimiter-ixOpenDelimiter-1);
+        delimiter = input[ixOpenDelimiter];
         return true;
     }
-#endif
 }

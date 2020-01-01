@@ -326,7 +326,7 @@ class compiler {
     }
 
     // TBD check for e.g. VAR does not work (needs "startsWith" and "VAR:")
-    static readonly HashSet<string> builtinKeywords = new HashSet<string>() { "IF","ELSE","ENDIF","DO","LOOP","BEGIN","UNTIL","WHILE","REPEAT","VAR","CALL","BRA","BZ","AGAIN","#MEMSIZE_BYTES(" };
+    static readonly HashSet<string> builtinKeywords = new HashSet<string>() { "IF", "ELSE", "ENDIF", "DO", "LOOP", "BEGIN", "UNTIL", "WHILE", "REPEAT", "VAR", "CALL", "BRA", "BZ", "AGAIN", "#MEMSIZE_BYTES(" };
 
     public void renderBinary(List<token> tokens) {
         // backannotation for flow control constructs
@@ -356,9 +356,8 @@ class compiler {
 
                 bool flag; uint val;
                 try {
-                    flag = util.tryParseNum(t3[0],out val);
-                }
-                catch(Exception e) {
+                    flag = util.tryParseNum(t3[0], out val);
+                } catch(Exception e) {
                     throw tt.buildException(e);
                 }
 
@@ -374,9 +373,8 @@ class compiler {
 
                 bool flag; uint val;
                 try {
-                    flag = util.tryParseNum(t3[0],out val);
-                }
-                catch(Exception e) {
+                    flag = util.tryParseNum(t3[0], out val);
+                } catch(Exception e) {
                     throw tt.buildException(e);
                 }
 
@@ -410,7 +408,7 @@ class compiler {
 
             if(t == "AGAIN") {
                 flowcontrol fcBegin = (fc.Count > 0) && (fc.Peek().t == flowcontrol.t_e.BEGIN) ? fc.Pop() : null;
-                if (fcBegin == null) throw tt.buildException("'AGAIN' without matching 'BEGIN'");
+                if(fcBegin == null) throw tt.buildException("'AGAIN' without matching 'BEGIN'");
                 this.writeCode("core.bra"+util.hex4((UInt16)fcBegin.addr), "__AGAIN__" + tt.body + " " + tt.getAnnotation() + " ");
                 continue;
             }
@@ -485,7 +483,7 @@ class compiler {
                     this.lstFileWriter.annotateCodeLabel(this.codeMemPtr, "if-not target");
                 } else {
                     throw tt.buildException("ENDIF expected opening IF or ELSE but got "+fc.Peek().t+" from "+fc.Peek().src.getAnnotation());
-                 }
+                }
                 continue;
             }
 
@@ -629,5 +627,33 @@ class compiler {
 
     public void dumpLst(string filename) {
         this.lstFileWriter.dumpLst(filename);
+    }
+
+    public void dumpBootBin(string filename) {
+        int nWords = 0;
+        for(int ix = 0; ix < this.mem.Length; ++ix) {
+            if(this.mem[ix] != 0)
+                nWords = ix+1; 
+        }
+
+        using(System.IO.FileStream f = System.IO.File.Open(filename, System.IO.FileMode.Create, System.IO.FileAccess.Write))
+        using(System.IO.BinaryWriter w = new System.IO.BinaryWriter(f)) {
+            // === write sync sequence ===
+            for(int ix = 0; ix < 256; ++ix)
+                w.Write((byte)ix);
+
+            // === write number of 32-bit words ===
+            // note: byte order as read in text
+            w.Write((byte)((nWords >> 8) & 0xFF));
+            w.Write((byte)((nWords >> 0) & 0xFF));
+
+            // === write 32-bit data words ===
+            for(int ix = 0; ix < nWords; ++ix) {
+                w.Write((byte)((this.mem[ix] >> 24) & 0xFF));
+                w.Write((byte)((this.mem[ix] >> 16) & 0xFF));
+                w.Write((byte)((this.mem[ix] >> 8) & 0xFF));
+                w.Write((byte)((this.mem[ix] >> 0) & 0xFF));
+            }
+        }
     }
 }

@@ -1,6 +1,7 @@
 // ============================
 // === J1 Forth-like keywords 
 // ============================
+#include_once // multiple inclusions of this file are omitted
 
 // === 1-cycle ===
 ::noop core.noop ;

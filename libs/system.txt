@@ -1,15 +1,11 @@
+#include_once
+#include(system.ascii.txt)
+#include(system.uart.txt)
+
 ::system.terminate
-	//0 0 io! // simulator control register
-	4 system.emit
+	0 0x1004 io!
 ;
-:system.emit
-    BEGIN
-	 0x2000 io@ 
-	 1 and 0 =
-	 core.invert
-    UNTIL
-    0x1000 io!
-;
+::system.emit system.uart.putChar ;
 
 :system.emit.cr
     system.ascii.cr system.emit
@@ -41,4 +37,3 @@
 	core.depth 0 = IF core.return ENDIF
 	system.emit.hex8 system.emit.cr
 	BRA:__system.dumpStack
-	

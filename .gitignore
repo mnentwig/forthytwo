@@ -19,3 +19,4 @@ libs/flm/flm_test.txt
 sampleProject/out
 sampleProject/pointsImport.exe
 sampleProject/pointsImported.txt
+refImpl/*
