@@ -171,10 +171,13 @@ During application upload, the bootloader will simply overwrite itself redundant
 - Program the FPGA. The bootloader is listening
 - Open (e.g.) Teraterm, Menu:File/send File, check "binary" option, select myApplication.bootBin file.
 - For design iteration, reprogram the FPGA (or use e.g. a button tó reset the J1 core) and repeat
+- a convenient hack is to manually edit the first line of the generated Verilog file to turn the bootloader on or off in the FPGA build (look up the address of bootloader.startApplication or bootloader.main and put it into the low word of ram[0]. A valid code address is a branch instruction.
 
 ## Boot loader workflow (Verilator simulator in refImpl)
 - invoke sim.exe bootloader.hex myApplication.bootBin
 - the simulator will internally create UART input reading from the .bootBin file and switch UART IO back to console at end of file.
+- use sim_tracing.exe to create trace.vcd for review with gtkwave
+- >>>system.sim.tracing.disable<<< and >>>system.sim.tracing.enable<<< disable and re-enable tracing, respectively.
 
 # Verilator install
 Verilator is needed to rebuild the simulator executable (e.g. if modifying the CPU or adding peripherals). 
