@@ -15,9 +15,10 @@ main:
 	${FORTHYTWO} main.txt
 	bin/sim.exe out/main.hex
 
-bin/sim.exe: J1B/j1b.v J1B/j1.v J1B/stack.v J1B/sim_main.cpp
-	${VERILATOR} -Wall -cc J1B/j1b.v -Ij1B --exe sim_main.cpp
-	g++ -I obj_dir -I ${VINCLUDE} -I ${VINCLUDE}/vltstd J1B/sim_main.cpp obj_dir/Vj1b.cpp obj_dir/Vj1b__Syms.cpp ${VINCLUDE}/verilated.cpp -o bin/sim.exe
+bin/sim.exe:
+	 make -C J1B
+
+
 
 # runs reference code on C against Forth implementation
 # make will fail here if diff observes that outputs don't match
@@ -35,5 +36,8 @@ testMath2:
 clean:
 	rm -f *~
 	rm -Rf obj_dir
+
+realclean: clean
+	rm -f bin/sim.exe
 
 .PHONY: clean sim testMath all testMath2 testLibs

@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
-#include "Vj1b.h"
+#include "Vsimtop.h"
 #include "verilated_vcd_c.h"
 
 double flm2double(int32_t val){
@@ -11,16 +11,23 @@ double flm2double(int32_t val){
   return res;
 }
 
-int main(int argc, char **argv)
-{
-    Verilated::commandArgs(argc, argv);
-    Vj1b* top = new Vj1b;
-
-    if (argc < 2) {
-      fprintf(stderr, "usage: sim <hex-file>\n");
-      exit(1);
-    }
-
+int main(int argc, char **argv){
+  Verilated::traceEverOn(true);
+  Verilated::commandArgs(argc, argv);
+  Vsimtop* top = new Vsimtop;
+  
+  if (argc < 2) {
+    fprintf(stderr, "usage: sim <hex-file>\n");
+    exit(1);
+  }
+  
+#ifdef MYTRACINGFLAG
+  // === tracing ===
+  VerilatedVcdC* tfp = new VerilatedVcdC;
+  top->trace(tfp, 99);  // Trace 99 levels of hierarchy
+  tfp->open("trace.vcd");
+#endif
+  
     // === load memory contents ===
     FILE *hex = fopen(argv[1], "r");
     if (hex == NULL){
@@ -34,7 +41,7 @@ int main(int argc, char **argv)
         fprintf(stderr, "invalid hex value at line %d\n", i + 1);
         exit(1);
       }
-      top->j1b__DOT__ram[i] = v;
+      top->simtop__DOT__ram[i] = v;
     }
 
     // === load firmware (optional) ===
@@ -55,11 +62,18 @@ int main(int argc, char **argv)
     top->eval();
     top->resetq = 1;
 
+    int traceFlag = 1;
     for (i = 0; ; i++) {
       top->clk = 1;
       top->eval();
+#ifdef MYTRACINGFLAG
+      if (traceFlag) tfp->dump(2*i);
+#endif
       top->clk = 0;
       top->eval();
+#ifdef MYTRACINGFLAG
+      if (traceFlag) tfp->dump(2*i+1);
+#endif
       
       // === UART Rx is data ready? ===
       if (top->io_rd && top->memIo_addr == 0x1000)
@@ -85,12 +99,20 @@ int main(int argc, char **argv)
       if (top->io_wr && top->memIo_addr == 0x1003){
         putchar(top->dout);
       }
-
+      
       // === end of simulation ===
       if (top->io_wr && top->memIo_addr == 0x1004)
 	break;
+     
+      // === trace flag control ===
+      if (top->io_wr && top->memIo_addr == 0x1005){
+        traceFlag = top->dout;
+      }
     }
     fprintf(stderr, "NCYC:%li\n", i);
+#ifdef MYTRACINGFLAG
+    tfp->close();
+#endif
     delete top;
 
     exit(0);

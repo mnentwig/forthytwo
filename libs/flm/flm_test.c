@@ -70,6 +70,9 @@ int main(void){
   
   //|:main
 
+  //|// ====================================================
+  //|// flm.rshiftArith
+  //|// ====================================================
   for (ix = 0; ix < 50; ++ix){
     //|0 50 DO >r
     printf("%08x ", flm_rshiftArith(0x40000000, ix));
@@ -80,9 +83,6 @@ int main(void){
   }
   //|r> LOOP
   
-  // |system.terminate
-  //return EXIT_SUCCESS;
-
   // === random pattern test ===
   for (ix = 0; ix < 100; ++ix){
     //|0 100 DO >r
@@ -214,5 +214,5 @@ int main(void){
   //|r> LOOP
   
   return EXIT_SUCCESS;
-  //|system.terminate
+  //|system.sim.terminate
 }

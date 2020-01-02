@@ -2,9 +2,23 @@
 #include(system.ascii.txt)
 #include(system.uart.txt)
 
-::system.terminate
-	0 0x1004 io!
+::system.sim.terminate 0 0x1004 io! ;
+::system.sim.tracing.enable 1 0x1005 io! ;
+::system.sim.tracing.disable 0 0x1005 io! ;
+
+// writes "panic" and stack dump to UART, does not return
+::system.panic
+	system.ascii.p system.emit
+	system.ascii.a system.emit
+	system.ascii.n system.emit
+	system.ascii.i system.emit
+	system.ascii.c system.emit
+	system.emit.cr
+	system.dumpStack
+	system.sim.terminate	// simulator: end sim process
+	BEGIN AGAIN		// hardware: enter infinite loop
 ;
+
 ::system.emit system.uart.putChar ;
 
 :system.emit.cr

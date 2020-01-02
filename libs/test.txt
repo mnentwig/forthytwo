@@ -23,7 +23,7 @@ VAR:offset=0
 	beginUntilTest
 	looptestOuter
 	beginWhileRepeatTest
-	system.terminate
+	system.sim.terminate
 	
 
 :IF_BRA_BC_test

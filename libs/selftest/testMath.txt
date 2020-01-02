@@ -78,12 +78,12 @@ VAR:testMath.arg2=0x98765432 // state of LFSR2 pseudorandom number
    	 __pushBothLfsr  drop
 	math.sqrtS7Q24
 	system.emit.hex8 system.emit.space
-//system.dumpStack system.terminate
+
 	// ====================================================
 	// end of line
 	// ====================================================
 	__advanceBothLfsr
 	system.emit.cr
 LOOP
-system.terminate
+system.sim.terminate
 ;
