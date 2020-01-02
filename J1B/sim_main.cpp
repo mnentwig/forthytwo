@@ -74,41 +74,54 @@ int main(int argc, char **argv){
 #ifdef MYTRACINGFLAG
       if (traceFlag) tfp->dump(2*i+1);
 #endif
-      
-      // === UART Rx is data ready? ===
-      if (top->io_rd && top->memIo_addr == 0x1000)
-	top->io_din = 1;
 
-      // === UART Rx get data ===
-      if (top->io_rd && top->memIo_addr == 0x1001){
-	// === read firmware file ===
-	if (nBytesFw > 0){
-	  top->io_din = (unsigned char)*(fwPtr++);
-	  --nBytesFw;
-	} else {
-	  top->io_din = getchar();
-	}
-	//printf("sim: %02x\n", top->io_din);
-      }
+      // === IO read ===
+      if (top->io_rd){
+	switch (top->memIo_addr){
+	case 0x1000: // UART Rx is data ready?
+	  top->io_din = 1; break;
+	case 0x1001: // UART Rx get data
+	  if (nBytesFw > 0){
+	    // UART (fake) input from firmware binary file
+	    top->io_din = (unsigned char)*(fwPtr++);
+	    --nBytesFw;
+	  } else {
+	    // read from console
+	    top->io_din = getchar();
+	  }
+	  //printf("sim: %02x\n", top->io_din);
+	  break;	  
+	case 0x1002: // UART Tx ready to send? ===
+	  top->io_din = 1;
+	  break;
+	default:
+	  printf("IORD:0x%08x\n", top->memIo_addr);
+	  top->io_din = 0;
+	} // switch addr
+      } // if io_rd
 
-      // === UART Tx ready to send? ===
-      if (top->io_rd && top->memIo_addr == 0x1002)
-	top->io_din = 1;
-
-      // === UART Tx send ===
-      if (top->io_wr && top->memIo_addr == 0x1003){
-        putchar(top->dout);
-      }
-      
-      // === end of simulation ===
-      if (top->io_wr && top->memIo_addr == 0x1004)
-	break;
-     
-      // === trace flag control ===
-      if (top->io_wr && top->memIo_addr == 0x1005){
-        traceFlag = top->dout;
-      }
-    }
+      // === IO write ===
+      if (top->io_wr){
+	switch (top->memIo_addr){
+	case 0x1003: // UART Tx send
+	  putchar(top->dout);
+	  break;
+	case 0x1004: // SIM ONLY: end of simulation
+	  goto breakMainLoop;
+	  
+	case 0x1005: // SIM ONLY: trace flag control
+	  traceFlag = top->dout;
+	  break;
+	case 0x1006: // SIM ONLY: print float ===
+	  printf("%1.15f", flm2double(top->dout));
+	  break;
+	
+	default:
+	  printf("IOWR:0x%08x=0x%08x\n", top->memIo_addr, top->dout);
+	} // switch addr
+      } // if io_wr
+    } // for i
+ breakMainLoop:
     fprintf(stderr, "NCYC:%li\n", i);
 #ifdef MYTRACINGFLAG
     tfp->close();

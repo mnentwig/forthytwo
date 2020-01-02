@@ -542,8 +542,7 @@ void flm_div(int32_t packedA, int32_t packedB, int32_t* result){
 
 // =================================================================================================
 //|//simulator has built-in print() for flm format (avoids the need for large on-system crt library)
-//|::flm.emit
-//|0x4000 io! ;
+//|::flm.sim.printFlm 0x1006 io! ;
 
 int32_t double2flm(double val){
   int32_t exponent = 0;

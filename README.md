@@ -1,17 +1,20 @@
 # forthytwo
-A FORTH-free compiler / macro assembler for the J1 embedded processor
+J1 embedded processor with "batteries included": Compiler, simulator, reference design
 
-__under construction / partly untested__
-This page: At the time of writing a (largely) unordered collection of notes.
+## What is this?
 
-## Introduction / Summary
-
-The J1 embedded CPU is an outstanding processor for embedded FPGA applications, remarkable for its minimum size, simplicity and accessibility through Verilator simulation. Unfortunately, the same cannot be said for the Forth-based development environment, a recursion of rabbit holes to trap unwary programmers attempting a non-trivial modification to the system.
+The J1 embedded CPU is an outstanding processor for small embedded FPGA applications, remarkable for its minimum size, simplicity and accessibility through Verilator simulation. Unfortunately, the same cannot be said for the original Forth-based development environment, a recursion of rabbit holes to trap the unwary developer who thinks he can just start writing code.
 
 Forthytwo starts from a clean slate - it is fully independent of the original build system.
-The input language is very similar to FORTH thanks to the stack machine processor architecture. It makes no claims of formal compatibility.
+Since the J1 architecture is a FORTH-targeted stack machine architecture, the input language remains very similar to FORTH but no attempt is made to maintain formal compatibility.
 
-With few exceptions (e.g. 0x1 or 0X1 will be accepted) it is case sensitive.
+## Mission statement
+One-stop embedded 32-bit processor for FPGA. Keep it simple and stupid and clean and small so it can be customized as needed.
+
+## Status
+Functional but may benefit from more testing (especially the floating point library due to its complexity)
+
+This page: At the time of writing a (largely) unordered collection of notes.
 
 ### Hardware version
 forthytwo targets the J1b CPU (16 bit opcodes, 32 bit data). Note that some of the opcodes differ from older version (e.g. there is no "-1" instruction). If in doubt, compare with "basewords.fs" from the original J1b repo.
@@ -30,6 +33,9 @@ The J1B runs at 100 MHz with some margin (-1 speed grade). The critical path is:
 ### Convention
 In this document, >>><<< is used for code-related punctuation. For example, a double-colon >>>::<<< in combination with a label starts a macro, as in >>>::thisIsMyMacro<<<.
 As a general guideline, directives involving compiler "magic" e.g. IF-ELSE-ENDIF generation, BRA(nch) label resolution or VAR(iable) creation use upper case.
+
+### Case sensitivity
+With few exceptions (e.g. 0x1 or 0X1 are both hex numbers) it is case sensitive.
 
 ### Usage
 Build the C# project (Visual Studio, mono or any C# compiler should be sufficient) and run forthytwo.exe, giving the top level source file as arguments (or several).
@@ -133,9 +139,17 @@ The single-quote built-in >>>'myLabel<<< pushes the address of myLabel (code or 
 - 32 bit (26 bits signed mantissa, 6 bits signed exponent)
 - not compatible with IEEE single precision
 - simplified (no implied "1" for mantissa, no NAN or INF
-- simulator has dedicated IO register 0x4000 to print a float value
-- no internal rounding, minimal code size
-- documentation TBD
+- no internal rounding
+-- flm.add: add two floats
+-- flm.mul: multiply two floats
+-- flm.div: divide two floats
+-- flm.negate: change sign of a float
+-- flm.int2flt: convert integer to float
+-- flm.flt2int: convert float to integer
+-- flm.sim.printFlm: prints float as %1.15 (using simulator printf, target code size is two instructions)
+-- (advanced)flm.unpack and flm.pack: split (recombine) to exponent and mantissa. Mantissa is right-aligned (6 bits after sign bit are unused)
+-- (advanced)flm.unpackUp6: like flm.unpack but the mantissa is left-aligned in 32 bits (shifted up 6 bits)
+-- (helper function)flm.rshiftArith (on signed integer type argument): Like core.rshift but MSB is padded with sign
 
 # known bugs
 - the forthytwo.exe exit code is not recognized by mingw "make", therefore the makefile will continue. Forthytwo.exe deletes all output files at startup, so the error should show later as a non-existing file.

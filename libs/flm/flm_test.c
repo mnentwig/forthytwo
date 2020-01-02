@@ -60,15 +60,27 @@ int main(void){
 
   //flm_plotResults2(); return EXIT_SUCCESS;
 
+#if 1
   flm_testAlgAdd();
   flm_testAlgMul();
   flm_testAlgDiv();
+#else
+  printf("testAlg disabled (faster debug) - this print causes the test to fail\n");
+#endif
   //return EXIT_SUCCESS;
   int ix;
   int32_t exponent; int32_t mantissa;
-  int32_t res;
-  
+  int32_t res;  
   //|:main
+
+  //|// ====================================================
+  //|// simulator: dedicated "printf" for float
+  //|// ====================================================
+  //|12345 flm.int2flt flm.sim.printFlm system.emit.cr
+  printf("%1.15f\n", 12345.0);
+
+  exit(EXIT_SUCCESS);
+  //|system.sim.terminate
 
   //|// ====================================================
   //|// flm.rshiftArith
