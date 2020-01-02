@@ -7,6 +7,7 @@
 // # - flm.add (add two floats)
 // ########################################################################
 // # (note, private symbol xyz is prefixed as __flm.xyz)
+#include(math.txt) // need signed multiplication
 ::__unpackedNegativeMantissa_mustShiftDown 0x7E000000 dup >r core.and r> = core.invert ;
 ::__unpackedNegativeMantissa_mustShiftUp 0x01000000 core.and ;
 ::__unpackedPositiveMantissa_mustShiftDown 0x7E000000 core.and ;

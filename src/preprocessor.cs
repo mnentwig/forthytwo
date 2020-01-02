@@ -158,7 +158,7 @@ public static class preprocessor {
                             throw new Exception(filerefs[filerefs.Count-1] + "line " + t.lineBase0 +":"+def+" without closing bracket");
                         string arg = t.body.Substring(def.Length, t.body.Length - def.Length - 1);
                         UInt32 valNum;
-                        if(!util.tryParseNum(arg, out valNum))
+                        if(!util.tryParseNum(arg, out valNum, enableFloat: false))
                             throw new Exception(filerefs[filerefs.Count-1] + "line " + t.lineBase0 +":"+def+" cannot parse argument");
                         defines[def] = valNum;
                         goto tokenDone;

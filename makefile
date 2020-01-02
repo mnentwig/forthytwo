@@ -41,7 +41,7 @@ testFlmMath:
 # currently unused
 main:
 	${FORTHYTWO} main.txt
-	${SIMTRACE} out/main.hex
+	${SIM} out/main.hex
 
 # build the simulators
 bin/sim.exe:

@@ -29,6 +29,8 @@
 // positive_mustShiftDown: if unpackedMantissa & 0x7E000000 != 0
 // positive_mustShiftUp: if unpackedMantissa & 0x01000000 == 0
 
+//|#include(math.txt) // need signed multiplication
+
 int unpackedNegativeMantissa_mustShiftDown(int32_t mantissa){
   return (mantissa & 0x7E000000) != 0x7E000000;
 }

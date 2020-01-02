@@ -2,13 +2,55 @@
 using System.Collections.Generic;
 
 static class util {
+
+
+    static UInt32 double2flm(double val) {
+        unchecked {
+            Int32 exponent = 0;
+            if(val > 0) {
+                while(val > (Int32)0x01FFFFFF) {
+                    val /= 2.0; ++exponent;
+                    if(exponent == 31) break;
+                }
+                while(val < (Int32)0x01000000) {
+                    val *= 2.0; --exponent;
+                    if(exponent == -32) break;
+                }
+            } else {
+                while(val < (Int32)0xFE000000) {
+                    val /= 2.0; ++exponent;
+                    if(exponent == 31) break;
+                }
+                while(val > (Int32)0xFEFFFFFF) {
+                    val *= 2.0; --exponent;
+                    if(exponent == -32) break;
+                }
+            }
+
+            Int32 mantissa = (Int32)(val + 0.5);
+            UInt32 res;
+
+            res = (UInt32)((mantissa << 6) | (exponent & 0x3F));
+            return res;
+        }
+    }
+
     static Dictionary<char, int> parseChar = new Dictionary<char, int>() { { '0', 0 }, { '1', 1 }, { '2', 2 }, { '3', 3 }, { '4', 4 }, { '5', 5 }, { '6', 6 }, { '7', 7 }, { '8', 8 }, { '9', 9 }, { 'A', 10 }, { 'B', 11 }, { 'C', 12 }, { 'D', 13 }, { 'E', 14 }, { 'F', 15 } };
 
-    public static bool tryParseNum(string text, out UInt32 val) {
+    public static bool tryParseNum(string text, out UInt32 val, bool enableFloat) {
         string textOrig = text;
         text = text.ToUpper();
         val = 0;
         UInt64 _val = 0;
+
+        if(enableFloat && text.Contains(".")) {
+            double vDouble;
+            if(Double.TryParse(text, out vDouble)) {
+                val = double2flm(vDouble);
+                return true;
+            }
+        }
+
 
         // === check minus sign ===
         bool negate = false;

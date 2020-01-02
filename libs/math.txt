@@ -1,3 +1,5 @@
+#include_once // multiple inclusions of this file are omitted
+
 VAR:math.scratch=0
 
 VAR:math.scratchALo=0

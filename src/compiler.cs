@@ -98,7 +98,7 @@ class compiler {
 
             bool flag;
             try {
-                flag = util.tryParseNum(t.body, out val);
+                flag = util.tryParseNum(t.body, out val, enableFloat: true);
             } catch(Exception e) {
                 throw t.buildException(e);
             }
@@ -123,7 +123,7 @@ class compiler {
                 bool flag;
                 try {
                     UInt32 dummy;
-                    flag = util.tryParseNum(activeMacroName, out dummy);
+                    flag = util.tryParseNum(activeMacroName, out dummy, enableFloat: true);
                 } catch(Exception e) {
                     throw t.buildException(e);
                 }
@@ -356,7 +356,7 @@ class compiler {
 
                 bool flag; uint val;
                 try {
-                    flag = util.tryParseNum(t3[0], out val);
+                    flag = util.tryParseNum(t3[0], out val, enableFloat: false);
                 } catch(Exception e) {
                     throw tt.buildException(e);
                 }
@@ -373,7 +373,7 @@ class compiler {
 
                 bool flag; uint val;
                 try {
-                    flag = util.tryParseNum(t3[0], out val);
+                    flag = util.tryParseNum(t3[0], out val, enableFloat: false);
                 } catch(Exception e) {
                     throw tt.buildException(e);
                 }
@@ -532,7 +532,7 @@ class compiler {
 
                 bool flag; uint val;
                 try {
-                    flag = util.tryParseNum(t3[1], out val);
+                    flag = util.tryParseNum(t3[1], out val, enableFloat: true);
                 } catch(Exception e) {
                     throw tt.buildException(e);
                 }
