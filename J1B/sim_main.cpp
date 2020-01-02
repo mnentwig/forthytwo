@@ -57,10 +57,9 @@ int main(int argc, char **argv){
       nBytesFw = fread(fw, /*element bytesize*/1, /*read how many elements*/sizeof(fw), hFirmware);
       //printf("Firmware to UART: %i bytes\n", nBytesFw);
     }
-
-    top->resetq = 0;
-    top->eval();
-    top->resetq = 1;
+    
+    // first clock cycle is reset
+    top->reset = 1;
 
     int traceFlag = 1;
     for (i = 0; ; i++) {
@@ -74,7 +73,8 @@ int main(int argc, char **argv){
 #ifdef MYTRACINGFLAG
       if (traceFlag) tfp->dump(2*i+1);
 #endif
-
+      top->reset = 0;
+    
       // === IO read ===
       if (top->io_rd){
 	switch (top->memIo_addr){

@@ -7,7 +7,7 @@ module serialTx(clk, out_tx, in_byte, in_strobe, out_busy);
    input       wire in_strobe;
    output      wire out_busy;
    
-   reg [31:0] count;   
+   reg [13:0] count;   
    reg [3:0]  state = 0;   
    reg [7:0]  data;   
    
@@ -47,7 +47,7 @@ module serialTx(clk, out_tx, in_byte, in_strobe, out_busy);
 	      end
 	    endcase
 	 end else begin
-	    count <= count - 1'd1;
+	    count <= count - 32'd1;
 	 end
       end
    end

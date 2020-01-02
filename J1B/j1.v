@@ -31,10 +31,10 @@
 
 // (modifications 2020 by Markus Nentwig)
 `default_nettype none
-  module j1(clk, resetq, io_rd, io_wr, mem_addr, mem_wr, dout, mem_din, io_din, code_addr, insn);
+  module j1(clk, reset, io_rd, io_wr, mem_addr, mem_wr, dout, mem_din, io_din, code_addr, insn);
    parameter WIDTH=32;   
    input wire 		  clk;
-   input wire 		  resetq;
+   input wire 		  reset;
    
    output wire 		  io_rd;
    output wire 		  io_wr;
@@ -48,7 +48,7 @@
    output wire [12:0] 	   code_addr;
    input wire [15:0] 	   insn;
       
-   reg [4:0] 		   dsp, dspN;      // Data stack pointer
+   wire [4:0] 		   depth;   
    reg [WIDTH-1:0] 	   st0;     // Top of data stack
    reg [WIDTH-1:0] 	   st0N;
    reg 			   dstkW;                // D stack write
@@ -65,9 +65,10 @@
    
    // The D and R stacks
    wire [WIDTH-1:0] 	   st1, rst0;
-   stack2 #(.DEPTH(32)) dstack(.clk(clk), .rd(st1),  .we(dstkW), .wd(st0),   .delta(dspI));     
-   stack2 #(.DEPTH(32)) rstack(.clk(clk), .rd(rst0), .we(rstkW), .wd(rstkD), .delta(rspI));
-
+   stack2 #(.DEPTH(32)) dstack(.clk(clk), .rd(st1),  .we(dstkW), .wd(st0),   .delta(dspI), .depth(depth), .reset(reset));   
+   wire [4:0] 		   unused;   
+   stack2 #(.DEPTH(32)) rstack(.clk(clk), .rd(rst0), .we(rstkW), .wd(rstkD), .delta(rspI), .depth(unused), .reset(reset));
+   
    always @*
      begin
 	// Compute the new value of st0
@@ -90,7 +91,7 @@
 	  8'b011_?1011: st0N = rst0;
 	  8'b011_?1100: st0N = mem_din;
 	  8'b011_?1101: st0N = io_din;
-	  8'b011_?1110: st0N = {{(WIDTH - 5){1'b0}}, dsp};
+	  8'b011_?1110: st0N = {{(WIDTH - 5){1'b0}}, depth};
 	  8'b011_?1111: st0N = {WIDTH{(st1 < st0)}};
 	  default: st0N = {WIDTH{1'bx}};
 	endcase
@@ -118,7 +119,6 @@
 	  3'b011:   {dstkW, dspI} = {func_T_N,  insn[1:0]};
 	  default:  {dstkW, dspI} = {1'b0,      2'b00000};
 	endcase
-	dspN = dsp + {dspI[1], dspI[1], dspI[1], dspI};
 
 	casez ({insn[15:13]})
 	  3'b010:   {rstkW, rspI} = {1'b1,      2'b01};
@@ -136,14 +136,14 @@
 	endcase
      end
 
-   always @(negedge resetq or posedge clk)
+   always @(posedge clk)
      begin
-	if (!resetq) begin
+	if (reset) begin
 	   reboot <= 1'b1;
-	   { pc, dsp, st0 } <= 0;
+	   { pc, st0 } <= 0;
 	end else begin
 	   reboot <= 0;
-	   { pc, dsp, st0 } <= { pcN, dspN, st0N };
+	   { pc, st0 } <= { pcN, st0N };
 	end
      end
 endmodule

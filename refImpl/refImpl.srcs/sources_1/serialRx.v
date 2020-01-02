@@ -3,7 +3,7 @@ module serialRx(clk, in_rx, out_byte, out_strobe);
    input wire clk;
    input wire in_rx;
    parameter nHalfBitCycles = 0;
-   reg [31:0] 	    count;   
+   reg [13:0] 	    count;   
    reg [3:0] 	    state = 0;
    reg [7:0] 	    data;
    output reg	    out_strobe;   
@@ -17,7 +17,7 @@ module serialRx(clk, in_rx, out_byte, out_strobe);
       if (state == 0) begin
 	 if (!in_rx) begin
 	    state <= 1;
-	    count <= nHalfBitCycles[31:0];
+	    count <= nHalfBitCycles;
 	 end
       end else if (state == 10) begin
 	 // stop bit

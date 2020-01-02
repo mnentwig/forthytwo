@@ -18,12 +18,18 @@ This page: At the time of writing a (largely) unordered collection of notes.
 
 ### Hardware version
 forthytwo targets the J1b CPU (16 bit opcodes, 32 bit data). Note that some of the opcodes differ from older version (e.g. there is no "-1" instruction). If in doubt, compare with "basewords.fs" from the original J1b repo.
-Notes: The default shift-register based stack implementation is fairly expensive on Xilinx (TBD should use distributed RAM or one RAM18B block)
-The +/32-bit left-right barrel shifter is probably expensive, could be done in SW at the expense of speed (possible compatible implementation: use modified core.lshift / core.rshift opcodes identified by deltaStack==2'b0 ?)
+The original shift-register based stack seemed inefficient (Xilinx Artix) and was replaced with a conventional RAM-and-pointer approach.
 
 ### Result
 A non-trivial design based on the floating point library has been tested successfully on a Xilinx Artix 7.
-The J1B runs at 100 MHz with some margin (-1 speed grade). The critical path is: instruction memory read => J1B "store" ALU opcode => data memory write)
+The J1B runs at 100 MHz with some margin (-1 speed grade, 125 MHz are reportedly achievable). 
+The critical path is: instruction memory read => J1B "store" ALU opcode => data memory write. This is an architectural limitation.
+
+On Xilinx Artix XC7A35, its resource use is
+* 673 LUTs = 3.3% utilization with the default CPU configuration which is 32 stack levels in distributed RAM
+* 526 LUTs if reducing the +/- 32 bit barrel shifter to +/- 1 bit (Note: this is not supported out of the box but straightforward to add).
+* 453 LUTs if further allowing one BRAM18 for each of the two stacks
+* some further reduction if the UART is left out
  
 ### building 
 * Visual Studio: Open .sln file, "Build solution"

@@ -50,7 +50,7 @@ module fpgatop(CLK12, uart_rxd_out, uart_txd_in);
 
    j1 #(.WIDTH(32)) ij1
      (.clk(cpuClk),
-      .resetq(1'b1),
+      .reset(1'b0),
       .io_rd(io_rd),
       .io_wr(io_wr),
       .mem_wr(mem_wr),

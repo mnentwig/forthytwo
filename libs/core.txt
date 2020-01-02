@@ -1,6 +1,8 @@
 // ============================
 // === J1 Forth-like keywords 
 // ============================
+// Please do not assume that this file does not emit instructions, even if the current version holds only macros
+
 #include_once // multiple inclusions of this file are omitted
 
 // === 1-cycle ===

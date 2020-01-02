@@ -2,7 +2,7 @@
 `include "j1.v"
 
   module simtop(input wire clk,
-		input wire 	   resetq,
+		input wire 	   reset,
 		output wire [15:0] memIo_addr,
 		output wire 	   io_rd,
 		output wire 	   io_wr,
@@ -28,7 +28,7 @@
 
    j1 #(.WIDTH(32)) ij1
      (.clk(clk),
-      .resetq(resetq),
+      .reset(reset),
       .io_rd(io_rd),
       .io_wr(io_wr),
       .mem_wr(mem_wr),
