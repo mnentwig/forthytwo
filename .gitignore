@@ -21,3 +21,5 @@ sampleProject/pointsImport.exe
 sampleProject/pointsImported.txt
 refImpl/*
 *.vcd
+out
+gtkwave*

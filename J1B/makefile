@@ -1,16 +1,18 @@
 all: ../bin/sim.exe ../bin/simVcd.exe
 
 # fast simulator without tracing
-../bin/sim.exe: sim_main.cpp simtop.v
+../bin/sim.exe: sim_main.cpp simtop.v j1.v 
 	verilator -Wall -cc simtop.v --exe sim_main.cpp
 	make -j -C obj_dir -f Vsimtop.mk Vsimtop
 	cp obj_dir/Vsimtop.exe ../bin/sim.exe
+	rm -Rf obj_dir
 
 # simulator with VCD trace dump for gtkwave
-../bin/simVcd.exe: sim_main.cpp simtop.v
-	verilator -Wall --trace -cc simtop.v --exe -DMYTRACINGFLAG sim_main.cpp
+../bin/simVcd.exe: sim_main.cpp simtop.v j1.v
+	verilator -Wall --trace -cc simtop.v --exe sim_main_trace.cpp
 	make -j -C obj_dir -f Vsimtop.mk Vsimtop
 	cp obj_dir/Vsimtop.exe ../bin/simVcd.exe
+	rm -Rf obj_dir
 
 clean: 
 	rm -Rf obj_dir

@@ -6,7 +6,7 @@ BRA:main // skip over function definitions
 #include(system.txt)
 #include(system.ASCII.txt)
 #include(math.txt)
-
+system.sim.tracing.disable
 VAR:offset=0
 
 :ok	system.ascii.o system.emit system.ascii.k system.emit system.emit.cr ;
@@ -19,7 +19,9 @@ VAR:offset=0
 	core.depth 0 = IF ok ELSE err ENDIF
 
 	IF_BRA_BC_test
+system.sim.tracing.enable
 	beginAgainTest
+system.sim.tracing.disable
 	beginUntilTest
 	looptestOuter
 	beginWhileRepeatTest
@@ -51,8 +53,9 @@ BEGIN
 	   BRA:beginAgainExit
 	ENDIF
 AGAIN
-:beginAgainExit ;
-
+:beginAgainExit 
+	drop // remove loop variable
+ ;
 :beginUntilTest
 	// ============================================
 	// === test BEGIN ... UNTIL construct

@@ -4,6 +4,14 @@
 ::system.ascii.nl 0xa ;
 ::system.ascii.space 0x20 ;
 ::system.ascii.0 0x30 ;
+::system.ascii.1 0x31 ;
+::system.ascii.2 0x32 ;
+::system.ascii.3 0x33 ;
+::system.ascii.4 0x34 ;
+::system.ascii.5 0x35 ;
+::system.ascii.6 0x36 ;
+::system.ascii.7 0x37 ;
+::system.ascii.8 0x38 ;
 ::system.ascii.9 0x39 ;
 ::system.ascii.A 0x41 ;
 ::system.ascii.Z 0x5A ;

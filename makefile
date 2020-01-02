@@ -9,11 +9,12 @@ FORTHYTWO=bin/forthytwo.exe
 
 # generic target platform simulator
 SIM=bin/sim.exe
+SIMTRACE=bin/simVcd.exe
 
 all: 	bin/sim.exe testLibs testMath2
 
 # runs sanity check selftests by simulating included libraries
-testLibs:
+testLibs: libs/test.txt
 	@echo "=== basic feature test ==="
 	${FORTHYTWO} libs/test.txt
 	${SIM} libs/out/test.hex > libs/out/testResult.txt
@@ -40,7 +41,7 @@ testFlmMath:
 # currently unused
 main:
 	${FORTHYTWO} main.txt
-	${SIM} out/main.hex
+	${SIMTRACE} out/main.hex
 
 # build the simulators
 bin/sim.exe:
@@ -51,6 +52,9 @@ clean:
 	rm -f *~
 	rm -Rf obj_dir
 	rm -f *.vcd
+	rm -Rf libs/out
+	rm -f libs/*~
+	rm -Rf out
 
 # removes also simulator binaries
 realclean: clean
