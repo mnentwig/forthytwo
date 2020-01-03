@@ -143,8 +143,9 @@ The single-quote built-in >>>'myLabel<<< pushes the address of myLabel (code or 
 
 # FLM floating point library
 - 32 bit (26 bits signed mantissa, 6 bits signed exponent)
-- not compatible with IEEE single precision
-- simplified (no implied "1" for mantissa, no NAN or INF
+- custom float format ("flm format"), NOT compatible with IEEE 754 single precision even though both are 32 bit format
+- conceptually simplified over IEEE 754 (no implied "1" for mantissa, no NAN or INF, fewer special case rules required for denormal numbers)
+- may be considered 26 bit signed fixed point with a 6-bit signed attached exponent for the length of the fractional part
 - no internal rounding
 -- flm.add: add two floats
 -- flm.mul: multiply two floats
@@ -156,9 +157,15 @@ The single-quote built-in >>>'myLabel<<< pushes the address of myLabel (code or 
 -- (advanced)flm.unpack and flm.pack: split (recombine) to exponent and mantissa. Mantissa is right-aligned (6 bits after sign bit are unused)
 -- (advanced)flm.unpackUp6: like flm.unpack but the mantissa is left-aligned in 32 bits (shifted up 6 bits)
 -- (helper function)flm.rshiftArith (on signed integer type argument): Like core.rshift but MSB is padded with sign
+-- Example: 0x00000040 is 1 (the rightmost 6 exponent bits form the number 0, the leftmost 26 bits form the signed number +1)
+-- 0 is by definition 0x00000000 (special case, since any exponent would be mathematically correct)
+
+Once the float library is included with >>>#include(myLibPath/flm.txt)<<<, the parser converts literal numbers with a decimal point as float e.g. 1.0 or 2.0e6 but not 2e6.
+This feature may be enabled manually with >>>#ENABLE_FLOAT_LITERALS<<<
 
 # known bugs
 - the forthytwo.exe exit code is not recognized by mingw "make", therefore the makefile will continue. Forthytwo.exe deletes all output files at startup, so the error should show later as a non-existing file.
+- obvious optimizations for smaller and faster code (single-opcode ALU+return, CALL+return => BRA) are not yet implemented
 
 # boot loader
 A minimal boot loader is included (164 bytes including UART get-/putChar)
@@ -177,13 +184,19 @@ During application upload, the bootloader will simply overwrite itself redundant
 - Program the FPGA. The bootloader is listening
 - Open (e.g.) Teraterm, Menu:File/send File, check "binary" option, select myApplication.bootBin file.
 - For design iteration, reprogram the FPGA (or use e.g. a button tó reset the J1 core) and repeat
-- a convenient hack is to manually edit the first line of the generated Verilog file to turn the bootloader on or off in the FPGA build (look up the address of bootloader.startApplication or bootloader.main and put it into the low word of ram[0]. A valid code address is a branch instruction.
+- A convenient hack is to manually edit the first line of the generated Verilog file to turn a deployed binary in FPGA block ram back into the bootloader: Look up the address of bootloader.main and put it into the low word of ram[0] (a valid code address used as instruction is an unconditional branch to the same address). Switching back to bootloader.startApplication restores the application.
+- The sample project will print "ok" on successful upload and echo any characters from UART "plus 1".
 
 ## Boot loader workflow (Verilator simulator in refImpl)
 - invoke sim.exe bootloader.hex myApplication.bootBin
 - the simulator will internally create UART input reading from the .bootBin file and switch UART IO back to console at end of file.
-- use sim_tracing.exe to create trace.vcd for review with gtkwave
+
+## Simulator
+- arg1: out/myProject.hex
+- for bootloader project: arg1: out/myStandaloneBootloader.hex and arg2: out/myApplicationStartingWithTheBootloader.bootBin
+- use simVcd.exe to create trace.vcd for review with gtkwave. By default, tracing is enabled but files tend to grow large quickly
 - >>>system.sim.tracing.disable<<< and >>>system.sim.tracing.enable<<< disable and re-enable tracing, respectively.
+- Unsurprisingly, sim.exe is considerably faster than simVcd.exe
 
 # Verilator install
 Verilator is needed to rebuild the simulator executable (e.g. if modifying the CPU or adding peripherals). 
@@ -201,5 +214,5 @@ These notes are for a Windows installation and are only relevant if Verilator st
 - make install
 - (optional, suppresses warnings) edit c:/mingw/include/mingw.h, disable # warning "Direct definition of __USE_MINGW_ANSI_STDIO is deprecated."
 - (optional, suppresses warnings) edit c:/MinGW/msys/1.0/share/verilator/include/vltstd/ and remove dllimport attribute
-
-
+- (optional, suppresses warnings) edit respective verilatorxy.h files to first #undef MINGW_XYZ that would later cause a redefinition warning
+- with those modifications, the simulator build should not show any warnings.

@@ -93,19 +93,24 @@ class compiler {
     /// <returns>modified token list</returns>
     List<token> pass_num2IMM(List<token> tokensIn) {
         List<token> tokensOut = new List<token>();
+        bool enableFloat = false;
         foreach(token t in tokensIn) {
-            UInt32 val;
-
-            bool flag;
-            try {
-                flag = util.tryParseNum(t.body, out val, enableFloat: true);
-            } catch(Exception e) {
-                throw t.buildException(e);
+            if(t.body == "#ENABLE_FLOAT_LITERALS") {
+                enableFloat = true;
+                continue;
+            } else {
+                UInt32 val;
+                bool flag;
+                try {
+                    flag = util.tryParseNum(t.body, out val, enableFloat: enableFloat);
+                } catch(Exception e) {
+                    throw t.buildException(e);
+                }
+                if(flag)
+                    generate_IMM(tokensOut, val, t);
+                else
+                    tokensOut.Add(t);
             }
-            if(flag)
-                generate_IMM(tokensOut, val, t);
-            else
-                tokensOut.Add(t);
         }
         return tokensOut;
     }
@@ -554,6 +559,7 @@ class compiler {
                 continue;
             }
 
+            // === single-quote (address of) ===
             if(t.StartsWith("'")) {
                 t = t.Substring(1);
 

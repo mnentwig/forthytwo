@@ -58,7 +58,9 @@ public static class preprocessor {
         fileContent = fileContent.Replace("\n", " #newline ");
         fileContent = fileContent.Replace("\t", " ");
 
-        // === collect atomic sections (strings, comments) ===
+        // ===================================================
+        // carve out collect atomic sections (strings, comments) 
+        // ===================================================
         int cursor = 0;
         string[] groups = new string[] { // opener-closer pairs
             " \"", "\" ",
@@ -97,7 +99,9 @@ public static class preprocessor {
             blkEnd.Push(cursor);
         }
 
-        // === replace atomic sections in backwards order with generated token ===
+        // ===================================================
+        // === replace atomic sections in backwards order with generated token
+        // ===================================================
         Dictionary<string, string> atomicSections = new Dictionary<string, string>();
         int tokenCount = 0;
         while(blkStart.Count > 0) {
@@ -110,7 +114,9 @@ public static class preprocessor {
 
         List<string> tokens1 = new List<string>(fileContent.Split(whitespace, StringSplitOptions.RemoveEmptyEntries));
 
-        // === restore atomic sequences ===
+        // ===================================================
+        // === restore atomic sections
+        // ===================================================
         List<string> tokens2 = new List<string>();
         int nRepl = 0;
         foreach(string t in tokens1) {
@@ -123,15 +129,18 @@ public static class preprocessor {
         if(nRepl != atomicSections.Count) throw new Exception("internal parser error");
         tokens1 = tokens2; tokens2 = null;
 
+        // ===================================================
         // === fill in line number ===
+        // ===================================================
         List<token> tokens3 = new List<token>();
         int lineNumBase0 = 0;
         foreach(string t in tokens1)
             if(t == "#newline")
                 ++lineNumBase0;
             else if(t.StartsWith("//")) {
-                // suppress single-line comments
+                // === suppress single-line comments
             } else if(t.StartsWith("/*")) {
+                // === suppress multi-line comments 
                 int cc = 0;
                 while(true) {
                     int ixnl = t.IndexOf("#newline", cc);
@@ -140,13 +149,14 @@ public static class preprocessor {
                     ++lineNumBase0;
                     cc = ixnl + 1;
                 }
-                // suppress block comments
             } else
                 tokens3.Add(new token { body = t, fileref = filerefs, lineBase0 = lineNumBase0 });
         tokens2 = null;
 
+        // ===================================================
         // === process "include..." directive ===
-        if (tokens == null)
+        // ===================================================
+        if(tokens == null)
             tokens = new List<token>();
         List<string> defKeys = new List<string>(defines.Keys);
         foreach(token t in tokens3) {
