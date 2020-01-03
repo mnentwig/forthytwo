@@ -185,7 +185,7 @@ During application upload, the bootloader will simply overwrite itself redundant
 - Open (e.g.) Teraterm, Menu:File/send File, check "binary" option, select myApplication.bootBin file.
 - For design iteration, reprogram the FPGA (or use e.g. a button tó reset the J1 core) and repeat
 - A convenient hack is to manually edit the first line of the generated Verilog file to turn a deployed binary in FPGA block ram back into the bootloader: Look up the address of bootloader.main and put it into the low word of ram[0] (a valid code address used as instruction is an unconditional branch to the same address). Switching back to bootloader.startApplication restores the application.
-- The sample project will print "ok" on successful upload and echo any characters from UART "plus 1".
+- The sample project (not the bootloader!) will print "ok" on successful upload and echo any characters from UART "plus 1".
 
 ## Boot loader workflow (Verilator simulator in refImpl)
 - invoke sim.exe bootloader.hex myApplication.bootBin

@@ -2,6 +2,10 @@
 // (c) Markus Nentwig 2019-2020
 
 //address 0 (reset vector)
+
+// this is a bootloader project:
+#include(../refImpl/refImpl.srcs/bootloader.txt)
+
 BRA:main // skip over code from included files
 #include(../libs/core.txt)
 #include(../libs/system.txt)
@@ -27,20 +31,32 @@ VAR:ddy2=0
 VAR:nHalfSteps=150
 VAR:lastFrameNum=0xFFFFFFFF
 
-:panic system.dumpStack system.terminate
-
-:getHardwareFrameNum 
+:driver.getHardwareFrameNum 
 	0x3000 io@
 ;
 
+:driver.setLEDs
+	0x3001 io!
+;
+
+:driver.getButtons
+	0x3004 io@
+;
+
 :waitForStartOfFrame
+//	driver.getButtons driver.setLEDs
+
+	BEGIN
+		driver.getButtons
+	UNTIL
+
 	BEGIN
 		'lastFrameNum @
-		getHardwareFrameNum
+		driver.getHardwareFrameNum
 		core.equals
 		core.invert
 	UNTIL
-	getHardwareFrameNum
+	driver.getHardwareFrameNum
 	'lastFrameNum
 	!
 ;
@@ -65,8 +81,6 @@ VAR:lastFrameNum=0xFFFFFFFF
 :varAddFltToVar
 	@ over @ flm.add swap !
 ;
-	system.dumpStack
-	system.terminate
 
 :fetchAndAdvanceDataPtr
 	dup	// copy pointer address for store
@@ -134,6 +148,8 @@ VAR:lastFrameNum=0xFFFFFFFF
 ;
 
 :main
+	system.ascii.1 system.uart.putChar system.emit.cr
+
 	// === init data pointers to first and second point in list ===
 	'myData0 'dataPtrA !
 	'myData4 'dataPtrB !
