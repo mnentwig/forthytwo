@@ -16,6 +16,12 @@ VAR:math.scratchMidSum=0
 
 ::math.negate    core.invert 1 core.plus ;
 
+// === software-implemented standard operations ===
+::math.minus core.invert core.plus 1 core.plus ;
+::math.greaterThanSigned swap core.lessThanSigned ;
+::math.greaterThanUnsigned swap core.lessThanUnsigned ;
+
+
 // input u1 : modifA
 // input u2 : acc
 // input: multiplicandB in "math.scratch"
@@ -158,7 +164,7 @@ VAR:math.__nFrac=0
 	4	   'math.__nFrac !	// int nFrac = 4;
 
 	BEGIN				//   while( b > 0x08 ){
-		'math.__b @ 8 >s
+		8 'math.__b @ <s
 	WHILE
 
 	  	'math.__q @ 
@@ -169,7 +175,7 @@ VAR:math.__nFrac=0
 	 	'math.__r @ 	
 		1 + 
 		'math.__t @ 
-		>u				//	 if( r >= t ) note: unsigned comparison
+		math.greaterThanUnsigned	//	 if( r >= t ) note: unsigned comparison
 	 IF
 		'math.__r @			//	     r -= t;
 		'math.__t @ 

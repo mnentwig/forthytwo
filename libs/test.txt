@@ -48,7 +48,7 @@ BEGIN
 	dup system.emit
 	1 +
 
-	dup system.ascii.z >s 
+	system.ascii.z over <s 
 	IF 
 	   BRA:beginAgainExit
 	ENDIF
@@ -102,7 +102,7 @@ AGAIN
 	DO				// for i
 		>r				// save i
 		system.ascii.a r@ +		// j loop start
-		system.ascii.z 1 + 9 - r@ +		// j loop end
+		system.ascii.z 1 + 9 math.minus r@ +		// j loop end
 		DO	// for j
 			dup 'offset @ + 
 			system.emit

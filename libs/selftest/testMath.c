@@ -41,7 +41,7 @@ int main(void){
   //uint64_t arg2 = 0x456789abcdef0123;
     
   int ix;
-  for (ix = 0; ix < 100; ++ix){
+  for (ix = 0; ix < 1000; ++ix){
       // arg1 = 0xFFFFFFFF; arg2 = 0xFFFFFFFF;
       uint32_t prod32x32 = arg1 * arg2;
       uint32_t prod16x32 = (arg1 & 0xFFFF) * arg2;
