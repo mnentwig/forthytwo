@@ -18,7 +18,7 @@ This page: At the time of writing a (largely) unordered collection of notes.
 
 ### Hardware version
 forthytwo targets the J1b CPU (16 bit opcodes, 32 bit data). Note that some of the opcodes differ from older version (e.g. there is no "-1" instruction). If in doubt, compare with "basewords.fs" from the original J1b repo.
-The original shift-register based stack seemed inefficient (Xilinx Artix) and was replaced with a conventional RAM-and-pointer approach.
+The original shift-register based stack seemed area inefficient (observed on Xilinx Artix) and was replaced with a RAM-and-pointer stack. This may cause some speed penalty, though (try stock J1B for an alternative).
 
 ### Result
 A non-trivial design based on the floating point library has been tested successfully on a Xilinx Artix 7.
