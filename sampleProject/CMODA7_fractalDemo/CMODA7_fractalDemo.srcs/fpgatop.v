@@ -22,6 +22,7 @@ module fpgatop(CLK12, pioA, PMOD, uart_rxd_out, uart_txd_in, RGBLED, LED, BTN);
    wire 			unused;   
    clk12_200 iClk1(.in12(CLK12), .out100(clk100), .out200(clk200), .out300(unused));
    clk100_148p5 iClk2(.in100(clk100), .out148p5(vgaClk));   
+   wire cpuClk = clk100;   
 
    // === import asynchronous button signal ===
    /*ASYNC_REG="true"*/reg [1:0] 			btna;
@@ -75,7 +76,6 @@ module fpgatop(CLK12, pioA, PMOD, uart_rxd_out, uart_txd_in, RGBLED, LED, BTN);
    // ===========================================================
    // CPU
    // ===========================================================      
-   wire cpuClk = clk100;   
    wire io_rd, io_wr;
    wire [15:0] mem_addr;
    wire        mem_wr;

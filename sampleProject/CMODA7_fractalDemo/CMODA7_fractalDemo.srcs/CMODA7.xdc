@@ -9,28 +9,28 @@ set_property BITSTREAM.GENERAL.COMPRESS FALSE [current_design]
 set_property -dict {PACKAGE_PIN L17 IOSTANDARD LVCMOS33} [get_ports CLK12]
 
 # UART
-set_property -dict { PACKAGE_PIN J18 IOSTANDARD LVCMOS33 } [get_ports { uart_rxd_out }]; #IO_L7N_T1_D10_14 Sch=uart_rxd_out
+set_property -dict {PACKAGE_PIN J18 IOSTANDARD LVCMOS33} [get_ports uart_rxd_out]
 set_false_path -to [get_ports uart_rxd_out]
-set_property -dict { PACKAGE_PIN J17 IOSTANDARD LVCMOS33 } [get_ports { uart_txd_in  }]; #IO_L7P_T1_D09_14 Sch=uart_txd_in
+set_property -dict {PACKAGE_PIN J17 IOSTANDARD LVCMOS33} [get_ports uart_txd_in]
 set_false_path -from [get_ports uart_txd_in]
 
 # LEDs
 set_property -dict {PACKAGE_PIN A17 IOSTANDARD LVCMOS33} [get_ports {LED[0]}]
 set_property -dict {PACKAGE_PIN C16 IOSTANDARD LVCMOS33} [get_ports {LED[1]}]
-set_false_path -to [get_ports LED[*]]
+set_false_path -to [get_ports {LED[*]}]
 
 set_property CFGBVS VCCO [current_design]
 set_property CONFIG_VOLTAGE 3.3 [current_design]
 
-set_property -dict {PACKAGE_PIN C17 IOSTANDARD LVCMOS33} [get_ports RGBLED[0]]
-set_property -dict {PACKAGE_PIN B16 IOSTANDARD LVCMOS33} [get_ports RGBLED[1]]
-set_property -dict {PACKAGE_PIN B17 IOSTANDARD LVCMOS33} [get_ports RGBLED[2]]
-set_false_path -to [get_ports RGBLED[*]]
+set_property -dict {PACKAGE_PIN C17 IOSTANDARD LVCMOS33} [get_ports {RGBLED[0]}]
+set_property -dict {PACKAGE_PIN B16 IOSTANDARD LVCMOS33} [get_ports {RGBLED[1]}]
+set_property -dict {PACKAGE_PIN B17 IOSTANDARD LVCMOS33} [get_ports {RGBLED[2]}]
+set_false_path -to [get_ports {RGBLED[*]}]
 
 # Buttons
 set_property -dict {PACKAGE_PIN A18 IOSTANDARD LVCMOS33} [get_ports {BTN[0]}]
 set_property -dict {PACKAGE_PIN B18 IOSTANDARD LVCMOS33} [get_ports {BTN[1]}]
-set_false_path -from [get_ports BTN[*]]
+set_false_path -from [get_ports {BTN[*]}]
 
 ## Pmod Header PMOD
 set_property PACKAGE_PIN G17 [get_ports {PMOD[0]}]
@@ -247,3 +247,6 @@ set_false_path -from [get_clocks -of_objects [get_nets clk200]] -to [get_clocks 
 set_property BITSTREAM.GENERAL.CRC DISABLE [current_design]
 set_property CONFIG_MODE SPIx4 [current_design]
 
+
+set_false_path -from [get_clocks -of_objects [get_pins iClk1/inst/mmcm_adv_inst/CLKOUT0]] -to [get_clocks -of_objects [get_pins iClk2/inst/plle2_adv_inst/CLKOUT0]]
+set_false_path -from [get_clocks -of_objects [get_pins iClk2/inst/plle2_adv_inst/CLKOUT0]] -to [get_clocks -of_objects [get_pins iClk1/inst/mmcm_adv_inst/CLKOUT0]]

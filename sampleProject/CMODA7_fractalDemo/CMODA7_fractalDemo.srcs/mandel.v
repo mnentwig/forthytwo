@@ -392,6 +392,7 @@ module julia (i_clk,
    output wire [nRefBits-1:0] 	   o_pixRef;
    input wire [7:0] 		   i_maxiter;   
    input wire [nRefBits-1:0] 	   i_pixRefLimit;
+   (* DONT_TOUCH = "true"*)reg [nRefBits-1:0] 		   pixRefLimit; // force local replication of redundant register (high fanout => slow)
    
    // === PL state: lifetime over n iterations ===
    reg signed [nBitsInternal-1:0]  x[LAST:FIRST];
@@ -412,7 +413,10 @@ module julia (i_clk,
    localparam ST_IDLE = 3'b001;
    localparam ST_RUN = 3'b010;
    localparam ST_DONE = 3'b100;
-   
+
+   // register to improve timing (delay is not critical)
+   always @(posedge i_clk) pixRefLimit <= i_pixRefLimit;
+      
    genvar 			    ix;
    // === init pipeline to idle ===
    for (ix = FIRST; ix <= LAST; ix = ix + 1)
@@ -422,16 +426,14 @@ module julia (i_clk,
    wire 			    plEnter = i_inputValid & o_inputReady;
 
    assign o_resultValid = (state[LAST] == ST_DONE) & // have result for output
-			  (pixRef[LAST] < i_pixRefLimit); // flow control
-   assign o_result = res[LAST];
-   assign o_pixRef = pixRef[LAST];   
+			  (pixRef[LAST] < pixRefLimit); // flow control
+   assign o_result = o_resultValid ? res[LAST] : INV;
+   assign o_pixRef = o_resultValid ? pixRef[LAST] : INV;
    
    // === output result from pipeline? [note 4] ===
-   wire 			    plExit = o_resultValid & 
-				    i_resultReady; // downstream sink accepts
-
-   assign o_inputReady = (state[LAST] == ST_IDLE) // no data looping around
-     | plExit; // or looping data exits
+   wire 			    plExit = o_resultValid & i_resultReady; // downstream sink accepts
+   
+   assign o_inputReady = /*no data to loop around*/(state[LAST] == ST_IDLE) | /*data exits instead of looping*/plExit;
    
    // === input data clipping ===
    // necessary because internal bit width is not sufficient for input values outside -2..2 interval
@@ -659,11 +661,15 @@ module generator(clk, i_maxiter, o_frameCount, i_vgaPixRefLoopback,
    wire [1:NENG] 	     CD_ready;
    wire [nResBits-1:0] 	     CD_res[1:NENG];
    wire [nRefBits-1:0] 	     CD_ref[1:NENG];   
-   genvar 		     ix;   
+   genvar 		     ix;
+   reg [nRefBits-1:0] 	     pixRefLimit = 0;
+   always @(posedge clk) 
+     pixRefLimit = (i_vgaPixRefLoopback + (1 << nMemBits)); // register the sum (timing is critical but absolute delay does not matter)
+   
    generate
       for (ix = 1; ix <= NENG; ix = ix + 1)
 	julia #(.nBitsIn(nBitsGen), .nFracBitsIn(nFracBitsGen), .nBitsInternal(18), .nFracBitsInternal(14+1+1), .nRefBits(nRefBits), .nResBits(nResBits)) C_fractalEngine
-		(.i_clk(clk), .i_maxiter(i_maxiter), .i_pixRefLimit(i_vgaPixRefLoopback + (1 << nMemBits)),
+		(.i_clk(clk), .i_maxiter(i_maxiter), .i_pixRefLimit(pixRefLimit),
 		 .i_x0(BCQ_X[ix]), .i_y0(BCQ_Y[ix]), .i_pixRef(BCQ_ref[ix]), .i_inputValid(BCQ_V[ix]), .o_inputReady(BCQ_ready[ix]),
 		 .o_resultValid(CD_valid[ix]), .i_resultReady(CD_ready[ix]), .o_result(CD_res[ix]), .o_pixRef(CD_ref[ix]));
    endgenerate
