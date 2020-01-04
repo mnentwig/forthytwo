@@ -13,6 +13,7 @@ BRA:main // skip over code from included files
 #include(../libs/math.txt)
 #include(../libs/flm.txt)
 #include(pointsImported.txt)
+#include(driver.txt)
 VAR:dataEnd=0xdeadbeef
 VAR:dataPtrA=0xdeadbeef
 VAR:dataPtrB=0xdeadbeef
@@ -31,20 +32,9 @@ VAR:ddy2=0
 VAR:nHalfSteps=150
 VAR:lastFrameNum=0xFFFFFFFF
 
-:driver.getHardwareFrameNum 
-	0x3000 io@
-;
-
-:driver.setLEDs
-	0x3001 io!
-;
-
-:driver.getButtons
-	0x3004 io@
-;
-
+// note: frameCount is updated by the hardware immediately after the fractal parameters have been copied.
 :waitForStartOfFrame
-//	driver.getButtons driver.setLEDs
+	driver.getButtons driver.setLEDs
 
 	BEGIN
 		driver.getButtons
@@ -117,38 +107,25 @@ VAR:lastFrameNum=0xFFFFFFFF
 	dup @ flm.negate swap !
 ;
 
-:setHwX 	
-  0x2000 io! //system.emit.hex8 system.emit.space
-;
-
-:setHwDX 	
-  0x2001 io! //system.emit.hex8 system.emit.space
-;
-
-:setHwY
-  0x2002 io! //system.emit.space
-;
-
-:setHwDY
-  0x2003 io! //system.emit.hex8 system.emit.cr
-;
-
 :setX1X2Y1Y2
 	  'x1 @ flt2Q19 
-	  setHwX	  
+	  driver.fractal.setX
 	  
 	  'x2 @ 'x1 @ flm.negate flm.add 1919 flm.int2flt flm.div flt2Q27 
-	  setHwDX
+	  driver.fractal.setDX
 	  
 	  'y1 @ flt2Q19
-	  setHwY
+	  driver.fractal.setY
 
 	  'y2 @ 'y1 @ flm.negate flm.add 1079 flm.int2flt flm.div flt2Q27 
-	  setHwDY	  
+	  driver.fractal.setDY
 ;
 
 :main
 	system.ascii.1 system.uart.putChar system.emit.cr
+
+	1 driver.vga.onOff
+	10 driver.fractal.setMaxiter
 
 	// === init data pointers to first and second point in list ===
 	'myData0 'dataPtrA !

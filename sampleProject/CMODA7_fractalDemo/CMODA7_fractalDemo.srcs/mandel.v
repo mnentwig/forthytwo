@@ -1,10 +1,11 @@
 // Mandelbrot set generator
 // (c) Markus Nentwig 2019
 
-// https://faculty-web.msoe.edu/johnsontimoj/EE3921/files3921/vga.pdf
+// VGA: See https://faculty-web.msoe.edu/johnsontimoj/EE3921/files3921/vga.pdf
 
 // note: standard handshaking protocol (valid / ready), see https://inst.eecs.berkeley.edu/~cs150/Documents/Interfaces.pdf
 `default_nettype none
+  /* verilator lint_off DECLFILENAME */
   
   module binaryToGray(i_bin, o_gray);
    parameter nBits = -1;
@@ -19,39 +20,36 @@ module grayToBinary(i_gray, o_bin);
    output wire [nBits-1:0] o_bin;
    generate
       genvar 		   ix;
-      for (ix = 0; ix < nBits; ix = ix +1) begin
+      for (ix = 0; ix < nBits; ix = ix + 1) begin
 	 assign o_bin[ix] = ^i_gray[nBits-1:ix];
       end
    endgenerate
 endmodule
 
-  // i_outboundValidFilter allows insertion of a filter expression to stop the data flow at the output.
-  // It may depend combinationally on o_outboundData. Set to constant 1 if not needed.
-  module FIFO(i_clk, 
-	      i_inboundValid, o_inboundReady, i_inboundData,
-	      o_outboundValid, i_outboundReady, o_outboundData, i_outboundValidFilter);
+module FIFO(i_clk, 
+	    i_inboundValid, o_inboundReady, i_inboundData,
+	    o_outboundValid, i_outboundReady, o_outboundData);
    parameter nBits = -1;
    parameter nLevels = 2;
    localparam cWidth = nLevels <= 4 ? 2 : nLevels <= 8 ? 3 : nLevels <= 16 ? 4 : 16;
-      
+   
    input wire i_clk;
    input wire i_inboundValid;
    output wire o_inboundReady;
    input wire [nBits-1:0] i_inboundData;   
-   output wire o_outboundValid;
-   input wire  i_outboundReady;   
-   input wire  i_outboundValidFilter;   
+   output wire 		  o_outboundValid;
+   input wire 		  i_outboundReady;   
    output wire [nBits-1:0] o_outboundData;
    localparam INV = 128'dx;
-
-   reg [cWidth-1:0]	   posIn = 0;
-   reg [cWidth-1:0]	   posOut = 0;
-   reg [cWidth-1:0]	   level = 0;
+   
+   reg [cWidth-1:0] 	   posIn = 0;
+   reg [cWidth-1:0] 	   posOut = 0;
+   reg [cWidth:0] 	   level = 0;
    reg [nBits-1:0] 	   FIFO_mem [0:nLevels-1];
-   wire [cWidth-1:0]	   posInOnPush = posIn == nLevels-1 ? 0 : posIn + 1;
-   wire [cWidth-1:0]	   posOutOnPop = posOut == nLevels-1 ? 0 : posOut + 1;
+   wire [cWidth-1:0] 	   posInOnPush = posIn == nLevels-1 ? 0 : posIn + 1;
+   wire [cWidth-1:0] 	   posOutOnPop = posOut == nLevels-1 ? 0 : posOut + 1;
    wire 		   push = i_inboundValid & o_inboundReady;
-   wire 		   pop = o_outboundValid & i_outboundValidFilter & i_outboundReady;
+   wire 		   pop = o_outboundValid & i_outboundReady;
    
    assign o_inboundReady = level != nLevels;
    assign o_outboundValid = (level != 0);
@@ -68,7 +66,7 @@ endmodule
       end
       case ({push, pop})
 	2'b10: level <= level + 1;
-	2'b01: level <= level -1;
+	2'b01: level <= level - 1;
 	default: begin end
       endcase
    end
@@ -84,13 +82,13 @@ module CDC(iA_clk, iA_data,
    input wire 		  iB_clk;
    output reg [nBits-1:0] oB_data = 0;
    
-   wire [nBits-1:0] 	   d0;   
-   reg [nBits-1:0] 	   d1 = 0;
+   wire [nBits-1:0] 	  d0;   
+   reg [nBits-1:0] 	  d1 = 0;
    // ASYNC_REG in multi-bit context gives a warning. This may be disregarded (using Gray code for the very same reason)
    (*ASYNC_REG = "true"*) reg [nBits-1:0]  d2 = 0;
    (*ASYNC_REG = "true"*) reg [nBits-1:0]  d3 = 0;
-   wire [nBits-1:0] 	   d4;
-   reg [nBits-1:0] 	   d5 = 0;
+   wire [nBits-1:0] 	  d4;
+   reg [nBits-1:0] 	  d5 = 0;
    
    binaryToGray #(.nBits(nBits)) i1 (.i_bin(iA_data), .o_gray(d0));
    grayToBinary #(.nBits(nBits)) i2(.i_gray(d3), .o_bin(d4));
@@ -106,28 +104,29 @@ module CDC(iA_clk, iA_data,
    end
 endmodule
 
-module vga(i_clk, o_blank, o_HSYNC, o_VSYNC, o_pix);
+module vga(i_clk, i_run, o_blank, o_HSYNC, o_VSYNC, o_pix);
    parameter nX = -1; initial if (nX < 0) $error("missing parameter");
    parameter nY = -1; initial if (nY < 0) $error("missing parameter");
    parameter nRefBits = -1; initial if (nRefBits < 0) $error("missing parameter");
    
    input wire i_clk;
+   input wire i_run;   
    output wire o_blank;   
-   output reg o_HSYNC;
-   output reg o_VSYNC;
-   output reg [nRefBits-1:0] o_pix;   
+   output reg  o_HSYNC; // init value assigned below
+   output reg  o_VSYNC; // init value assigned below
+   output reg [nRefBits-1:0] o_pix = 0;
    
    localparam res1920x1080 = ((nX == 1920) && (nY == 1080));
    localparam res640x480 = ((nX == 640) && (nY == 480));
    localparam INV = 32'dx;
-      
+   
    // note: according to the VGA standard section 3.5, HSYNC is asserted on deassertion of VSYNC (a new line starts with HSYNC)
    // row content is [hsync, back porch, image, front porch]
    localparam x_sync = res1920x1080 ? 44 : res640x480 ? 96 : INV;
    localparam x_bp = res1920x1080 ? 148 : res640x480 ? 40 : INV;   
    localparam x_img = res1920x1080 ? 1920 : res640x480 ? 640 : INV;   
    localparam x_fp = res1920x1080 ? 88 : res640x480 ? 8 : INV; 
-      
+   
    localparam y_bp = res1920x1080 ? 36 : res640x480 ? 25 : INV;
    localparam y_img = res1920x1080 ? 1080 : res640x480 ? 480 : INV;
    localparam y_fp = res1920x1080 ? 4 : res640x480 ? 2 : INV;
@@ -138,16 +137,15 @@ module vga(i_clk, o_blank, o_HSYNC, o_VSYNC, o_pix);
    localparam hsyncDeasserted = ~hsyncAsserted;   
    localparam vsyncDeasserted = ~vsyncAsserted;
 
-   reg [11:0] 	     x = 0;
-   reg [11:0] 	     y = 0;
+   reg [11:0] 		     x = 0;
+   reg [11:0] 		     y = 0;
    
-   reg 		     blankH = 1;
-   reg 		     blankV = 1;
+   reg 			     blankH = 1;
+   reg 			     blankV = 1;
    assign o_blank = blankH | blankV;   
    initial begin
-      o_HSYNC <= hsyncDeasserted;
-      o_VSYNC <= vsyncDeasserted;
-      o_pix <= 0;      
+      o_HSYNC = hsyncDeasserted;
+      o_VSYNC = vsyncDeasserted;
    end
    
    wire [11:0] xPlus1 = x + 12'd1;
@@ -156,30 +154,43 @@ module vga(i_clk, o_blank, o_HSYNC, o_VSYNC, o_pix);
       x <= xPlus1; // prelim. assignment
       o_pix <= (blankH | blankV) ? o_pix : o_pix + 1; // prelim. assignment      
       case (xPlus1)
-	x_sync: o_HSYNC <= hsyncDeasserted;
-	x_sync + x_bp: blankH <= 0;
-	x_sync + x_bp + x_img: blankH <= 1;
-	x_sync + x_bp + x_img + x_fp: begin 
-	   o_HSYNC <= hsyncAsserted;
-	   x <= 0;
-	   y <= yPlus1; // prelim. assignment	   
-	   case (yPlus1)
-	     y_fp: o_VSYNC <= vsyncAsserted;
-	     y_fp + y_sync: o_VSYNC <= vsyncDeasserted;
-	     y_fp + y_sync + y_bp: blankV <= 0;
-	     y_fp + y_sync + y_bp + y_img : begin
-		blankV <= 1;
-		o_pix <= 0;
-		y <= 0;		
-	     end	     
-	     default: begin end
-	   endcase	   
-	end
+	x_sync: 
+	  o_HSYNC <= hsyncDeasserted;
+	x_sync + x_bp: 
+	  blankH <= 0;
+	x_sync + x_bp + x_img: 
+	  blankH <= 1;
+	x_sync + x_bp + x_img + x_fp: 
+	  begin 
+	     o_HSYNC <= hsyncAsserted;
+	     x <= 0;
+	     y <= yPlus1; // prelim. assignment	   
+	     case (yPlus1)
+	       y_fp: o_VSYNC <= vsyncAsserted;
+	       y_fp + y_sync: o_VSYNC <= vsyncDeasserted;
+	       y_fp + y_sync + y_bp: blankV <= 0;
+	       y_fp + y_sync + y_bp + y_img : begin
+		  blankV <= 1;
+		  o_pix <= 0;
+		  y <= 0;		
+	       end	     
+	       default: begin end
+	     endcase
+	     $display("vga y=", y, " o_pix=", o_pix);
+	  end
 	default: begin end
       endcase
+
+      if (~i_run) begin
+	 o_HSYNC <= hsyncDeasserted;
+	 o_VSYNC <= vsyncDeasserted;
+	 x <= 0;
+	 y <= 0;
+	 o_pix <= 0;	 
+      end
    end
 endmodule
-  
+
 module dpmem(i_clkA, i_weA, i_addrA, i_dataA,
 	     i_clkB, i_addrB, o_dataB, 
 	     // bypass with equivalent delay to port B read
@@ -193,7 +204,7 @@ module dpmem(i_clkA, i_weA, i_addrA, i_dataA,
    input wire [NBITADDR-1:0] i_addrA;
    input wire [NBITDATA-1:0] i_dataA;
 
-   input wire i_clkB;
+   input wire 		     i_clkB;
    input wire [NBITADDR-1:0] i_addrB;
    output reg [NBITDATA-1:0] o_dataB;
    input wire [NBITBYPASS-1:0] i_bypassB;   
@@ -213,7 +224,7 @@ module dpmem(i_clkA, i_weA, i_addrA, i_dataA,
       if (weA) 
 	mem[addrA] <= dataA;
    end
-      
+   
    // register level will be absorbed into BRAM
    reg [NBITDATA-1:0] 	     dataB2;
    reg [NBITBYPASS-1:0]      bypassB2;
@@ -236,6 +247,7 @@ module pixelScanner(i_clk,
    parameter fracbitsDelta = -1;  initial if (fracbitsDelta < 0) $error("missing parameter");
    parameter nX = -1; initial if (nX < 0) $error("missing parameter");
    parameter nY = -1; initial if (nY < 0) $error("missing parameter");
+
    input wire i_clk;
 
    // === input-side interface ===
@@ -251,20 +263,20 @@ module pixelScanner(i_clk,
    input wire 			 i_dataReady;
    output wire signed [nBits-1:0] o_x;
    output wire signed [nBits-1:0] o_y;
-   output reg [nRefBits-1:0] 	 o_ref;
-   output wire [3:0]		 o_frameCount;
-      
-   reg [11:0] 			 refX; // sufficient up to 1920x1080
-   reg [11:0] 			 refY;
+   output reg [nRefBits-1:0] 	  o_ref;
+   output wire [3:0] 		  o_frameCount;
    
-   reg signed [nBits-1:0] 	 xStart;
-   reg signed [nBits-1:0] 	 yStart;
-   reg signed [nBits-1:0] 	 dx;
-   reg signed [nBits-1:0] 	 dy;
-   reg signed [nBits+fracbitsDelta-1:0] 	 accX;
-   reg signed [nBits+fracbitsDelta-1:0] 	 accY;
+   reg [11:0] 			  refX; // sufficient up to 1920x1080
+   reg [11:0] 			  refY;
    
-   reg 			  running = 0;
+   reg signed [nBits-1:0] 	  xStart;
+   reg signed [nBits-1:0] 	  yStart;
+   reg signed [nBits-1:0] 	  dx;
+   reg signed [nBits-1:0] 	  dy;
+   reg signed [nBits+fracbitsDelta-1:0] accX;
+   reg signed [nBits+fracbitsDelta-1:0] accY;
+   
+   reg 					running = 0;
    
    localparam INV = 128'dx;   
    assign o_startReady = ~running & (~i_startValid);
@@ -272,7 +284,7 @@ module pixelScanner(i_clk,
    assign o_x = o_dataValid ? xStart + (accX >>> fracbitsDelta) : INV;
    assign o_y = o_dataValid ? yStart + (accY >>> fracbitsDelta) : INV;
    
-   reg [3:0] 		  frameCount = 0;   
+   reg [3:0] 				frameCount = 0;   
    assign o_frameCount = frameCount;
    always @(posedge i_clk) begin
       if (~running) begin
@@ -289,10 +301,14 @@ module pixelScanner(i_clk,
 
 	    o_ref <= 0;	    
 	    running <= 1;
+
+	    // "Contract" with the CPU: Frame count increases after the 
+	    // input data registers from the CPU have been read
 	    frameCount <= frameCount + 1;	    
 	 end
       end else begin
 	 if (i_dataReady) begin
+	    // === outbound data was accepted ("running" implies "o_dataValid") ===
 	    if (refX < nX-1) begin
 	       o_ref <= o_ref + 1;
 	       refX <= refX + 1;	    
@@ -341,87 +357,89 @@ endmodule
 
 // calculates Mandelbrot set iterations
 // note, the order of points at the output depends on the iteration length (refX/Y identifies points)
+// [note 4]: The valid/ready logic is combinational through the block (use external FIFO to decouple)
 module julia (i_clk, 
 	      i_inputValid, o_inputReady, i_x0, i_y0, i_pixRef,
-	      o_resultValid, i_resultReady, o_result, o_pixRef);   
+	      o_resultValid, i_resultReady, o_result, o_pixRef, 
+	      i_maxiter);
+   // === parameters ===
    parameter nBitsIn = -1; initial if (nBitsIn < 0) $error("missing parameter");  
    parameter nFracBitsIn = -1; initial if (nFracBitsIn < 0) $error("missing parameter");
    parameter nBitsInternal = -1; initial if (nBitsInternal < 0) $error("missing parameter");  
-   parameter nFracBitsInternal = -1; initial if (nFracBitsInternal < 0) $error("missing parameter");
-   
+   parameter nFracBitsInternal = -1; initial if (nFracBitsInternal < 0) $error("missing parameter");   
    parameter nResBits=-1; initial if (nResBits < 0) $error("missing parameter");
    parameter nRefBits=-1; initial if (nRefBits < 0) $error("missing parameter");  
-   parameter maxiter=50;   // limit around 60
-   
+
+   // === constants ===
    localparam nPipeline=12; // 18 / 3 / 11 / 16 works with 0.5 ns to spare
    localparam FIRST = 0;   
    localparam LAST = nPipeline-1;   
-   localparam PL1 = 3;
-   localparam PL2 = 7;
+   localparam PL1 = 3; // xx, yy, xy are calculated at this pipeline level
+   localparam PL2 = 7; // next round X, Y are calculated at this pipeline level
    localparam PL3 = 10;
-   
    localparam INV = 128'dx;
 
+   // === ports ===
    input wire i_clk;
    input wire i_inputValid;
    output wire o_inputReady;
    input wire signed [nBitsIn-1:0] i_x0;
    input wire signed [nBitsIn-1:0] i_y0;
-   input wire [nRefBits-1:0] 	 i_pixRef;
+   input wire [nRefBits-1:0] 	   i_pixRef;
+   output reg 			   o_resultValid = 0;   
+   input wire signed 		   i_resultReady;   
+   output reg [nResBits-1:0] 	   o_result;
+   output reg [nRefBits-1:0] 	   o_pixRef;
+   input wire [7:0] 		   i_maxiter;   
    
-   output reg 			 o_resultValid = 0;   
-   input wire signed 		 i_resultReady;   
-   output reg [nResBits-1:0] 	 o_result;
-   output reg [nRefBits-1:0] 	 o_pixRef;
-
    // === PL state: lifetime over n iterations ===
-   reg signed [nBitsInternal-1:0] x[LAST:FIRST];
-   reg signed [nBitsInternal-1:0] y[LAST:FIRST];
-   reg signed [nBitsIn-1:0] x0[LAST:FIRST];
-   reg signed [nBitsIn-1:0] y0[LAST:FIRST];
-   reg [nResBits-1:0] 	    res[LAST:FIRST];
-   reg [2:0] 		    state[LAST:FIRST];
-   reg [nRefBits-1:0] 	    pixRef[LAST:FIRST];
-   reg 			    sat[LAST:FIRST];   
+   reg signed [nBitsInternal-1:0]  x[LAST:FIRST];
+   reg signed [nBitsInternal-1:0]  y[LAST:FIRST];
+   reg signed [nBitsIn-1:0] 	   x0[LAST:FIRST];
+   reg signed [nBitsIn-1:0] 	   y0[LAST:FIRST];
+   reg [nResBits-1:0] 		   res[LAST:FIRST];
+   reg [2:0] 			   state[LAST:FIRST];
+   reg [nRefBits-1:0] 		   pixRef[LAST:FIRST];
    
    // === PL state: lifetime within 1 iteration ===
    reg signed [2*nBitsInternal-1:0] xx[LAST:FIRST];
    reg signed [2*nBitsInternal-1:0] yy[LAST:FIRST];
    reg signed [2*nBitsInternal-1:0] xy[LAST:FIRST];
    reg signed [2*nBitsInternal-1:0] magSquared[LAST:FIRST];
+   reg 				    sat[LAST:FIRST];   
    
    localparam ST_IDLE = 3'b001;
    localparam ST_RUN = 3'b010;
    localparam ST_DONE = 3'b100;
    
-   genvar 		  ix;
+   genvar 			    ix;
    // === init pipeline to idle ===
    for (ix = FIRST; ix <= LAST; ix = ix + 1)
-      initial state[ix] = ST_IDLE;
+     initial state[ix] = ST_IDLE;
 
-   // === handshaking ===
-   wire 		  plEnter = i_inputValid & o_inputReady;
-   wire 		  plExit = 
-			  (state[LAST] == ST_DONE) // have result for output
-			  & (~o_resultValid | i_resultReady); // output register is or will be ready to accept 
-   assign o_inputReady =
-			(state[LAST] == ST_IDLE) // no data looping around
+   // === input new data to pipeline? [note 4] ===
+   wire 			    plEnter = i_inputValid & o_inputReady;
+
+   // === output result from pipeline? [note 4] ===
+   wire 			    plExit = 
+				    (state[LAST] == ST_DONE) // have result for output
+				    & (~o_resultValid | i_resultReady); // output register is or will be ready to accept 
+   assign o_inputReady = (state[LAST] == ST_IDLE) // no data looping around
      | plExit; // or looping data exits
 
-   // any |x| or |y| > 2 causes iteration exit and the actual value does not matter
-   // this allows a substantial reduction in integer bit width
-   // >= is a cheaper approximation to > but the difference is a corner case (4 pixels max)
+   // === input data clipping ===
+   // necessary because internal bit width is not sufficient for input values outside -2..2 interval
+   // any |x| or |y| > 2 causes immediate iteration exit
+   // note, >= is a cheaper approximation to > but the difference is a corner case (4 pixels max)
    localparam clipLvl = 2;
 
-   wire 		  clipInA;
-   wire 		  clipInB;
-   clipPlusMinus2 #(.nBits(nBitsIn), .nFracBits(nFracBitsIn)) iClipIn (.i_val(i_x0), .o_clipPlus(clipInA), .o_clipMinus(clipInB));
-   wire 		  inputDiverges = clipInA | clipInB;
-   //wire 		  inputDiverges = 
-   //			  (i_x0 <= -(clipLvl * 2 ** nFracBitsIn)) |
-   //		  (i_x0 >= (clipLvl * 2 ** nFracBitsIn))  |
-   //	  (i_y0 <= -(clipLvl * 2 ** nFracBitsIn)) |
-   //  (i_y0 >= (clipLvl * 2 ** nFracBitsIn));
+   wire 			    clipInA;
+   wire 			    clipInB;
+   wire 			    clipInC;
+   wire 			    clipInD;
+   clipPlusMinus2 #(.nBits(nBitsIn), .nFracBits(nFracBitsIn)) iClipInX (.i_val(i_x0), .o_clipPlus(clipInA), .o_clipMinus(clipInB));
+   clipPlusMinus2 #(.nBits(nBitsIn), .nFracBits(nFracBitsIn)) iClipInY (.i_val(i_y0), .o_clipPlus(clipInC), .o_clipMinus(clipInD));
+   wire 			    inputDiverges = clipInA | clipInB | clipInC | clipInD;
    
    // === pipeline: first row ===
    always @(posedge i_clk) begin
@@ -432,15 +450,14 @@ module julia (i_clk,
       y[FIRST] 		<= plEnter ? (i_y0 >>> (nFracBitsIn - nFracBitsInternal)) : y[LAST];
       res[FIRST] 	<= plEnter ? 0 : res[LAST];
       state[FIRST] 	<= plEnter ? (inputDiverges ? ST_DONE : ST_RUN) : (plExit ? ST_IDLE : state[LAST]);
-      sat[FIRST] 	<= plEnter ? 0 : sat[LAST];
-            
+      
       xx[FIRST] 	<= INV;
       yy[FIRST] 	<= INV;
       xy[FIRST] 	<= INV;
       magSquared[FIRST] <= INV;
    end
 
-   // [note 1]: nextY is is offset by 1 bit, calculated as xy + y0Y/2.
+   // [note 1]: nextY is is offset by 1 bit, calculated as xy + y0/2.
    // [note 2]: doubling nextY gives 2*xy + y0
    // [note 3]: scaling input up to utilize additional precision in multiplier output 
    
@@ -456,13 +473,9 @@ module julia (i_clk,
    wire signed [2*nBitsInternal-1:0] nextY_PL2 = (xy[PL2-1] + /*note 1*/halfY0_PL2);
 
    wire 			     clipA;
-// = (nextX_PL2 <= -(clipLvl * 2 ** (2*nFracBitsInternal)));
    wire 			     clipB;
-// = (nextX_PL2 >=  (clipLvl * 2 ** (2*nFracBitsInternal)));
    wire 			     clipC;
-// = (nextY_PL2 <= -(clipLvl * 2 ** (2*nFracBitsInternal /*note 1*/-1)));
    wire 			     clipD;
-// = (nextY_PL2 >=  (clipLvl * 2 ** (2*nFracBitsInternal /*note 1*/-1)));
    
    clipPlusMinus2 #(.nBits(2*nBitsInternal), .nFracBits(2*nFracBitsInternal)) iClipX (.i_val(nextX_PL2), .o_clipPlus(clipA), .o_clipMinus(clipB));
    clipPlusMinus2 #(.nBits(2*nBitsInternal), .nFracBits(2*nFracBitsInternal /*note 1*/ - 1)) iClipY (.i_val(nextY_PL2), .o_clipPlus(clipC), .o_clipMinus(clipD)); 
@@ -508,7 +521,7 @@ module julia (i_clk,
 		       state[ix] 	<= ST_DONE;
 		       x[ix] 		<= INV;
 		       y[ix] 		<= INV;
-		    end else if (res[ix-1] == maxiter) begin
+		    end else if (res[ix-1] == i_maxiter) begin
 		       state[ix] 	<= ST_DONE;
 		       res[ix] 		<= res[ix-1] + 1;		       
 		       x[ix] 		<= INV;
@@ -526,10 +539,13 @@ module julia (i_clk,
 	 end
       end
    endgenerate   
-      
+   
    always @(posedge i_clk) begin
       // === output result register ===
       if (plExit) begin
+	 // case 1 o_resultValid == 0: pass result when o_result is idle
+	 // case 2 o_resultValid == 1: pass result when o_result is moved ahead at the same time
+	 // xxxxxxxx
 	 o_resultValid <= 1;
 	 o_result <= res[LAST];
 	 o_pixRef <= pixRef[LAST];
@@ -541,93 +557,90 @@ module julia (i_clk,
    end
 endmodule
 
-module generator(clk, i_vgaPixRefLoopback,
+module generator(clk, i_maxiter, o_frameCount, i_vgaPixRefLoopback,
 		 o_valid, i_ready, o_res, o_pixRef,
-		 i_x0, i_y0, i_dx, i_dy, o_frameCount);
+		 i_x0, i_y0, i_dx, i_dy);
+   // === parameters ===
    parameter nResBits = -1; initial if (nResBits < 0) $error("missing parameter");   
    parameter nRefBits = -1; initial if (nRefBits < 0) $error("missing parameter");   
    parameter nMemBits = -1; initial if (nMemBits < 0) $error("missing parameter");   
    parameter vgaX = -1; initial if (vgaX < 0) $error("missing parameter");   
    parameter vgaY = -1; initial if (vgaY < 0) $error("missing parameter");   
+
+   // === constants ===
+   localparam nBitsGen = 22;
+   localparam nFracBitsGen = 19; // range [-2..2], one bit for sign (might drop one bit later?)
+   localparam nAddFracBits = 8;   
+   localparam INV = 32'dx;
+
+   // === ports ===
    input wire clk;
+   input wire [7:0] 		    i_maxiter;   
+   output wire [3:0] 		    o_frameCount;   
    input wire [nRefBits-1:0] i_vgaPixRefLoopback;
    output wire 		     o_valid;
    input wire 		     i_ready;
    output wire [nResBits-1:0] o_res;
    output wire [nRefBits-1:0] o_pixRef;
 
-   localparam nBitsGen = 22;
    input wire signed [nBitsGen-1:0] i_x0;
    input wire signed [nBitsGen-1:0] i_y0;
    input wire signed [nBitsGen-1:0] i_dx;
    input wire signed [nBitsGen-1:0] i_dy;
-   output wire [3:0] 		    o_frameCount;   
    
-   localparam nFracBitsGen = 19; // range [-2..2], one bit for sign (might drop one bit later?)
-   localparam nAddFracBits = 8;   
-   localparam INV = 32'dx;
-
-   // === reference image (circle for first iteration) ===
-   //localparam x1 = 0.231755881123566;   localparam y1 = 0.560543975370227;   localparam x2 = 0.240296348115645;   localparam y2 = 0.566949325614286;
-   //localparam x1 = -1.37379924844071;   localparam y1 = 0.189067524115756;   localparam x2 = -1.01367063107736;   localparam y2 = 0.459163987138264;
-   
-   //     localparam x1 = -0.654;   localparam y1 = 0.585;   localparam x2 = -0.48;   localparam y2 = 0.69; // this is nice
-   
-   //localparam x1 = -0.5651026;localparam y1 = 0.6409543; localparam x2 = -0.5593576; localparam y2 = 0.644421; // too much work at maxiter == 60 but shows quantization error
-   
-   
-   reg 			     AB_startValid = 0;
-   wire 		     AB_startReady;
+   reg 				    AB_startValid = 0;
+   wire 			    AB_startReady;
 
    // === start logic ===
-   reg  		     electronBeamReturned = 0; // break timing-critical path
+   reg 				    electronBeamReturned = 0; // break timing-critical path
    always @(posedge clk) begin
       electronBeamReturned <= (i_vgaPixRefLoopback == 0);      
       AB_startValid <= AB_startReady & electronBeamReturned;
    end
-         
+   
    // === feed all image pixels ===
    wire 		     BK_dataValid;
    wire 		     BK_dataReady;   
-   wire signed [nBitsGen-1:0]   BK_dataX;
-   wire signed [nBitsGen-1:0]   BK_dataY;
+   wire signed [nBitsGen-1:0] BK_dataX;
+   wire signed [nBitsGen-1:0] BK_dataY;
    wire signed [nRefBits-1:0] BK_ref;
    pixelScanner #(.nBits(nBitsGen), .nX(vgaX), .nY(vgaY), .nRefBits(nRefBits), .fracbitsDelta(nAddFracBits)) B_pixelScanner
      (.i_clk(clk), 
       .i_startValid(AB_startValid), .o_startReady(AB_startReady), .i_xStart(i_x0), .i_yStart(i_y0), .i_dx(i_dx), .i_dy(i_dy),
       .o_dataValid(BK_dataValid), .i_dataReady(BK_dataReady), .o_x(BK_dataX), .o_y(BK_dataY), .o_ref(BK_ref), .o_frameCount(o_frameCount));
 
-   wire 		     KC_dataValid;
-   wire 		     KC_dataReady;   
-   wire signed [nBitsGen-1:0]   KC_dataX;
-   wire signed [nBitsGen-1:0]   KC_dataY;
+   wire 		      KC_dataValid;
+   wire 		      KC_dataReady;   
+   wire signed [nBitsGen-1:0] KC_dataX;
+   wire signed [nBitsGen-1:0] KC_dataY;
    wire signed [nRefBits-1:0] KC_ref;
    FIFO #(.nBits(2*nBitsGen + nRefBits), .nLevels(2)) FIFO_K
      (.i_clk(clk), 
       .i_inboundValid(BK_dataValid), .o_inboundReady(BK_dataReady), .i_inboundData({BK_dataX, BK_dataY, BK_ref}),
-     .o_outboundValid(KC_dataValid), .i_outboundReady(KC_dataReady), .o_outboundData({KC_dataX, KC_dataY, KC_ref}), .i_outboundValidFilter(1'b1));
+      .o_outboundValid(KC_dataValid), .i_outboundReady(KC_dataReady), .o_outboundData({KC_dataX, KC_dataY, KC_ref}));
    
    // ================================================================================
    // === circular queue: distribute input data to fractal calc ===
    // ================================================================================
    localparam NENG = 2*15;
-   reg signed [nBitsGen-1:0]    BCQ_X[1:NENG+1];
-   reg signed [nBitsGen-1:0]    BCQ_Y[1:NENG+1];
-   reg signed [nRefBits-1:0] BCQ_ref[1:NENG+1];
-   reg [1:NENG+1] 	     BCQ_V = 0;   
-   wire [1:NENG] 	     BCQ_ready;
+   reg signed [nBitsGen-1:0]  BCQ_X[1:NENG+1];
+   reg signed [nBitsGen-1:0]  BCQ_Y[1:NENG+1];
+   reg signed [nRefBits-1:0]  BCQ_ref[1:NENG+1];
+   reg [1:NENG+1] 	      BCQ_V = 0;   
+   wire [1:NENG] 	      BCQ_ready;
    
    assign KC_dataReady = /*nothing loops around*/~BCQ_V[NENG+1];
-   integer 		     a;
+   integer 		      a;
    always @(posedge clk) begin
       for (a = 1; a <= NENG; a = a + 1) begin	 
 	 if (BCQ_V[a] & BCQ_ready[a]) begin
-	    // entry is taken out
+	    // entry is taken out by fractal calc
 	    BCQ_X[a + 1] 	<= INV;
 	    BCQ_Y[a + 1] 	<= INV;
 	    BCQ_ref[a + 1] 	<= INV;
 	    BCQ_V[a + 1] 	<= 0;
 	 end else begin
+	    // keep entry in shift registers
 	    BCQ_X[a+1] 		<= BCQ_X[a];
 	    BCQ_Y[a+1] 		<= BCQ_Y[a];
 	    BCQ_ref[a+1] 	<= BCQ_ref[a];
@@ -660,7 +673,7 @@ module generator(clk, i_vgaPixRefLoopback,
    generate
       for (ix = 1; ix <= NENG; ix = ix + 1)
 	julia #(.nBitsIn(nBitsGen), .nFracBitsIn(nFracBitsGen), .nBitsInternal(18), .nFracBitsInternal(14+1+1), .nRefBits(nRefBits), .nResBits(nResBits)) C_fractalEngine
-		(.i_clk(clk), 
+		(.i_clk(clk), .i_maxiter(i_maxiter),
 		 .i_x0(BCQ_X[ix]), .i_y0(BCQ_Y[ix]), .i_pixRef(BCQ_ref[ix]), .i_inputValid(BCQ_V[ix]), .o_inputReady(BCQ_ready[ix]),
 		 .o_resultValid(CD_valid[ix]), .i_resultReady(CD_ready[ix]), .o_result(CD_res[ix]), .o_pixRef(CD_ref[ix]));
    endgenerate
@@ -671,10 +684,11 @@ module generator(clk, i_vgaPixRefLoopback,
    reg [nRefBits-1:0] 	     DQueue_ref[0:NENG];
    reg [nResBits-1:0] 	     DQueue_res[0:NENG];
    reg [0:NENG] 	     DQueue_V = 0;   
-   wire [1:NENG] 	     DQueue_ready;
 
    genvar 		     b;   
    for (b = 1; b <= NENG; b = b + 1) begin
+      // ready to accept data when the previous slot is empty
+      // (if used, it will circulate)
       assign CD_ready[b] = ~DQueue_V[b-1];
    end
 
@@ -695,14 +709,14 @@ module generator(clk, i_vgaPixRefLoopback,
 	    DQueue_res[a] 	<= CD_res[a];
 	    DQueue_V[a] 	<= 1;
 	 end else begin
-	    // shift existing data
+	    // circulate existing data
 	    DQueue_ref[a] 	<= DQueue_ref[a-1];
 	    DQueue_res[a] 	<= DQueue_res[a-1];
 	    DQueue_V[a] 	<= DQueue_V[a-1];	    
 	 end
       end
       if (DE_valid & DE_ready) begin
-	 // result exits
+	 // result at NENG exits
 	 DQueue_ref[0] 		<= INV;
 	 DQueue_res[0] 		<= INV;
 	 DQueue_V[0] 		<= 0;	 
@@ -721,64 +735,79 @@ module generator(clk, i_vgaPixRefLoopback,
    wire [nRefBits-1:0] EF_pixRef;
    wire [nResBits-1:0] EF_res;
    wire 	       EF_valid;
-   
-   wire 	       filter = EF_pixRef < (i_vgaPixRefLoopback + (1 << nMemBits));         
-   FIFO #(.nBits(nRefBits+nResBits), .nLevels(2)) FIFO_E
-     (.i_clk(clk), .i_inboundValid(DE_valid), .o_inboundReady(DE_ready), .i_inboundData({DE_res, DE_ref}),
-     .o_outboundValid(EF_valid), .i_outboundReady(i_ready), .o_outboundData({EF_res, EF_pixRef}), .i_outboundValidFilter(filter));
-   assign o_pixRef = filter ? EF_pixRef : INV;
-   assign o_res = filter ? EF_res : INV;
-   //assign o_res = filter ? EF_pixRef : INV; // DEBUG: output pattern
+
+   // block the FIFO output when the FIFO output pixel is too far ahead of the electron beam
+   // disables both valid and ready signals at the interface
+   wire 	       filter = EF_pixRef < (i_vgaPixRefLoopback + (1 << (nMemBits)));
+   wire 	       filteredReady = i_ready & filter;   
    assign o_valid = EF_valid & filter;   
+   
+   FIFO #(.nBits(nRefBits+nResBits), .nLevels(4)) FIFO_E
+     (.i_clk(clk), .i_inboundValid(DE_valid), .o_inboundReady(DE_ready), .i_inboundData({DE_res, DE_ref}),
+      .o_outboundValid(EF_valid), .i_outboundReady(filteredReady), .o_outboundData({EF_res, EF_pixRef}));
+
+   assign o_res = EF_res;
+   assign o_pixRef = EF_pixRef;
+  
+   // debug pattern generation
+   //wire [nRefBits-1:0] EF_DEBUG_res;
+   //grayToBinary #(.nBits(nRefBits)) g2b (.i_gray(EF_pixRef), .o_bin(EF_DEBUG_res));
+   //assign o_res = EF_DEBUG_res;   
 endmodule
 
-module top(clk, vgaClk, o_RED, o_GREEN, o_BLUE, o_HSYNC, o_VSYNC, 
-	   i_x0, i_y0, i_dx, i_dy, o_frameCount);   
+module top(clk, vgaClk, o_frameCount, i_vgaRun,
+	   o_RED, o_GREEN, o_BLUE, o_HSYNC, o_VSYNC, 
+	   i_x0, i_y0, i_dx, i_dy, i_maxiter);   
    
    parameter vgaX = 640;
    parameter vgaY = 480;
-      
+   
    input wire clk;
    input wire vgaClk;
-   
-   output reg o_RED;
-   output reg o_GREEN;
-   output reg o_BLUE;
-   output reg o_HSYNC;
-   output reg o_VSYNC;   
 
+   output wire [3:0] o_frameCount;
+   input wire 	     i_vgaRun;   
+   
+   output reg 	     o_RED;
+   output reg 	     o_GREEN;
+   output reg 	     o_BLUE;
+   output reg 	     o_HSYNC;
+   output reg 	     o_VSYNC;   
+   
    // interface to CPU
    input wire signed [31:0] i_x0;
    input wire signed [31:0] i_y0;
    input wire signed [31:0] i_dx;
    input wire signed [31:0] i_dy;
-   output wire [3:0] 	    o_frameCount;
-      
+   input wire [7:0] 	    i_maxiter;   
+   
    localparam nResBits = 6;
    localparam nRefBits = 24;
-   localparam nMemBits = 16;
+   localparam nMemBits = 12;
    
    // ================================================================================
    // fractal image generation
    // ================================================================================
-   wire       GM_valid;
-   wire [nResBits-1:0] GM_res;
-   wire [nRefBits-1:0] GM_pixRef;
-   wire [nRefBits-1:0] vgaPixRefLoopback;
+   wire 		    GM_valid/*verilator public_flat*/;
+   wire [nResBits-1:0] 	    GM_res/*verilator public_flat*/;
+   wire [nRefBits-1:0] 	    GM_pixRef/*verilator public_flat*/;
+   wire [nRefBits-1:0] 	    vgaPixRefLoopback/*verilator public_flat*/;
    
    generator #(.vgaX(vgaX), .vgaY(vgaY), .nResBits(nResBits), .nRefBits(nRefBits), .nMemBits(nMemBits)) iGenerator_G 
      (.clk(clk), .i_vgaPixRefLoopback(vgaPixRefLoopback),
       .o_valid(GM_valid), .i_ready(1'b1), .o_res(GM_res), .o_pixRef(GM_pixRef), 
-      .i_x0(i_x0), .i_y0(i_y0), .i_dx(i_dx), .i_dy(i_dy), .o_frameCount(o_frameCount));
+      .i_x0(i_x0), .i_y0(i_y0), .i_dx(i_dx), .i_dy(i_dy), .o_frameCount(o_frameCount), .i_maxiter(i_maxiter));
    
    // ================================================================================
    // VGA scan generation 
    // ================================================================================
-   wire 	       vgaBlank;
-   wire 	       vgaHsync;
-   wire 	       vgaVsync;   
-   wire [nRefBits-1:0] vgaPixRef;
-   vga #(.nX(vgaX), .nY(vgaY), .nRefBits(nRefBits)) iVga(.i_clk(vgaClk), .o_blank(vgaBlank), .o_HSYNC(vgaHsync), .o_VSYNC(vgaVsync), .o_pix(vgaPixRef));
+   wire 		    vgaBlank;
+   wire 		    vgaHsync;
+   wire 		    vgaVsync;   
+   wire [nRefBits-1:0] 	    vgaPixRef;
+   vga #(.nX(vgaX), .nY(vgaY), .nRefBits(nRefBits)) iVga
+     (.i_clk(vgaClk), .i_run(i_vgaRun),
+      .o_blank(vgaBlank), .o_HSYNC(vgaHsync), .o_VSYNC(vgaVsync), .o_pix(vgaPixRef));
    
    // ================================================================================
    // loop back electron beam position to fractal clock domain for flow control
@@ -790,10 +819,10 @@ module top(clk, vgaClk, o_RED, o_GREEN, o_BLUE, o_HSYNC, o_VSYNC,
    // ================================================================================
    // look up data under electron beam from buffer mem
    // ================================================================================
-   wire [nResBits-1:0] vgaRes2;
-   wire 	       vgaBlank2;
-   wire 	       vgaHsync2;
-   wire 	       vgaVsync2;
+   wire [nResBits-1:0] 	    vgaRes2;
+   wire 		    vgaBlank2;
+   wire 		    vgaHsync2;
+   wire 		    vgaVsync2;
    dpmem #(.NBITADDR(nMemBits), .NBITDATA(nResBits), .NBITBYPASS(3)) F_videoMem
      (.i_clkA(clk), .i_weA(GM_valid), .i_addrA(GM_pixRef[nMemBits-1:0]), .i_dataA(GM_res),
       .i_clkB(vgaClk), .i_addrB(vgaPixRef[nMemBits-1:0]), .o_dataB(vgaRes2), 
@@ -802,10 +831,10 @@ module top(clk, vgaClk, o_RED, o_GREEN, o_BLUE, o_HSYNC, o_VSYNC,
    // ================================================================================
    // vga color mapping and blanking
    // ================================================================================
-   reg 		       lastVsync = 0;   
-   reg [7:0] 	       cycle = 40; // offset color map to make maxiter black
-   wire [2:0] 	       vgaRes3 = vgaRes2 + cycle[5:3];   
-   wire [2:0] 	       vgaRes4 = {vgaRes3[2], vgaRes3[2] ^ vgaRes3[1], vgaRes3[1] ^ vgaRes3[0]};   
+   reg 			    lastVsync = 0;   
+   reg [7:0] 		    cycle = 40; // offset color map to make maxiter black
+   wire [2:0] 		    vgaRes3 = vgaRes2 + cycle[5:3];   
+   wire [2:0] 		    vgaRes4 = {vgaRes3[2], vgaRes3[2] ^ vgaRes3[1], vgaRes3[1] ^ vgaRes3[0]};   
    always @(posedge vgaClk) begin
       lastVsync <= vgaVsync2;
       if (0 & {lastVsync, vgaVsync2} == 2'b01)

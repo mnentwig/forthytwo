@@ -236,8 +236,13 @@ set_false_path -to [get_ports {PMOD[*]}]
 #set_input_delay -clock [get_clocks VIRTUAL_clk_out1_clkMul] -min -add_delay 0.200 [get_ports {pioC[*]}]
 #set_input_delay -clock [get_clocks VIRTUAL_clk_out1_clkMul] -max -add_delay 1.200 [get_ports {pioC[*]}]
 
+# image generation and VGA are fully independent clocks
 set_false_path -from [get_clocks -of_objects [get_nets clk200]] -to [get_clocks -of_objects [get_nets vgaClk]]
 set_false_path -from [get_clocks -of_objects [get_nets vgaClk]] -to [get_clocks -of_objects [get_nets clk200]]
+
+# CPU access will have many cycles margin
+set_false_path -from [get_clocks -of_objects [get_nets clk100]] -to [get_clocks -of_objects [get_nets clk200]]
+set_false_path -from [get_clocks -of_objects [get_nets clk200]] -to [get_clocks -of_objects [get_nets clk100]]
 
 set_property BITSTREAM.GENERAL.CRC DISABLE [current_design]
 set_property CONFIG_MODE SPIx4 [current_design]

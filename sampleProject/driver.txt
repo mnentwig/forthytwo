@@ -1,0 +1,37 @@
+// fractal project SW/RTL interface
+
+:driver.getHardwareFrameNum 
+	0x3000 io@
+;
+
+:driver.setLEDs
+	0x3001 io!
+;
+
+:driver.getButtons
+	0x3004 io@
+;
+
+::driver.fractal.setX
+	0x2000 io!
+;
+
+::driver.fractal.setDX
+	0x2001 io!
+;
+
+::driver.fractal.setY
+	0x2002 io!
+;
+
+::driver.fractal.setDY
+	0x2003 io!
+;
+
+::driver.fractal.setMaxiter
+	0x2004 io!
+;
+
+::driver.vga.onOff
+	0x2005 io!
+;

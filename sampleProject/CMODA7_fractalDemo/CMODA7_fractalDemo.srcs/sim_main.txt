@@ -1,0 +1,28 @@
+// minimal firmware for simulation
+
+// reset vector (first instruction at address 0)
+BRA:mySimMain
+
+#include(../../../libs/core.txt)
+#include(../../../libs/flm.txt)
+#include(../../pointsImported.txt)
+#include(../../driver.txt)
+
+:flt2Q19 1 19 core.lshift flm.int2flt flm.mul flm.flt2int ;
+:flt2Q27 1 27 core.lshift flm.int2flt flm.mul flm.flt2int ;
+
+:mySimMain
+
+'myData0 @ flt2Q19 driver.fractal.setX
+'myData1 @ flt2Q19 driver.fractal.setY
+
+'myData2 @ 'myData0 @ flm.negate flm.add 1919 flm.int2flt flm.div flt2Q27
+ driver.fractal.setDX 
+
+'myData3 @ 'myData1 @ flm.negate flm.add 1079 flm.int2flt flm.div flt2Q27 
+driver.fractal.setDY
+
+10 driver.fractal.setMaxiter
+1 driver.vga.onOff
+
+:done BRA:done

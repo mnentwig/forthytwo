@@ -232,8 +232,12 @@ set_property CONFIG_VOLTAGE 3.3 [current_design]
 #set_input_delay -clock [get_clocks VIRTUAL_clk_out1_clkMul] -min -add_delay 0.200 [get_ports {pioC[*]}]
 #set_input_delay -clock [get_clocks VIRTUAL_clk_out1_clkMul] -max -add_delay 1.200 [get_ports {pioC[*]}]
 
-#set_false_path -from [get_clocks -of_objects [get_nets clk200]] -to [get_clocks -of_objects [get_nets vgaClk]]
-#set_false_path -from [get_clocks -of_objects [get_nets vgaClk]] -to [get_clocks -of_objects [get_nets clk200]]
+set_false_path -from [get_clocks -of_objects [get_nets clk200]] -to [get_clocks -of_objects [get_nets vgaClk]]
+set_false_path -from [get_clocks -of_objects [get_nets vgaClk]] -to [get_clocks -of_objects [get_nets clk200]]
+
+# clk100 is the CPU, which accesses the clk200 domain with many cycles margin
+set_false_path -from [get_clocks -of_objects [get_nets clk100]] -to [get_clocks -of_objects [get_nets clk200]]
+set_false_path -from [get_clocks -of_objects [get_nets clk200]] -to [get_clocks -of_objects [get_nets clk100]]
 
 set_property BITSTREAM.GENERAL.CRC DISABLE [current_design]
 set_property CONFIG_MODE SPIx4 [current_design]

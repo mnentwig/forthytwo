@@ -1,3 +1,4 @@
+/* verilator lint_off DECLFILENAME */
 module fpgatop(CLK12, pioA, PMOD, uart_rxd_out, uart_txd_in, RGBLED, LED, BTN);
    input wire CLK12;
    output wire uart_rxd_out;   
@@ -17,8 +18,9 @@ module fpgatop(CLK12, pioA, PMOD, uart_rxd_out, uart_txd_in, RGBLED, LED, BTN);
    
    //parameter vgaX = 640; parameter vgaY = 480;
    parameter vgaX = 1920; parameter vgaY = 1080;
-   
-   clk12_200 iClk1(.in12(CLK12), .out100(clk100), .out200(clk200), .out300());   
+
+   wire 			unused;   
+   clk12_200 iClk1(.in12(CLK12), .out100(clk100), .out200(clk200), .out300(unused));
    clk100_148p5 iClk2(.in100(clk100), .out148p5(vgaClk));   
 
    // === import asynchronous button signal ===
@@ -29,25 +31,22 @@ module fpgatop(CLK12, pioA, PMOD, uart_rxd_out, uart_txd_in, RGBLED, LED, BTN);
       btnb <= btna;
    end
    
-   wire 			clk = vgaClk;
-   
    wire 			vgaRed;
    wire 			vgaGreen;   
    wire 			vgaBlue;
    wire 			vgaHsync;
    wire 			vgaVsync;
    
-   wire signed [31:0] 		i_x0;
-   wire signed [31:0] 		i_y0;
-   wire signed [31:0] 		i_dx;
-   wire signed [31:0] 		i_dy;
    wire [3:0] 			frameCount;
    
    reg [31:0] 			cpuReg[0:7];
+   initial cpuReg[4] = 50;   
    
    top #(.vgaX(vgaX), .vgaY(vgaY)) iTop
-     (.clk(clk200), .vgaClk(vgaClk), .o_RED(vgaRed), .o_GREEN(vgaGreen), .o_BLUE(vgaBlue), .o_HSYNC(vgaHsync), .o_VSYNC(vgaVsync), 
-      .i_x0(cpuReg[0]), .i_dx(cpuReg[1]), .i_y0(cpuReg[2]), .i_dy(cpuReg[3]), .o_frameCount(frameCount));   
+     (.clk(clk200), .o_frameCount(frameCount),
+      .i_vgaRun(cpuReg[5][0]),
+      .vgaClk(vgaClk), .o_RED(vgaRed), .o_GREEN(vgaGreen), .o_BLUE(vgaBlue), .o_HSYNC(vgaHsync), .o_VSYNC(vgaVsync), 
+      .i_x0(cpuReg[0]), .i_dx(cpuReg[1]), .i_y0(cpuReg[2]), .i_dy(cpuReg[3]), .i_maxiter(cpuReg[4][7:0]));   
    
    // === register VGA signals to suppress combinational hazards, especially on HSYNC/VSYNC ===
    always @(posedge vgaClk) begin
@@ -78,25 +77,27 @@ module fpgatop(CLK12, pioA, PMOD, uart_rxd_out, uart_txd_in, RGBLED, LED, BTN);
    reg [31:0]  io_din;
    
    wire [12:0] addrCodeCpu; // CPU instruction pointer in units of 16 bit words
-   
-   wire [12:0] codeaddr_32bitWord = {1'b0, addrCodeCpu[12:1]};
-   
+
    // === instruction word selection ===
    // convert 32-bit memory into double-length 16 bit code memory
    // note: the word selection must be delayed relative to the address indexing
    // to work with inferred BRAM
-   reg [31:0]  instr32;
-   wire [15:0] instr16;
+   reg [31:0]  instr32 = 0; // this provides BRA:0x0000 as first instruction, regardless of RAM contents
    reg 	       instrSelHighWord = 0;  
+   wire [15:0] instr16;
    assign instr16 = instrSelHighWord ? instr32[31:16] : instr32[15:0];
    
    reg [31:0]  ram[0:8191];
    initial begin
-      `include "main.v"
+      // Note: this failed when using the name "main.v".
+`include "mainIncl.v"
+      //       $display(ram[0]); // check that the import is correct
    end
    always @(posedge cpuClk) begin
       instrSelHighWord 	<= addrCodeCpu[0];
       instr32 		<= ram[{1'b0, addrCodeCpu[12:1]}];
+      //$display("PC:", addrCodeCpu, " instr:", instr32, " instr16:", instr16);   
+
       if (mem_wr)
 	ram[mem_addr[14:2]] <= dout;
       mem_din <= ram[mem_addr[14:2]];
@@ -118,7 +119,7 @@ module fpgatop(CLK12, pioA, PMOD, uart_rxd_out, uart_txd_in, RGBLED, LED, BTN);
    // === register bank ===
    // note: one register level delay because not timing critical
    reg 	       rbank_write = 1'b0;
-   reg [54:0]   rbank_addr;
+   reg [15:0]   rbank_addr;
    reg [31:0]  rbank_data;   
    always @(posedge cpuClk) begin
       rbank_write <= io_wr;
@@ -184,20 +185,21 @@ module fpgatop(CLK12, pioA, PMOD, uart_rxd_out, uart_txd_in, RGBLED, LED, BTN);
 	     io_din <= {28'd0, frameCount};
 	   16'h3004:
 	     io_din <= {30'd0, btnb};
-  	   
+  	   default: begin end
 	 endcase
       end // if (io_rd)      
       if (io_wr) begin
 	 case(mem_addr)
 	   // === UART reg: Tx write data ===
 	   16'h1003: begin
-	      uartTxByte <= dout;
+	      uartTxByte <= dout[7:0];
 	      uartTxStrobe <= 1'b1;	      	      
 	   end
 	   16'h3001: begin
 	      RGBLED <= ~dout[2:0];	      
 	      LED <= dout[4:3];	     	      
 	   end
+	   default: begin end
 	 endcase
       end // if (io_wr)      
    end

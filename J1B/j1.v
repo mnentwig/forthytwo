@@ -51,11 +51,12 @@
    wire [4:0] 		   depth;   
    reg [WIDTH-1:0] 	   st0;     // Top of data stack
    reg [WIDTH-1:0] 	   st0N;
-   reg 			   dstkW;                // D stack write
+   reg 			   dstkW = 1'b0;                // D stack write
    reg [1:0] 		   dspI, rspI;
    
-   reg [12:0] 		   pc, pcN;      
-   reg 			   rstkW;          // R stack write
+   reg [12:0] 		   pc = 13'd0;
+   reg [12:0] 		   pcN;   
+   reg 			   rstkW = 1'b0;          // R stack write
    wire [WIDTH-1:0] 	   rstkD;   // R stack write value
    reg 			   reboot = 1;
    wire [12:0] 		   pc_plus_1 = pc + 1;
@@ -110,7 +111,7 @@
    assign io_rd = !reboot & is_alu & func_ior;
 
    assign rstkD = (insn[13] == 1'b0) ? {{(WIDTH - 14){1'b0}}, pc_plus_1, 1'b0} : st0;
-
+   
    always @*
      begin
 	casez ({insn[15:13]})
@@ -143,7 +144,7 @@
 	   { pc, st0 } <= 0;
 	end else begin
 	   reboot <= 0;
-	   { pc, st0 } <= { pcN, st0N };
+	   { pc, st0 } <= { pcN, st0N };	   
 	end
      end
 endmodule

@@ -137,24 +137,6 @@
     </FileSet>
     <FileSet Name="utils_1" Type="Utils" RelSrcDir="$PSRCDIR/utils_1">
       <Filter Type="Utils"/>
-      <File Path="$PSRCDIR/utils_1/imports/impl_1/fpgatop_routed.dcp">
-        <FileInfo>
-          <Attr Name="ImportPath" Val="$PPRDIR/../../../../Users/gk/Dropbox/20191128_mandelJuliaVerilog/CMODA7/CMODA7.runs/impl_1/fpgatop_routed.dcp"/>
-          <Attr Name="ImportTime" Val="1577784244"/>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="AutoDcp" Val="1"/>
-        </FileInfo>
-      </File>
-      <File Path="$PSRCDIR/utils_1/imports/synth_1/fpgatop.dcp">
-        <FileInfo>
-          <Attr Name="ImportPath" Val="$PPRDIR/../../../../Users/gk/Dropbox/20191128_mandelJuliaVerilog/CMODA7/CMODA7.runs/synth_1/fpgatop.dcp"/>
-          <Attr Name="ImportTime" Val="1577787991"/>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="AutoDcp" Val="1"/>
-        </FileInfo>
-      </File>
       <Config>
         <Option Name="TopAutoSet" Val="TRUE"/>
       </Config>
@@ -209,13 +191,14 @@
     </Simulator>
   </Simulators>
   <Runs Version="1" Minor="11">
-    <Run Id="synth_1" Type="Ft3:Synth" SrcSet="sources_1" Part="xc7a35tcpg236-1" ConstrsSet="constrs_1" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="true" State="current" Dir="$PRUNDIR/synth_1" IncludeInArchive="true">
+    <Run Id="synth_1" Type="Ft3:Synth" SrcSet="sources_1" Part="xc7a35tcpg236-1" ConstrsSet="constrs_1" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" State="current" Dir="$PRUNDIR/synth_1" IncludeInArchive="true">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019">
           <Desc>Vivado Synthesis Defaults</Desc>
         </StratHandle>
         <Step Id="synth_design">
           <Option Id="ReTiming">1</Option>
+          <Option Id="FlattenHierarchy">0</Option>
         </Step>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
@@ -243,24 +226,18 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="impl_1" Type="Ft2:EntireDesign" Part="xc7a35tcpg236-1" ConstrsSet="constrs_1" Description="Each implementation step trades design performance for better runtime. Physical optimization (phys_opt_design) is disabled." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" State="current" Dir="$PRUNDIR/impl_1" SynthRun="synth_1" IncludeInArchive="true" GenFullBitstream="true">
+    <Run Id="impl_1" Type="Ft2:EntireDesign" Part="xc7a35tcpg236-1" ConstrsSet="constrs_1" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" State="current" Dir="$PRUNDIR/impl_1" SynthRun="synth_1" IncludeInArchive="true" GenFullBitstream="true">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Flow_RuntimeOptimized" Flow="Vivado Implementation 2019">
-          <Desc>Each implementation step trades design performance for better runtime. Physical optimization (phys_opt_design) is disabled.</Desc>
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019">
+          <Desc>Default settings for Implementation.</Desc>
         </StratHandle>
         <Step Id="init_design"/>
-        <Step Id="opt_design">
-          <Option Id="Directive">4</Option>
-        </Step>
+        <Step Id="opt_design"/>
         <Step Id="power_opt_design"/>
-        <Step Id="place_design">
-          <Option Id="Directive">15</Option>
-        </Step>
+        <Step Id="place_design"/>
         <Step Id="post_place_power_opt_design"/>
-        <Step Id="phys_opt_design"/>
-        <Step Id="route_design">
-          <Option Id="Directive">5</Option>
-        </Step>
+        <Step Id="phys_opt_design" EnableStepBool="1"/>
+        <Step Id="route_design"/>
         <Step Id="post_route_phys_opt_design">
           <Option Id="Directive">2</Option>
         </Step>
