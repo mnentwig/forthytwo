@@ -96,8 +96,9 @@ module fpgatop(CLK12, pioA, PMOD, uart_rxd_out, uart_txd_in, RGBLED, LED, BTN);
    
    reg [31:0]  ram[0:8191];
    initial begin
-      // Note: this failed when using the name "main.v".
-`include "mainIncl.v"
+      // Note: Initial values were garbled in Verilator when using the name "main.v".
+      // The filename mainIncl.v seems to work OK (see minimal firmware sample)
+`include "main.v"
       //       $display(ram[0]); // check that the import is correct
    end
    always @(posedge cpuClk) begin

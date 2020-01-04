@@ -37,7 +37,7 @@ VAR:lastFrameNum=0xFFFFFFFF
 	driver.getButtons driver.setLEDs
 
 	BEGIN
-		driver.getButtons
+		//driver.getButtons
 	UNTIL
 
 	BEGIN
@@ -125,7 +125,7 @@ VAR:lastFrameNum=0xFFFFFFFF
 	system.ascii.1 system.uart.putChar system.emit.cr
 
 	1 driver.vga.onOff
-	10 driver.fractal.setMaxiter
+	42 driver.fractal.setMaxiter
 
 	// === init data pointers to first and second point in list ===
 	'myData0 'dataPtrA !

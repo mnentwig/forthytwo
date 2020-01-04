@@ -408,7 +408,8 @@ module julia (i_clk,
    reg signed [2*nBitsInternal-1:0] yy[LAST:FIRST];
    reg signed [2*nBitsInternal-1:0] xy[LAST:FIRST];
    reg signed [2*nBitsInternal-1:0] magSquared[LAST:FIRST];
-   reg 				    sat[LAST:FIRST];   
+   reg 				    sat[LAST:FIRST];
+   reg 				    pixRefCheck[LAST:FIRST];   
    
    localparam ST_IDLE = 3'b001;
    localparam ST_RUN = 3'b010;
@@ -426,7 +427,7 @@ module julia (i_clk,
    wire 			    plEnter = i_inputValid & o_inputReady;
 
    assign o_resultValid = (state[LAST] == ST_DONE) & // have result for output
-			  (pixRef[LAST] < pixRefLimit); // flow control
+			  pixRefCheck[LAST]; // flow control
    assign o_result = o_resultValid ? res[LAST] : INV;
    assign o_pixRef = o_resultValid ? pixRef[LAST] : INV;
    
@@ -497,6 +498,7 @@ module julia (i_clk,
 	 always @(posedge i_clk) begin
 	    // default: shift through pipeline
 	    // (possibly prelim. assignments)
+	    // don't care about dangling heads, synthesis will optimize them away
 	    x0[ix] 	<= x0[ix-1];
 	    y0[ix] 	<= y0[ix-1];
 	    pixRef[ix] 	<= pixRef[ix-1];
@@ -508,6 +510,7 @@ module julia (i_clk,
 	    yy[ix] 	<= yy[ix-1];
 	    xy[ix] 	<= xy[ix-1];
 	    sat[ix] 	<= sat[ix-1];
+	    pixRefCheck[ix] <= pixRefCheck[ix-1];
 	    magSquared[ix] <= magSquared[ix-1];
 	    case (ix)
 	      PL1: begin
@@ -520,7 +523,8 @@ module julia (i_clk,
 		 magSquared[ix] 	<= magSquared_PL2;
 		 x[ix] 			<= nextX_PL2 >>> nFracBitsInternal;
 		 y[ix] 			<= nextY_PL2 >>> (nFracBitsInternal/*note 2: multiply by 2*/-1); // 2*x*y + y0. First double y0 then use half the sum
-		 sat[ix] 		<= nextSat_PL2;		 
+		 sat[ix] 		<= nextSat_PL2;
+		 pixRefCheck[ix]	<= pixRef[ix-1] < pixRefLimit; // location is arbitrary (later => needs fewer FFs)
 	      end
 	      
 	      PL3: begin

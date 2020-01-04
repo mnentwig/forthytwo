@@ -47,7 +47,7 @@ clean:
 # Remove forthytwo build directory
 	rm -Rf out
 # (Emacs backup files)
-	find . -name *~ -exec rm {} \;
+	find . -name "*~" -exec rm {} \;
 # copied simulator
 	rm -f sim.exe
 	rm -f simVcd.exe

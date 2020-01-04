@@ -28,7 +28,6 @@ sampleProject/CMODA7_fractalDemo/CMODA7_fractalDemo.ip_user_files
 sampleProject/CMODA7_fractalDemo/CMODA7_fractalDemo.runs
 sampleProject/CMODA7_fractalDemo/CMODA7_fractalDemo.srcs/sources_1/ip
 sampleProject/CMODA7_fractalDemo/CMODA7_fractalDemo.hw
-
-
-
-
+sampleProject/CMODA7_fractalDemo/CMODA7_fractalDemo.srcs/sim.exe
+sampleProject/CMODA7_fractalDemo/CMODA7_fractalDemo.srcs/simVcd.exe
+*octave-workspace*
