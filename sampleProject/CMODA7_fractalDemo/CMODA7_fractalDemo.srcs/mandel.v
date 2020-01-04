@@ -176,7 +176,7 @@ module vga(i_clk, i_run, o_blank, o_HSYNC, o_VSYNC, o_pix);
 	       end	     
 	       default: begin end
 	     endcase
-	     $display("vga y=", y, " o_pix=", o_pix);
+	     //$display("vga y=", y, " o_pix=", o_pix);
 	  end
 	default: begin end
       endcase
@@ -361,7 +361,7 @@ endmodule
 module julia (i_clk, 
 	      i_inputValid, o_inputReady, i_x0, i_y0, i_pixRef,
 	      o_resultValid, i_resultReady, o_result, o_pixRef, 
-	      i_maxiter);
+	      i_maxiter, i_pixRefLimit);
    // === parameters ===
    parameter nBitsIn = -1; initial if (nBitsIn < 0) $error("missing parameter");  
    parameter nFracBitsIn = -1; initial if (nFracBitsIn < 0) $error("missing parameter");
@@ -386,11 +386,12 @@ module julia (i_clk,
    input wire signed [nBitsIn-1:0] i_x0;
    input wire signed [nBitsIn-1:0] i_y0;
    input wire [nRefBits-1:0] 	   i_pixRef;
-   output reg 			   o_resultValid = 0;   
+   output wire 			   o_resultValid;   
    input wire signed 		   i_resultReady;   
-   output reg [nResBits-1:0] 	   o_result;
-   output reg [nRefBits-1:0] 	   o_pixRef;
+   output wire [nResBits-1:0] 	   o_result;
+   output wire [nRefBits-1:0] 	   o_pixRef;
    input wire [7:0] 		   i_maxiter;   
+   input wire [nRefBits-1:0] 	   i_pixRefLimit;
    
    // === PL state: lifetime over n iterations ===
    reg signed [nBitsInternal-1:0]  x[LAST:FIRST];
@@ -420,13 +421,18 @@ module julia (i_clk,
    // === input new data to pipeline? [note 4] ===
    wire 			    plEnter = i_inputValid & o_inputReady;
 
+   assign o_resultValid = (state[LAST] == ST_DONE) & // have result for output
+			  (pixRef[LAST] < i_pixRefLimit); // flow control
+   assign o_result = res[LAST];
+   assign o_pixRef = pixRef[LAST];   
+   
    // === output result from pipeline? [note 4] ===
-   wire 			    plExit = 
-				    (state[LAST] == ST_DONE) // have result for output
-				    & (~o_resultValid | i_resultReady); // output register is or will be ready to accept 
+   wire 			    plExit = o_resultValid & 
+				    i_resultReady; // downstream sink accepts
+
    assign o_inputReady = (state[LAST] == ST_IDLE) // no data looping around
      | plExit; // or looping data exits
-
+   
    // === input data clipping ===
    // necessary because internal bit width is not sufficient for input values outside -2..2 interval
    // any |x| or |y| > 2 causes immediate iteration exit
@@ -539,22 +545,6 @@ module julia (i_clk,
 	 end
       end
    endgenerate   
-   
-   always @(posedge i_clk) begin
-      // === output result register ===
-      if (plExit) begin
-	 // case 1 o_resultValid == 0: pass result when o_result is idle
-	 // case 2 o_resultValid == 1: pass result when o_result is moved ahead at the same time
-	 // xxxxxxxx
-	 o_resultValid <= 1;
-	 o_result <= res[LAST];
-	 o_pixRef <= pixRef[LAST];
-      end else if (o_resultValid & i_resultReady) begin
-	 o_resultValid <= 0;
-	 o_result <= INV;
-	 o_pixRef <= INV;
-      end      
-   end
 endmodule
 
 module generator(clk, i_maxiter, o_frameCount, i_vgaPixRefLoopback,
@@ -577,7 +567,7 @@ module generator(clk, i_maxiter, o_frameCount, i_vgaPixRefLoopback,
    input wire clk;
    input wire [7:0] 		    i_maxiter;   
    output wire [3:0] 		    o_frameCount;   
-   input wire [nRefBits-1:0] i_vgaPixRefLoopback;
+   input wire [nRefBits-1:0] i_vgaPixRefLoopback/*verilator public_flat*/;
    output wire 		     o_valid;
    input wire 		     i_ready;
    output wire [nResBits-1:0] o_res;
@@ -673,7 +663,7 @@ module generator(clk, i_maxiter, o_frameCount, i_vgaPixRefLoopback,
    generate
       for (ix = 1; ix <= NENG; ix = ix + 1)
 	julia #(.nBitsIn(nBitsGen), .nFracBitsIn(nFracBitsGen), .nBitsInternal(18), .nFracBitsInternal(14+1+1), .nRefBits(nRefBits), .nResBits(nResBits)) C_fractalEngine
-		(.i_clk(clk), .i_maxiter(i_maxiter),
+		(.i_clk(clk), .i_maxiter(i_maxiter), .i_pixRefLimit(i_vgaPixRefLoopback + (1 << nMemBits)),
 		 .i_x0(BCQ_X[ix]), .i_y0(BCQ_Y[ix]), .i_pixRef(BCQ_ref[ix]), .i_inputValid(BCQ_V[ix]), .o_inputReady(BCQ_ready[ix]),
 		 .o_resultValid(CD_valid[ix]), .i_resultReady(CD_ready[ix]), .o_result(CD_res[ix]), .o_pixRef(CD_ref[ix]));
    endgenerate
@@ -729,26 +719,13 @@ module generator(clk, i_maxiter, o_frameCount, i_vgaPixRefLoopback,
    end
    
    // ================================================================================
-   // flow control FIFO
-   // manage write into limited buffer memory to not get too far ahead of electron beam
+   // output FIFO (decouple stiff combinational path along pipeline)
+   // TBD omit?
    // ================================================================================
-   wire [nRefBits-1:0] EF_pixRef;
-   wire [nResBits-1:0] EF_res;
-   wire 	       EF_valid;
-
-   // block the FIFO output when the FIFO output pixel is too far ahead of the electron beam
-   // disables both valid and ready signals at the interface
-   wire 	       filter = EF_pixRef < (i_vgaPixRefLoopback + (1 << (nMemBits)));
-   wire 	       filteredReady = i_ready & filter;   
-   assign o_valid = EF_valid & filter;   
-   
    FIFO #(.nBits(nRefBits+nResBits), .nLevels(4)) FIFO_E
      (.i_clk(clk), .i_inboundValid(DE_valid), .o_inboundReady(DE_ready), .i_inboundData({DE_res, DE_ref}),
-      .o_outboundValid(EF_valid), .i_outboundReady(filteredReady), .o_outboundData({EF_res, EF_pixRef}));
+      .o_outboundValid(o_valid), .i_outboundReady(i_ready), .o_outboundData({o_res, o_pixRef}));
 
-   assign o_res = EF_res;
-   assign o_pixRef = EF_pixRef;
-  
    // debug pattern generation
    //wire [nRefBits-1:0] EF_DEBUG_res;
    //grayToBinary #(.nBits(nRefBits)) g2b (.i_gray(EF_pixRef), .o_bin(EF_DEBUG_res));

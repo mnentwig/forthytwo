@@ -18,6 +18,7 @@ int main(int argc, char **argv){
   
   int lastPixRef = 0;
 
+  char* done = (char*)calloc(4000000, 1);
 #ifdef MYTRACINGFLAG
   // === tracing ===
   VerilatedVcdC* tfp = new VerilatedVcdC;
@@ -27,7 +28,6 @@ int main(int argc, char **argv){
   
   int traceFlag = 1;
   int i;
-  int lastRef;
   for (i = 0; ; i++) {
     top->CLK12 = 1;
     top->eval();
@@ -42,10 +42,15 @@ int main(int argc, char **argv){
       
       //printf("%i\n", top->fpgatop__DOT__iTop__DOT__vgaPixRefLoopback);
       if (top->fpgatop__DOT__iTop__DOT__GM_valid){	
-	if ((top->fpgatop__DOT__iTop__DOT__GM_pixRef == 0) && (lastRef != 0))
+	if ((top->fpgatop__DOT__iTop__DOT__GM_pixRef == 0) && (lastPixRef != 0))
 	  break;
-	lastRef = top->fpgatop__DOT__iTop__DOT__GM_pixRef;
-	printf("%i\t%i\n", top->fpgatop__DOT__iTop__DOT__GM_pixRef, top->fpgatop__DOT__iTop__DOT__GM_res);
+	lastPixRef = top->fpgatop__DOT__iTop__DOT__GM_pixRef;
+	printf("%i\t%i\t%i\n", 
+	       top->fpgatop__DOT__iTop__DOT__GM_pixRef, top->fpgatop__DOT__iTop__DOT__GM_res, 
+	       top->fpgatop__DOT__iTop__DOT__iGenerator_G__DOT__i_vgaPixRefLoopback);
+	if (done[lastPixRef])
+	  break;
+	done[lastPixRef] = 1;	
       }      
     } // for i
  breakMainLoop:

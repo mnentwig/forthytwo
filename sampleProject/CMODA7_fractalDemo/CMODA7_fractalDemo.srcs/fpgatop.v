@@ -40,7 +40,14 @@ module fpgatop(CLK12, pioA, PMOD, uart_rxd_out, uart_txd_in, RGBLED, LED, BTN);
    wire [3:0] 			frameCount;
    
    reg [31:0] 			cpuReg[0:7];
-   initial cpuReg[4] = 50;   
+
+   // for simulation only
+   initial cpuReg[0] = 32'hfff00000;
+   initial cpuReg[2] = 32'hfff00000;
+   initial cpuReg[1] = 32'h000444d5;
+   initial cpuReg[3] = 32'h0007979b;
+   initial cpuReg[4] = 50;
+   initial cpuReg[5] = 1;
    
    top #(.vgaX(vgaX), .vgaY(vgaY)) iTop
      (.clk(clk200), .o_frameCount(frameCount),
