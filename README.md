@@ -9,7 +9,8 @@ Forthytwo starts from a clean slate - it is fully independent of the original bu
 Since the J1 architecture is a FORTH-targeted stack machine architecture, the input language remains very similar to FORTH but no attempt is made to maintain formal compatibility.
 
 ## Mission statement
-One-stop embedded 32-bit processor for FPGA. Keep it simple and stupid and clean and small so it can be customized as needed.
+One-stop embedded 32-bit processor for FPGA or ASIC (if you dare). 
+Keep it simple and stupid and clean and small so it can be customized as needed.
 
 ## Status
 Functional but may benefit from more testing (especially the floating point library due to its complexity)
