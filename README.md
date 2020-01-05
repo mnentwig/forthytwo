@@ -82,12 +82,13 @@ For nested inclusions, the search path is always relative to the including file.
 ### >>>#include_once<<< directive
 Prevents multiple inclusion of the current file (may be located anywhere in the file). See core.txt for an example.
 
-### code and data segment addresses
-Initial address of segment:
+### initial address of code segment
 \>>>#BASEADDR_CODE(numBytes)<<<
+Note, the unit is in bytes (must be even)
+
+### initial address of data segment
 \>>>#BASEADDR_DATA(numBytes)<<<
 At the end of compilation, segments are checked for overlap
-Note, numBytes is in units of 8-bit bytes.
 
 The unmodified J1B CPU starts execution at 0x0000 (reset vector).
 
