@@ -219,3 +219,55 @@ These notes are for a Windows installation and are only relevant if Verilator st
 - (optional, suppresses warnings) edit c:/MinGW/msys/1.0/share/verilator/include/vltstd/ and remove dllimport attribute
 - (optional, suppresses warnings) edit respective verilatorxy.h files to first #undef MINGW_XYZ that would later cause a redefinition warning
 - with those modifications, the simulator build should not show any warnings.
+
+# J1 native opcodes
+Compiler names for native J1B opcodes (see lib/core.txt). Those are visible e.g. in a generated out/mySource.lst file
+* core.noop
+* core.return
+* core.plus
+* core.xor
+* core.and
+* core.or
+* core.invert
+* core.equals
+* core.lessThanSigned
+* core.lessThanUnsigned
+* core.swap
+* core.dup
+* core.drop
+* core.over
+* core.nip
+* core.pushR
+* core.fetchR
+* core.popR
+* core.rshift
+* core.lshift
+
+Memory / IO fetch and store require two opcodes each, as implemented in the Forth-style aliases @ and !
+Note, those are macros, not subroutine calls (define with : instead of :: for a subroutine call which will be smaller but slower)
+
+* core.fetch1 
+* core.fetch2
+* core.sto1
+* core.sto2
+* core.ioFetch1
+* core.ioFetch2
+* core.ioSto1 
+* core.ioSto2
+
+For immediate values, conditional / unconditional branch and subroutine call, all possible 16-bit opcodes have an alias using a four-digit hex number (lower case) as follows:
+
+Explicit immediate value: 
+* core.imm0xabcd
+
+Explicit unconditional branch: 
+* core.bra0xabcd
+
+Explicit conditional branch: 
+* core.bz0xabcd
+
+Explicit call:
+* core.call0xabcd
+
+Generic 16-bit opcode (e.g. for optimized ALU variants with combined return):
+* core.opcode0xabcd

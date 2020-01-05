@@ -216,6 +216,10 @@ class compiler {
         for(UInt16 imm = 0; imm <= 0x7FFF; ++imm)
             this.opcodes["core.imm"+util.hex4(imm)] = opcode.imm(imm);
 
+        // === all possible instruction words ===
+        for(UInt16 word = 0; word <= 0xFFFF; ++word)
+            this.opcodes["core.opcode"+util.hex4(word)] = word;
+
         // === all possible branch instructions ===
         for(UInt16 dest = 0; dest < 0x2000; dest += 1) {
             this.opcodes["core.call"+util.hex4(dest)] = opcode.jump(targetaddr: dest, jumptype: opcode.jumptype_e.CALL);
