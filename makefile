@@ -1,3 +1,9 @@
+# CSharp compiler from .NET framework
+# You may need to change this, depending on what is installed on the system
+# The compiler should be available from the .NET runtime (does not require developer package)
+# Alternatively, use Visual studio to open forthytwo.sln and build.
+CSC=/c/Windows/Microsoft.NET/Framework/v4.0.30319/csc.exe
+
 # Verilator paths for building the simulator under mingw
 # Not needed if you have a working sim(_trace).exe file
 VERILATOR=verilator_bin.exe
@@ -7,11 +13,20 @@ VINCLUDE=/usr/share/verilator/include
 # Build forthytwo.exe externally, e.g. using Visual Studio. The .sln file uses a post-build command to copy the executable to bin/
 FORTHYTWO=bin/forthytwo.exe
 
-# generic target platform simulator
+# generic target platform simulator: Fast version
 SIM=bin/sim.exe
+# generic target platform simulator: Version with trace.vcd tracing enabled
 SIMTRACE=bin/simVcd.exe
 
-all: 	bin/sim.exe testLibs testMath2
+all: 	${FORTHYTWO} ${SIM} testLibs testMath2
+
+# build the forthytwo.exe compiler from source
+${FORTHYTWO}:	
+	${CSC} /out:gumbo.exe src\main.cs src\preprocessor.cs src\compiler.cs src\lstFileWriter.cs src\util.cs
+
+# build the generic target platform simulator. Also builds ${SIMTRACE}
+${SIM}:
+	 make -C J1B
 
 # runs sanity check selftests by simulating included libraries
 testLibs: libs/test.txt
@@ -42,10 +57,6 @@ testFlmMath:
 main:
 	${FORTHYTWO} main.txt
 	${SIM} out/main.hex
-
-# build the simulators
-bin/sim.exe:
-	 make -C J1B
 
 # removes Verilator-generated files but not the binary itself
 clean:
