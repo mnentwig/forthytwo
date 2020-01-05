@@ -48,22 +48,23 @@ As a general guideline, directives involving compiler "magic" e.g. IF-ELSE-ENDIF
 With few exceptions (e.g. 0x1 or 0X1 are both hex numbers) it is case sensitive.
 
 ### Usage
-Build the C# project (Visual Studio, mono or any C# compiler should be sufficient) and run forthytwo.exe, giving the top level source file as arguments (or several).
+Run forthytwo.exe with the top level source file as arguments (or several).
 The path of the source file defines the top level folder for including other files.
 
 Output is generated at the location of the first input file in a (possibly new) folder out/
 * mySource.hex output can be read using the unmodified J1B Verilator simulation.
 * mySource.v can be used in verilog. Note: in Vivado, set file type to "Verilog header" to avoid syntax errors, then: initial begin `include "mySource.h" end
 * mySource.lst: generated output with human-readable annotations
+* mySource.bootBin: UART binary upload for optional boot loader
 
 ### Note on whitespace characters (space, tab, newline)
-* forthytwo makes heavy use of compound keywords such as >>>var:myVariable=1234<<< that may _not_ contain whitespace characters for formatting.
+* forthytwo uses compound keywords such as >>>var:myVariable=1234<<< that may _not_ contain whitespace characters for formatting.
 * Filenames in >>>#include(...)<<< _may_ contain space characters (use the exact operating system file name without "escaping" spaces). 
 * There are no special rules for punctuation characters, e.g. >>>;<<< is no different from any other token and therefore must be separated by whitespace
 * In code, whitespace characters serve no other role than token separation
 
 ### Note on symbol names
-Any character sequence free of whitespaces that fails to parse as a number may be used as symbol. A symbol may be used only for one purpose (macro, code label, data label) at a time.
+Any character sequence free of whitespaces that does not represent a number may be used as symbol. A symbol may be used only for one single purpose (macro, code label, data label) at a time.
 Redefining any symbol (built-in and user) is not possible and leads to an error.
 Lower- and mixed case variants of built-in ALL-CAPS words are forbidden.
 
