@@ -84,8 +84,8 @@ Prevents multiple inclusion of the current file (may be located anywhere in the 
 
 ### code and data segment addresses
 Initial address of segment:
->>>#BASEADDR_CODE(numBytes)<<<
->>>#BASEADDR_DATA(numBytes)<<<
+\>>>#BASEADDR_CODE(numBytes)<<<
+\>>>#BASEADDR_DATA(numBytes)<<<
 At the end of compilation, segments are checked for overlap
 Note, numBytes is in units of 8-bit bytes.
 
