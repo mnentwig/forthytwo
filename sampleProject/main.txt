@@ -89,8 +89,7 @@ VAR:lastFrameNum=0xFFFFFFFF
 	calcAcceleration
 ;
 
-:flt2Q19 1 19 core.lshift flm.int2flt flm.mul flm.flt2int ;
-:flt2Q27 1 27 core.lshift flm.int2flt flm.mul flm.flt2int ;
+:flt2Q29 1 29 core.lshift flm.int2flt flm.mul flm.flt2int ;
 
 :loadNextPointToInterpolators
 	loadNextPoint_fetchAndCalc
@@ -108,23 +107,23 @@ VAR:lastFrameNum=0xFFFFFFFF
 ;
 
 :setX1X2Y1Y2
-	  'x1 @ flt2Q19 
+	  'x1 @ flt2Q29 
 	  driver.fractal.setX
 	  
-	  'x2 @ 'x1 @ flm.negate flm.add 1919 flm.int2flt flm.div flt2Q27 
+	  'x2 @ 'x1 @ flm.negate flm.add 1919 flm.int2flt flm.div flt2Q29 
 	  driver.fractal.setDX
 	  
-	  'y1 @ flt2Q19
+	  'y1 @ flt2Q29
 	  driver.fractal.setY
 
-	  'y2 @ 'y1 @ flm.negate flm.add 1079 flm.int2flt flm.div flt2Q27 
+	  'y2 @ 'y1 @ flm.negate flm.add 1079 flm.int2flt flm.div flt2Q29 
 	  driver.fractal.setDY
 ;
 
 :main
 	system.ascii.1 system.uart.putChar system.emit.cr
 
-	1 driver.vga.onOff
+	1 driver.fractal.onOff
 	42 driver.fractal.setMaxiter
 
 	// === init data pointers to first and second point in list ===

@@ -67,9 +67,10 @@ clean:
 	rm -f libs/*~
 	rm -Rf out
 
-# removes also simulator binaries
+# removes also simulator binaries and the compiler binary
 realclean: clean
-	rm -f bin/sim.exe
-	rm -f bin/sim_trace.exe
+	rm -f ${SIM}
+	rm -f ${SIMTRACE}
+	rm -f ${FORTHYTWO}
 
 .PHONY: clean sim testMath all testFlmMath testLibs

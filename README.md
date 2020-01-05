@@ -93,8 +93,16 @@ At the end of compilation, segments are checked for overlap
 The unmodified J1B CPU starts execution at 0x0000 (reset vector).
 
 Within the code:
->>>#CODEADDR:myAddr_16bitUnits<<<
->>>#DATAADDR:myAddr_8bitUnits<<<
+
+
+
+\>>>#CODEADDR:myAddr_16bitUnits<<<
+
+
+\>>>#DATAADDR:myAddr_8bitUnits<<<
+
+
+
 Continues code / data generation at the given address. Note, the code address is in units of 16-bit instruction words, the data address in units of 8-bit bytes. For the latter, only multiples of four are supported.
 
 __no overlap checks are performed___

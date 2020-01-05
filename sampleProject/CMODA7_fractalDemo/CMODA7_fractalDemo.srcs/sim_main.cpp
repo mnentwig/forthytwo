@@ -15,6 +15,24 @@ int main(int argc, char **argv){
   Verilated::traceEverOn(true);
   Verilated::commandArgs(argc, argv);
   Vfpgatop* top = new Vfpgatop;
+
+  // === load memory contents ===
+  if (argc >= 2) {
+    FILE *hex = fopen(argv[1], "r");
+    if (hex == NULL){
+      fprintf(stderr, "failed to open %s\r\n", argv[1]);
+      return(EXIT_FAILURE);
+    }
+    uint64_t i;
+    for (i = 0; i < 8192; i++) {
+      unsigned int v;
+      if (fscanf(hex, "%x\n", &v) != 1) {
+        fprintf(stderr, "invalid hex value at line %d\n", i + 1);
+        exit(1);
+      }
+      top->fpgatop__DOT__ram[i] = v;
+    }
+  }
   
   int lastPixRef = 0;
 

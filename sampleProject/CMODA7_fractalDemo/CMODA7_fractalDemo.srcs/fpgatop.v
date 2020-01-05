@@ -43,16 +43,16 @@ module fpgatop(CLK12, pioA, PMOD, uart_rxd_out, uart_txd_in, RGBLED, LED, BTN);
    reg [31:0] 			cpuReg[0:7];
 
    // for simulation only
-   initial cpuReg[0] = 32'hfff00000;
-   initial cpuReg[2] = 32'hfff00000;
-   initial cpuReg[1] = 32'h000444d5;
-   initial cpuReg[3] = 32'h0007979b;
+   initial cpuReg[0] = 32'hc0000020;
+   initial cpuReg[2] = 32'hc0000020;
+   initial cpuReg[1] = 32'h00111357;
+   initial cpuReg[3] = 32'h001e5e6d;
    initial cpuReg[4] = 50;
-   initial cpuReg[5] = 1;
+   initial cpuReg[5] = 0;
    
    top #(.vgaX(vgaX), .vgaY(vgaY)) iTop
      (.clk(clk200), .o_frameCount(frameCount),
-      .i_vgaRun(cpuReg[5][0]),
+      .i_run(cpuReg[5][0]),
       .vgaClk(vgaClk), .o_RED(vgaRed), .o_GREEN(vgaGreen), .o_BLUE(vgaBlue), .o_HSYNC(vgaHsync), .o_VSYNC(vgaVsync), 
       .i_x0(cpuReg[0]), .i_dx(cpuReg[1]), .i_y0(cpuReg[2]), .i_dy(cpuReg[3]), .i_maxiter(cpuReg[4][7:0]));   
    
@@ -94,12 +94,9 @@ module fpgatop(CLK12, pioA, PMOD, uart_rxd_out, uart_txd_in, RGBLED, LED, BTN);
    wire [15:0] instr16;
    assign instr16 = instrSelHighWord ? instr32[31:16] : instr32[15:0];
    
-   reg [31:0]  ram[0:8191];
+   reg [31:0]  ram[0:8191] /* verilator public_flat */;
    initial begin
-      // Note: Initial values were garbled in Verilator when using the name "main.v".
-      // The filename mainIncl.v seems to work OK (see minimal firmware sample)
 `include "main.v"
-      //       $display(ram[0]); // check that the import is correct
    end
    always @(posedge cpuClk) begin
       instrSelHighWord 	<= addrCodeCpu[0];
