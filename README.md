@@ -3,7 +3,7 @@ J1 embedded processor with "batteries included": Compiler, simulator, reference 
 
 ## What is this?
 
-The J1 embedded CPU is an outstanding processor for small embedded FPGA applications, remarkable for its minimum size, simplicity and accessibility through Verilator simulation. Unfortunately, the same cannot be said for the original Forth-based development environment, a recursion of rabbit holes to trap the unwary developer who thinks he can just start writing code.
+The J1 embedded CPU is an outstanding processor for small embedded FPGA applications, remarkable for its minimum size, simplicity and accessibility through Verilator simulation. Unfortunately, the same cannot be said for the original Forth-based development environment, a recursion of rabbit holes to trap the unwary developer who thought he could just go and write code.
 
 Forthytwo starts from a clean slate - it is fully independent of the original build system.
 Since the J1 architecture is a FORTH-targeted stack machine architecture, the input language remains very similar to FORTH but no attempt is made to maintain formal compatibility.
