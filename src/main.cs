@@ -10,7 +10,7 @@ static class main {
         string destBootBinFilename = null;
         try {
             //args = new string[] { "../../../main.txt" }; Console.WriteLine("DEBUG: hardcoded args");
-            Dictionary<string,UInt32> defines = new Dictionary<string,uint>() { { "#MEMSIZE_BYTES(",8192*4 } };
+            Dictionary<string, UInt32> defines = new Dictionary<string, uint>() { { "#MEMSIZE_BYTES(", 8192*4 }, { "#BASEADDR_CODE(", 0 }, { "#BASEADDR_DATA(", 0x1000 } };
 
             if(args.Length < 1) throw new Exception("no input files");
 
@@ -56,7 +56,7 @@ static class main {
             }
 
             // === compile ===
-            compiler comp = new compiler(tokens,baseAddrCode_bytes :0,baseAddrData_bytes :4000,memSize_bytes :defines["#MEMSIZE_BYTES("]);
+            compiler comp = new compiler(tokens,baseAddrCode_bytes : defines["#BASEADDR_CODE("], baseAddrData_bytes : defines["#BASEADDR_DATA("], memSize_bytes :defines["#MEMSIZE_BYTES("]);
 
             // === write output files ===
             comp.dumpHex(destHexFilename);

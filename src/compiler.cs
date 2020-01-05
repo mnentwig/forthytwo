@@ -217,8 +217,8 @@ class compiler {
             this.opcodes["core.imm"+util.hex4(imm)] = opcode.imm(imm);
 
         // === all possible instruction words ===
-        for(UInt16 word = 0; word <= 0xFFFF; ++word)
-            this.opcodes["core.opcode"+util.hex4(word)] = word;
+        for(UInt32 word = 0; word <= 0xFFFF; ++word)
+            this.opcodes["core.opcode"+util.hex4((UInt16)word)] = (UInt16)word;
 
         // === all possible branch instructions ===
         for(UInt16 dest = 0; dest < 0x2000; dest += 1) {
@@ -271,7 +271,7 @@ class compiler {
         UInt32 dataMemPtr_bytes = this.dataMemPtr;
 
         if(codeMemPtr_bytes > this.mem.Length) throw new Exception("code overruns physical memory");
-        if(dataMemPtr_bytes > this.mem.Length) throw new Exception("code overruns physical memory");
+        if(dataMemPtr_bytes > this.mem.Length) throw new Exception("data overruns physical memory");
         if(this.baseAddrCode_bytes < this.baseAddrData_bytes) {
             if(codeMemPtr_bytes > this.baseAddrData_bytes) throw new Exception("code segment overruns into data segment");
         } else
