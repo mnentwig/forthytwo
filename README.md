@@ -31,10 +31,13 @@ On Xilinx Artix XC7A35, its resource use is
 * 453 LUTs if further allowing one BRAM18 for each of the two stacks
 * some further reduction if the UART is left out
  
-### building 
-* Visual Studio: Open .sln file, "Build solution"
-* Mono on Windows: use "Open Mono command prompt" from windows start menu. Navigate to folder containing "buildFromMonoPrompt.bat" and run from command line
-* Mono on Linux: Use same .bat file contents (one-liner) with slash instead of backslash
+### Note on makefiles
+Development by the author is done on Windows with minGW and default gmake (type "make" in any folder from the minGW command prompt).
+Makefiles may need some system-dependent adjustments.
+
+### building forthytwo.exe
+Forthytwo.exe is built from the top level makefile, using the command line csc compiler from a .NET framework installation.
+Alternatively, Visual Studio can be used by opening forthytwo.sln. If so, disable the respective part of the makefile or the .exe file will be overwritten.
 
 ### Convention
 In this document, >>><<< is used for code-related punctuation. For example, a double-colon >>>::<<< in combination with a label starts a macro, as in >>>::thisIsMyMacro<<<.
