@@ -10,7 +10,7 @@ static class main {
         string destBootBinFilename = null;
         try {
             //args = new string[] { "../../../main.txt" }; Console.WriteLine("DEBUG: hardcoded args");
-            Dictionary<string, UInt32> defines = new Dictionary<string, uint>() { { "#MEMSIZE_BYTES(", 8192*4 }, { "#BASEADDR_CODE(", 0 }, { "#BASEADDR_DATA(", 0x1000 } };
+            Dictionary<string, UInt32> defines = new Dictionary<string, uint>() { { "#MEMSIZE_BYTES(", 8192*4 }, { "#BASEADDR_CODE(", 0 }, { "#BASEADDR_DATA(", 4000 } }; // 0x1000 
 
             if(args.Length < 1) throw new Exception("no input files");
 

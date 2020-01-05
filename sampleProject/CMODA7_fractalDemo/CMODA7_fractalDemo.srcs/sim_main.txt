@@ -10,18 +10,27 @@ BRA:mySimMain
 
 :flt2Q29 1 29 core.lshift flm.int2flt flm.mul flm.flt2int ;
 
+
+
+VAR:myDataA=-0.1306657
+VAR:myDataB=0.9873754
+VAR:myDataC=-0.130124
+VAR:myDataD=0.9877024
+
+
 :mySimMain
 
-'myData0 @ flt2Q29 driver.fractal.setX
-'myData1 @ flt2Q29 driver.fractal.setY
+'myDataA @ flt2Q29 driver.fractal.setX
+'myDataB @ flt2Q29 driver.fractal.setY
 
-'myData2 @ 'myData0 @ flm.negate flm.add 1919 flm.int2flt flm.div flt2Q29
+'myDataC @ 'myDataA @ flm.negate flm.add 1919 flm.int2flt flm.div flt2Q29
  driver.fractal.setDX 
 
-'myData3 @ 'myData1 @ flm.negate flm.add 1079 flm.int2flt flm.div flt2Q29 
+'myDataD @ 'myDataB @ flm.negate flm.add 1079 flm.int2flt flm.div flt2Q29 
 driver.fractal.setDY
 
-10 driver.fractal.setMaxiter
+50 driver.fractal.setMaxiter
+
 1 driver.fractal.onOff
 
 :done BRA:done

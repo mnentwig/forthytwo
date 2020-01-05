@@ -204,6 +204,7 @@ The application binary is then sent via UART using forthytwo.exe's out/*.bootBin
 To reload the application binary, the system needs to be reset externally (reprogram the FPGA or assert the J1 reset input, restart the simulator).
 The application MUST include a replica of the bootloader IDENTICAL TO ROM at address zero0.
 During application upload, the bootloader will simply overwrite itself redundantly with bitwise-identical data. The redundant copy of the bootloader effectively sets the address offset for the user application.
+The bitstream upload contains a "magic" synchronization sequence. Any unexpected characters echo back an "x". This can be used to check the presence of the bootloader, simply hit any key in the terminal window.
 
 ## Boot loader workflow (FPGA)
 - Compile bootloader.txt with forthytwo.exe, independently of the application

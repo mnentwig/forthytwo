@@ -274,7 +274,7 @@ module pixelScanner(i_clk,
    
    reg 					running = 0;
    localparam INV = 128'dx;   
-   assign o_startReady = ~running & (~i_startValid);
+   assign o_startReady = ~running;
    assign o_dataValid = running;   
    assign o_x = o_dataValid ? xStart + accX : INV;
    assign o_y = o_dataValid ? yStart + accY : INV;
@@ -553,28 +553,33 @@ module trigger(i_clk,
    output reg [3:0] 	     o_frameCount = 0;      
    
    input wire 		     i_ready;   
-   output wire 		     o_valid;
-   
-   reg 			     waiting = 1'b0;
-   reg [3:0] 		     pixRefPrev = 0;   
-   reg 			     run = 1'b0; // register input for timing
-   assign o_valid = ~waiting & run;
+   output reg 		     o_valid = 0;
+      
+   reg 			     isRunning = 1'b0;
+   reg [nRefBits-1:0] 	     pixRefPrev = 0;   
+   reg 			     enabled = 1'b0; // register input for timing 
+
+   wire 		     starting = o_valid & i_ready;
    
    always @(posedge i_clk) begin
-      run <= i_run;
-      
-      // === detect electron beam return ===
-      pixRefPrev <= i_vgaPixRefLoopback;
-      if ((i_vgaPixRefLoopback == 0) && (pixRefPrev != 0))
-	waiting <= 1'b0;
-      
-      // === detect acknowledged trigger ===
-      if (o_valid & i_ready) begin
+      enabled <= i_run;
+      o_valid <= enabled & ~isRunning & ~starting;
+
+      if (starting) begin      
+	 // === detect acknowledged trigger ===
 	 // "Contract" with the CPU: Frame count increases after the 
 	 // input data registers from the CPU have been read (which is on trigger)
 	 o_frameCount <= o_frameCount + 1;
-	 waiting <= 1'b1;
-      end            
+	 isRunning <= 1'b1;
+      end
+      
+      if (isRunning) begin
+	 // === detect electron beam return ===
+	 pixRefPrev <= i_vgaPixRefLoopback;
+	 if ((i_vgaPixRefLoopback == 0) && (pixRefPrev != 0)) begin
+	    isRunning <= 1'b0;
+	 end
+      end
    end
 endmodule
 
@@ -597,7 +602,6 @@ module generator(clk,
    // === constants ===
    localparam nBitsGen = 22;
    localparam nFracBitsGen = 19; // range [-2..2], one bit for sign (might drop one bit later?)
-   localparam nAddFracBits = 8;   
    localparam INV = 32'dx;
 
    // === ports ===

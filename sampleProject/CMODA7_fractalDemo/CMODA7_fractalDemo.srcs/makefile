@@ -47,6 +47,7 @@ ${SIMVCD}: sim_main.cpp out/sim_main.hex fpgatop.v mandel.v
 runSim: ${SIM} out/sim_main.hex
 	${SIM} out/sim_main.hex
 runSimVcd: ${SIMVCD} out/sim_main.hex
+	rm -f trace.vcd
 	${SIMVCD} out/sim_main.hex
 
 # run the minimal firmware on the generic simulator (prints IOWR:xyz)

@@ -40,7 +40,7 @@ int main(int argc, char **argv){
 #ifdef MYTRACINGFLAG
   // === tracing ===
   VerilatedVcdC* tfp = new VerilatedVcdC;
-  top->trace(tfp, 99);  // Trace 99 levels of hierarchy
+  top->trace(tfp, 2);  // Trace n levels of hierarchy
   tfp->open("trace.vcd");
 #endif
   

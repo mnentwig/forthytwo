@@ -14,6 +14,7 @@ BRA:bootloader.main
 
 #include(../../libs/core.txt)
 #include(../../libs/system.uart.txt)
+#include(../../libs/system.ascii.txt)
 //#include(../../libs/system.txt)
 
 // read word from UART (1:8 bit, 4: 32 bit)
@@ -31,7 +32,13 @@ BRA:bootloader.main
 // restart bootloader on sync failure
 :bootloader.restart
 	core.popR drop // cleanup
-	// fall through into bootloader.main
+
+	// write "x" on sync failure
+	// use to detect presence of boot loader by pressing any key in a terminal window
+	system.ascii.x
+	system.uart.putChar
+
+	// fall through into bootloader.main below
 
 // === main bootloader entry point ===	
 :bootloader.main

@@ -32,3 +32,6 @@ sampleProject/CMODA7_fractalDemo/CMODA7_fractalDemo.srcs/sim.exe
 sampleProject/CMODA7_fractalDemo/CMODA7_fractalDemo.srcs/simVcd.exe
 *octave-workspace*
 *utils_1*
+*.jou
+*.log
+*.str
