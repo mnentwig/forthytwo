@@ -1,3 +1,4 @@
+`include "pixScanner.v"
 `include "mandel.v"
 module tb();   
    
@@ -26,7 +27,7 @@ module tb();
    generator #(.vgaX(vgaX), .vgaY(vgaY), .nResBits(nResBits), .nRefBits(nRefBits), .nMemBits(nMemBits)) iGenerator_G 
      (.clk(clk), .i_vgaPixRefLoopback(vgaPixRefLoopback),
       .o_valid(GM_valid), .i_ready(1'b1), .o_res(GM_res), .o_pixRef(GM_pixRef), .i_maxiter(8'd10), 
-      .i_x0(32'hc0000020), .i_y0(32'hc0000020), .i_dx(32'h00111357*3), .i_dy(32'h001e5e6d*3), .i_run(run));
+      .i_x0(32'hc0000020), .i_y0(32'hc0000020), .i_dxCol(32'h00111357*3), .i_dyCol(0), .i_dxRow(0), .i_dyRow(32'h001e5e6d*3), .i_run(run));
    
    initial begin
       #10000 run = 1;

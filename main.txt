@@ -1,0 +1,51 @@
+// this is a toplevel source file. Give as command line argument to fourthytwo.exe
+BRA:main // skip over function definitions
+#include(libs/core.txt)
+#include(libs/system.txt)
+// #include(libs/system.ASCII.txt)
+#include(libs/flm.txt)
+
+VAR:flm.m11=0
+VAR:flm.m21=0
+VAR:flm.m12=0
+VAR:flm.m22=0
+
+
+:flm.rotMatrix
+dup 
+
+
+:flm.sinPiX
+	// get integer part of angle
+	dup flm.flt2int core.pushR
+	// subtract (normalize phase to 0..1)
+	core.fetchR flm.int2flt flm.negate flm.add
+	// calculate sine halfwave
+	flm.__bhaskara_sinePiX
+	// if 2nd half wave, turn negative
+	core.popR 1 core.and IF flm.negate ENDIF
+;
+
+:flm.cosPiX
+	0.5 flm.add
+	flm.sinPiX
+;
+
+:flm.__bhaskara_sinePiX // 0: x
+	dup // 0:x 1:x
+	flm.negate 1.0 flm.add // 0:1.0-x 1:x
+	flm.mul // 0: x*(1.0-x)
+	dup 720.0 flm.mul swap // 0: x*(1.0-x) 1: 720*x*(1.0-x)
+	-180.0 flm.mul 225.0 flm.add flm.div
+;
+
+:main
+-3.0
+0 5001 DO core.pushR
+	dup flm.sim.printFlm system.emit.space
+	dup flm.sinPiX flm.sim.printFlm system.emit.space
+	dup flm.cosPiX flm.sim.printFlm	system.emit.cr
+	0.001	flm.add
+core.popR LOOP
+core.drop
+system.sim.terminate

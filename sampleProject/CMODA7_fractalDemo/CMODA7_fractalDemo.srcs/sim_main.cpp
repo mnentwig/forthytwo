@@ -11,6 +11,11 @@ double flm2double(int32_t val){
   return res;
 }
 
+double timestamp;
+double sc_time_stamp (){
+  return timestamp;
+}
+
 int main(int argc, char **argv){
   Verilated::traceEverOn(true);
   Verilated::commandArgs(argc, argv);
@@ -45,38 +50,48 @@ int main(int argc, char **argv){
 #endif
   
   int traceFlag = 1;
-  int i;
+  uint64_t i;
+  int nOutRem = 1920 * 1080;
   for (i = 0; ; i++) {
+    timestamp = i;      
+    if (i % 10000 == 0){
+      fprintf(stderr, "cycle:%i; pixels remaining in frame:%i\n", (int) i, nOutRem); fflush(stderr);
+    }
+    
     top->CLK12 = 1;
     top->eval();
 #ifdef MYTRACINGFLAG
-      if (traceFlag) tfp->dump(2*i);
+    if (traceFlag) tfp->dump(2*i);
 #endif
-      top->CLK12 = 0;
-      top->eval();
+    top->CLK12 = 0;
+    top->eval();
 #ifdef MYTRACINGFLAG
-      if (traceFlag) tfp->dump(2*i+1);
+    if (traceFlag) tfp->dump(2*i+1);
 #endif
       
-      //printf("%i\n", top->fpgatop__DOT__iTop__DOT__vgaPixRefLoopback);
-      if (top->fpgatop__DOT__iTop__DOT__GM_valid){	
-	if ((top->fpgatop__DOT__iTop__DOT__GM_pixRef == 0) && (lastPixRef != 0))
-	  break;
-	lastPixRef = top->fpgatop__DOT__iTop__DOT__GM_pixRef;
-	printf("%i\t%i\t%i\n", 
-	       top->fpgatop__DOT__iTop__DOT__GM_pixRef, top->fpgatop__DOT__iTop__DOT__GM_res, 
-	       top->fpgatop__DOT__iTop__DOT__iGenerator_G__DOT__i_vgaPixRefLoopback);
-	if (done[lastPixRef])
-	  break;
-	done[lastPixRef] = 1;	
-      }      
-    } // for i
+    //printf("%i\n", top->fpgatop__DOT__iTop__DOT__vgaPixRefLoopback);
+    if (top->fpgatop__DOT__iTop__DOT__GM_valid){	
+      if ((top->fpgatop__DOT__iTop__DOT__GM_pixRef == 0) && (lastPixRef != 0))
+	break;
+      lastPixRef = top->fpgatop__DOT__iTop__DOT__GM_pixRef;
+      printf("%i\t%i\n", 
+	     top->fpgatop__DOT__iTop__DOT__GM_pixRef, top->fpgatop__DOT__iTop__DOT__GM_res
+	     //,top->fpgatop__DOT__iTop__DOT__iGenerator_G__DOT__i_vgaPixRefLoopback
+	     );
+      fflush(stdout);
+      if (done[lastPixRef])
+	break;
+      done[lastPixRef] = 1;
+      if (--nOutRem == 0)
+	break;
+    }      
+  } // for i
  breakMainLoop:
-    fprintf(stderr, "NCYC:%li\n", i);
+  fprintf(stderr, "NCYC:%li\n", i);
 #ifdef MYTRACINGFLAG
-    tfp->close();
+  tfp->close();
 #endif
-    delete top;
+  delete top;
 
-    exit(0);
+  exit(0);
 }

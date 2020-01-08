@@ -31,12 +31,12 @@ out/sim_main.hex: sim_main.txt
 # ===================================================
 # Note: compiles in the minimal firmware
 ${SIM}: sim_main.cpp out/sim_main.hex fpgatop.v mandel.v
-	verilator -Wno-fatal ${VOPTS} -I${FIRMWAREPATH} -Isrc_simOnly -I../../../J1B -cc fpgatop.v mandel.v --exe sim_main.cpp
+	verilator -Wno-fatal ${VOPTS} -I${FIRMWAREPATH} -Isrc_simOnly -I../../../J1B -cc fpgatop.v mandel.v pixScanner.v --exe sim_main.cpp
 	make -j -C obj_dir -f Vfpgatop.mk Vfpgatop
 	cp obj_dir/Vfpgatop.exe sim.exe
 
 ${SIMVCD}: sim_main.cpp out/sim_main.hex fpgatop.v mandel.v
-	verilator -Wno-fatal ${VOPTS} --trace -I${FIRMWAREPATH} -Isrc_simOnly -I../../../J1B -cc fpgatop.v mandel.v --exe sim_mainTrace.cpp
+	verilator -Wno-fatal ${VOPTS} --trace -I${FIRMWAREPATH} -Isrc_simOnly -I../../../J1B -cc fpgatop.v mandel.v pixScanner.v --exe sim_mainTrace.cpp
 	make -j -C obj_dir -f Vfpgatop.mk Vfpgatop
 	cp obj_dir/Vfpgatop.exe simVcd.exe
 
@@ -58,6 +58,11 @@ simPipeline:
 	${IVERILOG} -Wall simPipeline.v
 	${VVP} a.out -lxt2
 
+simPixScanner:
+	${IVERILOG} -Wall -DSIM_PIXSCANNER pixScanner.v
+	${VVP} a.out -lxt2 | tee simOut.txt
+	diff simOut.txt simOutRef_pixScanner.txt
+	@echo "result as expected"
 clean: 
 # Remove Verilator build directory
 	rm -Rf obj_dir
@@ -70,5 +75,10 @@ clean:
 	rm -f simVcd.exe
 # iverilog compilation result
 	rm -f a.out
+# iverilog simulation result
+	rm -f c:/temp/out.lx2
+# simPixScanner result
+	rm -f simOut.txt
+	rm -f output.txt
 
 PHONY: clean fwTest runSim runSimVcd

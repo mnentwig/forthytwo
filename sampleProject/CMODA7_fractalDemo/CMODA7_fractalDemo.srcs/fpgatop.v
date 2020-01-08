@@ -49,12 +49,14 @@ module fpgatop(CLK12, pioA, PMOD, uart_rxd_out, uart_txd_in, RGBLED, LED, BTN);
    initial cpuReg[3] = 32'h001e5e6d;
    initial cpuReg[4] = 50;
    initial cpuReg[5] = 0;
+   initial cpuReg[6] = 0;
+   initial cpuReg[7] = 0;
    
    top #(.vgaX(vgaX), .vgaY(vgaY)) iTop
      (.clk(clk200), .o_frameCount(frameCount),
-      .i_run(cpuReg[5][0]),
+      .i_run(cpuReg[5][0]), .i_simFlush(cpuReg[5][1]),
       .vgaClk(vgaClk), .o_RED(vgaRed), .o_GREEN(vgaGreen), .o_BLUE(vgaBlue), .o_HSYNC(vgaHsync), .o_VSYNC(vgaVsync), 
-      .i_x0(cpuReg[0]), .i_dx(cpuReg[1]), .i_y0(cpuReg[2]), .i_dy(cpuReg[3]), .i_maxiter(cpuReg[4][7:0]));   
+      .i_x0(cpuReg[0]), .i_y0(cpuReg[2]), .i_dxCol(cpuReg[1]), .i_dyCol(cpuReg[7]), .i_dxRow(cpuReg[6]), .i_dyRow(cpuReg[3]), .i_maxiter(cpuReg[4][7:0]));   
    
    // === register VGA signals to suppress combinational hazards, especially on HSYNC/VSYNC ===
    always @(posedge vgaClk) begin

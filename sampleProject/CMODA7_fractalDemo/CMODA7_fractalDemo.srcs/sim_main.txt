@@ -10,12 +10,15 @@ BRA:mySimMain
 
 :flt2Q29 1 29 core.lshift flm.int2flt flm.mul flm.flt2int ;
 
+//VAR:myDataA=-0.1306657
+//VAR:myDataB=0.9873754
+//VAR:myDataC=-0.130124
+//VAR:myDataD=0.9877024
 
-
-VAR:myDataA=-0.1306657
-VAR:myDataB=0.9873754
-VAR:myDataC=-0.130124
-VAR:myDataD=0.9877024
+VAR:myDataA=-2.0
+VAR:myDataB=-2.0
+VAR:myDataC=2.0
+VAR:myDataD=2.0
 
 
 :mySimMain
@@ -31,6 +34,10 @@ driver.fractal.setDY
 
 50 driver.fractal.setMaxiter
 
+// trigger a single frame
 1 driver.fractal.onOff
+// stop VGA (not interesting for sim) and set simFlush bit to move the electron beam to the end of the video frame
+// to output the results as they become available.
+2 driver.fractal.onOff
 
 :done BRA:done

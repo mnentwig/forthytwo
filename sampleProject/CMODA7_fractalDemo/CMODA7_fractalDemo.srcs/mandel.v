@@ -151,43 +151,37 @@ module vga(i_clk, i_run, o_blank, o_HSYNC, o_VSYNC, o_pix);
    wire [11:0] xPlus1 = x + 12'd1;
    wire [11:0] yPlus1 = y + 12'd1;
    always @(posedge i_clk) begin
-      x <= xPlus1; // prelim. assignment
-      o_pix <= (blankH | blankV) ? o_pix : o_pix + 1; // prelim. assignment      
-      case (xPlus1)
-	x_sync: 
-	  o_HSYNC <= hsyncDeasserted;
-	x_sync + x_bp: 
-	  blankH <= 0;
-	x_sync + x_bp + x_img: 
-	  blankH <= 1;
-	x_sync + x_bp + x_img + x_fp: 
-	  begin 
-	     o_HSYNC <= hsyncAsserted;
-	     x <= 0;
-	     y <= yPlus1; // prelim. assignment	   
-	     case (yPlus1)
-	       y_fp: o_VSYNC <= vsyncAsserted;
-	       y_fp + y_sync: o_VSYNC <= vsyncDeasserted;
-	       y_fp + y_sync + y_bp: blankV <= 0;
-	       y_fp + y_sync + y_bp + y_img : begin
-		  blankV <= 1;
-		  o_pix <= 0;
-		  y <= 0;		
-	       end	     
-	       default: begin end
-	     endcase
-	     //$display("vga y=", y, " o_pix=", o_pix);
-	  end
-	default: begin end
-      endcase
-
-      if (~i_run) begin
-	 o_HSYNC <= hsyncDeasserted;
-	 o_VSYNC <= vsyncDeasserted;
-	 x <= 0;
-	 y <= 0;
-	 o_pix <= 0;	 
-      end
+      if (i_run) begin
+	 x <= xPlus1; // prelim. assignment
+	 o_pix <= (blankH | blankV) ? o_pix : o_pix + 1; // prelim. assignment      
+	 case (xPlus1)
+	   x_sync: 
+	     o_HSYNC <= hsyncDeasserted;
+	   x_sync + x_bp: 
+	     blankH <= 0;
+	   x_sync + x_bp + x_img: 
+	     blankH <= 1;
+	   x_sync + x_bp + x_img + x_fp: 
+	     begin 
+		o_HSYNC <= hsyncAsserted;
+		x <= 0;
+		y <= yPlus1; // prelim. assignment	   
+		case (yPlus1)
+		  y_fp: o_VSYNC <= vsyncAsserted;
+		  y_fp + y_sync: o_VSYNC <= vsyncDeasserted;
+		  y_fp + y_sync + y_bp: blankV <= 0;
+		  y_fp + y_sync + y_bp + y_img : begin
+		     blankV <= 1;
+		     o_pix <= 0;
+		     y <= 0;
+		  end	     
+		  default: begin end
+		endcase
+		//$display("vga y=", y, " o_pix=", o_pix);
+	     end
+	   default: begin end
+	 endcase	 
+      end // if i_run
    end
 endmodule
 
@@ -234,94 +228,6 @@ module dpmem(i_clkA, i_weA, i_addrA, i_dataA,
       o_dataB 	<= dataB2;
       bypassB2 	<= i_bypassB;
       o_bypassB <= bypassB2;
-   end
-endmodule
-
-// scans all pixels sequentially
-module pixelScanner(i_clk, 
-		    i_startValid, o_startReady, i_xStart, i_yStart, i_dx, i_dy, 
-		    o_dataValid, i_dataReady, o_x, o_y, o_ref);
-   parameter nRefBits = -1; initial if (nRefBits < 0) $error("missing parameter");
-   parameter nX = -1; initial if (nX < 0) $error("missing parameter");
-   parameter nY = -1; initial if (nY < 0) $error("missing parameter");
-
-   input wire i_clk;
-
-   // === input-side interface ===
-   input wire i_startValid;
-   output wire o_startReady;   
-   input wire signed [31:0] i_xStart;
-   input wire signed [31:0] i_yStart;
-   input wire signed [31:0] i_dx;
-   input wire signed [31:0] i_dy;
-
-   // === output-side interface ===
-   output wire 			 o_dataValid;   
-   input wire 			 i_dataReady;
-   output wire signed [31:0] o_x;
-   output wire signed [31:0] o_y;
-   output reg [nRefBits-1:0] 	  o_ref;
-   
-   reg [11:0] 			  refX; // sufficient up to 1920x1080
-   reg [11:0] 			  refY;
-   
-   reg signed [31:0] 		  xStart;
-   reg signed [31:0] 		  yStart;
-   reg signed [31:0] 		  dx;
-   reg signed [31:0] 		  dy;
-   reg signed [31:0] 		  accX;
-   reg signed [31:0] 		  accY;
-   
-   reg 					running = 0;
-   localparam INV = 128'dx;   
-   assign o_startReady = ~running;
-   assign o_dataValid = running;   
-   assign o_x = o_dataValid ? xStart + accX : INV;
-   assign o_y = o_dataValid ? yStart + accY : INV;
-   
-   always @(posedge i_clk) begin
-      if (~running) begin
-	 if (i_startValid) begin
-	    xStart <= i_xStart;
-	    yStart <= i_yStart;
-	    dx <= i_dx;
-	    dy <= i_dy;
-	    
-	    accX <= 32'd0;
-	    accY <= 32'd0;
-	    refX <= 0;
-	    refY <= 0;
-
-	    o_ref <= 0;	    
-	    running <= 1;
-	 end
-      end else begin
-	 if (i_dataReady) begin
-	    // === outbound data was accepted ("running" implies "o_dataValid") ===
-	    if (refX < nX-1) begin
-	       o_ref <= o_ref + 1;
-	       refX <= refX + 1;	    
-	       accX <= accX + dx;
-	    end else if (refY < nY-1) begin
-	       o_ref <= o_ref + 1;
-	       refX <= 0;
-	       accX <= 64'd0;
-	       refY <= refY + 1;	    
-	       accY <= accY + dy;
-	    end else begin
-	       running <= 0;
-	       o_ref <= INV;	       
-	       refX <= INV;
-	       accX <= INV;
-	       refY <= INV;
-	       accY <= INV;
-	       xStart <= INV;
-	       yStart <= INV;
-	       dx <= INV;
-	       dy <= INV;	       
-	    end
-	 end
-      end
    end
 endmodule
 
@@ -542,52 +448,11 @@ module julia (i_clk,
    endgenerate   
 endmodule
 
-module trigger(i_clk, 
-	       i_vgaPixRefLoopback, i_run, o_frameCount,
-	       i_ready, o_valid);
-   parameter nRefBits = -1; initial if (nRefBits < 0) $error("missing parameter");   
-   
-   input wire i_clk;
-   input wire [nRefBits-1:0] i_vgaPixRefLoopback;
-   input wire 		     i_run;
-   output reg [3:0] 	     o_frameCount = 0;      
-   
-   input wire 		     i_ready;   
-   output reg 		     o_valid = 0;
-      
-   reg 			     isRunning = 1'b0;
-   reg [nRefBits-1:0] 	     pixRefPrev = 0;   
-   reg 			     enabled = 1'b0; // register input for timing 
-
-   wire 		     starting = o_valid & i_ready;
-   
-   always @(posedge i_clk) begin
-      enabled <= i_run;
-      o_valid <= enabled & ~isRunning & ~starting;
-
-      if (starting) begin      
-	 // === detect acknowledged trigger ===
-	 // "Contract" with the CPU: Frame count increases after the 
-	 // input data registers from the CPU have been read (which is on trigger)
-	 o_frameCount <= o_frameCount + 1;
-	 isRunning <= 1'b1;
-      end
-      
-      if (isRunning) begin
-	 // === detect electron beam return ===
-	 pixRefPrev <= i_vgaPixRefLoopback;
-	 if ((i_vgaPixRefLoopback == 0) && (pixRefPrev != 0)) begin
-	    isRunning <= 1'b0;
-	 end
-      end
-   end
-endmodule
-
 module generator(clk, 
 		 // CPU (control interface)
 		 o_frameCount, i_run,
 		 // CPU (configuration)
-		 i_x0, i_y0, i_dx, i_dy, i_maxiter, 
+		 i_x0, i_y0, i_dxCol, i_dxRow, i_dyCol, i_dyRow, i_maxiter, 
 		 // feedback for flow control
 		 i_vgaPixRefLoopback,
 		 // result
@@ -600,8 +465,10 @@ module generator(clk,
    parameter vgaY = -1; initial if (vgaY < 0) $error("missing parameter");   
 
    // === constants ===
-   localparam nBitsGen = 22;
-   localparam nFracBitsGen = 19; // range [-2..2], one bit for sign (might drop one bit later?)
+   // input data from CPU is 32 bits with 29 fractional bits
+   localparam bitReduction = 10;   
+   localparam nBitsGen = 32-bitReduction;
+   localparam nFracBitsGen = 29-bitReduction; // range [-2..2], one bit for sign (might drop one bit later?)
    localparam INV = 32'dx;
 
    // === ports ===
@@ -618,8 +485,10 @@ module generator(clk,
    input wire [7:0] 	      i_maxiter;   
    input wire signed [31:0]   i_x0;
    input wire signed [31:0]   i_y0;
-   input wire signed [31:0]   i_dx;
-   input wire signed [31:0]   i_dy;
+   input wire signed [31:0]   i_dxCol;
+   input wire signed [31:0]   i_dyCol;
+   input wire signed [31:0]   i_dxRow;
+   input wire signed [31:0]   i_dyRow;
    
    wire 		      AB_startValid;
    wire 		      AB_startReady;
@@ -634,12 +503,12 @@ module generator(clk,
    wire signed [31:0] 	    BK_dataX;
    wire signed [31:0] 	    BK_dataY;
    wire signed [nRefBits-1:0] BK_ref;
-   pixelScanner #(.nX(vgaX), .nY(vgaY), .nRefBits(nRefBits)) B_pixelScanner
+   pixScanner #(.nX(vgaX), .nY(vgaY), .nRefBits(nRefBits)) B_pixelScanner
      (.i_clk(clk), 
       // trigger signal
       .i_startValid(AB_startValid), .o_startReady(AB_startReady),
       // configuration input
-      .i_xStart(i_x0), .i_yStart(i_y0), .i_dx(i_dx), .i_dy(i_dy),
+      .i_xStart(i_x0), .i_yStart(i_y0), .i_dxCol(i_dxCol), .i_dxRow(i_dxRow), .i_dyCol(i_dyCol), .i_dyRow(i_dyRow),
       // scanned pixel output
       .o_dataValid(BK_dataValid), .i_dataReady(BK_dataReady), .o_x(BK_dataX), .o_y(BK_dataY), .o_ref(BK_ref));
    wire signed [nBitsGen-1:0] BK_dataX2 = BK_dataX >>> (32-nBitsGen);
@@ -782,9 +651,9 @@ module generator(clk,
    //assign o_res = EF_DEBUG_res;   
 endmodule
 
-module top(clk, vgaClk, o_frameCount, i_run,
+module top(clk, vgaClk, o_frameCount, i_run, i_simFlush,
 	   o_RED, o_GREEN, o_BLUE, o_HSYNC, o_VSYNC, 
-	   i_x0, i_y0, i_dx, i_dy, i_maxiter);   
+	   i_x0, i_y0, i_dxCol, i_dxRow, i_dyCol, i_dyRow, i_maxiter);   
    
    parameter vgaX = 640;
    parameter vgaY = 480;
@@ -794,6 +663,7 @@ module top(clk, vgaClk, o_frameCount, i_run,
 
    output wire [3:0] o_frameCount;
    input wire 	     i_run;   
+   input wire 	     i_simFlush;   
    
    output reg 	     o_RED;
    output reg 	     o_GREEN;
@@ -804,8 +674,10 @@ module top(clk, vgaClk, o_frameCount, i_run,
    // interface to CPU
    input wire signed [31:0] i_x0;
    input wire signed [31:0] i_y0;
-   input wire signed [31:0] i_dx;
-   input wire signed [31:0] i_dy;
+   input wire signed [31:0] i_dxCol;
+   input wire signed [31:0] i_dyCol;
+   input wire signed [31:0] i_dxRow;
+   input wire signed [31:0] i_dyRow;
    input wire [7:0] 	    i_maxiter;   
    
    localparam nResBits = 6;
@@ -825,9 +697,9 @@ module top(clk, vgaClk, o_frameCount, i_run,
       // CPU (control)
       .i_run(i_run), .o_frameCount(o_frameCount),
       // CPU (configuration)
-      .i_x0(i_x0), .i_y0(i_y0), .i_dx(i_dx), .i_dy(i_dy), .i_maxiter(i_maxiter), 
-      // flow control
-      .i_vgaPixRefLoopback(vgaPixRefLoopback),
+      .i_x0(i_x0), .i_y0(i_y0), .i_dxCol(i_dxCol), .i_dxRow(i_dxRow), .i_dyCol(i_dyCol), .i_dyRow(i_dyRow), .i_maxiter(i_maxiter), 
+      // flow control (i_sim_flush: simulate end-of-frame)
+      .i_vgaPixRefLoopback(i_simFlush ? vgaX*vgaY : vgaPixRefLoopback),
       // result
       .o_valid(GM_valid), .i_ready(1'b1), .o_res(GM_res), .o_pixRef(GM_pixRef));
    

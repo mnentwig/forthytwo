@@ -89,7 +89,7 @@ VAR:lastFrameNum=0xFFFFFFFF
 	calcAcceleration
 ;
 
-:flt2Q29 1 29 core.lshift flm.int2flt flm.mul flm.flt2int ;
+:flt2rtlFp 1 29 core.lshift flm.int2flt flm.mul flm.flt2int ;
 
 :loadNextPointToInterpolators
 	loadNextPoint_fetchAndCalc
@@ -107,16 +107,16 @@ VAR:lastFrameNum=0xFFFFFFFF
 ;
 
 :setX1X2Y1Y2
-	  'x1 @ flt2Q29 
+	  'x1 @ flt2rtlFp 
 	  driver.fractal.setX
 	  
-	  'x2 @ 'x1 @ flm.negate flm.add 1919 flm.int2flt flm.div flt2Q29 
+	  'x2 @ 'x1 @ flm.negate flm.add 1919 flm.int2flt flm.div flt2rtlFp 
 	  driver.fractal.setDX
 	  
-	  'y1 @ flt2Q29
+	  'y1 @ flt2rtlFp
 	  driver.fractal.setY
 
-	  'y2 @ 'y1 @ flm.negate flm.add 1079 flm.int2flt flm.div flt2Q29 
+	  'y2 @ 'y1 @ flm.negate flm.add 1079 flm.int2flt flm.div flt2rtlFp 
 	  driver.fractal.setDY
 ;
 
