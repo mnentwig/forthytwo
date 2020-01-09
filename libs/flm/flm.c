@@ -29,6 +29,7 @@
 // positive_mustShiftDown: if unpackedMantissa & 0x7E000000 != 0
 // positive_mustShiftUp: if unpackedMantissa & 0x01000000 == 0
 
+//|#include_once // multiple inclusions of this file are omitted
 //|#include(math.txt) // need signed multiplication
 //|#ENABLE_FLOAT_LITERALS // instruct parser to convert numbers with decimal point to flm format
 //|::flm.PI 3.1415926535 ;

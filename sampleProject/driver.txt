@@ -1,5 +1,10 @@
 // fractal project SW/RTL interface
 
+:__driver.flt2fix 1 29 core.lshift flm.int2flt flm.mul flm.flt2int ;
+
+VAR:__driver.pixWidthMinusOne=1919.0
+VAR:__driver.pixHeightMinusOne=1079.0
+
 :driver.getHardwareFrameNum 
 	0x3000 io@
 ;
@@ -12,23 +17,34 @@
 	0x3004 io@
 ;
 
+// sets start point in fractal space (flt)
 ::driver.fractal.setX
-	0x2000 io!
+	__driver.flt2fix 0x2000 io!
 ;
 
-::driver.fractal.setDX
-	0x2001 io!
-;
-
+// sets start point in fractal space (flt)
 ::driver.fractal.setY
-	0x2002 io!
+	__driver.flt2fix 0x2002 io!
 ;
 
-::driver.fractal.setDY
-	0x2003 io!
+:driver.fractal.setDxCol
+	'__driver.pixWidthMinusOne @ flm.div __driver.flt2fix 0x2001 io!
 ;
 
-::driver.fractal.setMaxiter
+:driver.fractal.setDyCol
+	'__driver.pixWidthMinusOne @ flm.div __driver.flt2fix 0x2007 io!
+;
+
+
+:driver.fractal.setDxRow
+	'__driver.pixHeightMinusOne @ flm.div __driver.flt2fix 0x2006 io!
+;
+
+:driver.fractal.setDyRow
+	'__driver.pixHeightMinusOne @ flm.div __driver.flt2fix 0x2003 io!
+;
+
+:driver.fractal.setMaxiter
 	0x2004 io!
 ;
 

@@ -107,6 +107,13 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
+      <File Path="$PSRCDIR/pixScanner.v">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
       <Config>
         <Option Name="DesignMode" Val="RTL"/>
         <Option Name="TopModule" Val="fpgatop"/>
@@ -141,7 +148,7 @@
       <File Path="$PSRCDIR/utils_1/imports/synth_1/fpgatop.dcp">
         <FileInfo>
           <Attr Name="ImportPath" Val="$PRUNDIR/synth_1/fpgatop.dcp"/>
-          <Attr Name="ImportTime" Val="1578264302"/>
+          <Attr Name="ImportTime" Val="1578607619"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedInSteps" Val="synth_1"/>
@@ -151,7 +158,7 @@
       <File Path="$PSRCDIR/utils_1/imports/impl_1/fpgatop_routed.dcp">
         <FileInfo>
           <Attr Name="ImportPath" Val="$PRUNDIR/impl_1/fpgatop_routed.dcp"/>
-          <Attr Name="ImportTime" Val="1578254613"/>
+          <Attr Name="ImportTime" Val="1578607619"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedInSteps" Val="impl_1"/>

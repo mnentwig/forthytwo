@@ -1,0 +1,70 @@
+#include_once // multiple inclusions of this file are omitted
+#include(libs/flm_sine.txt)
+
+VAR:__flm.scratchM=0
+VAR:__flm.scratchc=0
+VAR:__flm.scratchb=0
+VAR:__flm.p1=0
+VAR:__flm.p2=0
+VAR:__flm.p3=0
+
+// matrix-vector product b = M*c
+// 2:M; 1:c 0:b
+:flm.m2xv2
+'__flm.scratchb !
+'__flm.scratchc !
+'__flm.scratchM !
+
+'__flm.scratchM @ @
+'__flm.scratchc @ @
+flm.mul
+
+'__flm.scratchM @ 8 core.plus @
+'__flm.scratchc @ 4 core.plus @
+flm.mul 
+flm.add
+'__flm.scratchb @ !
+
+'__flm.scratchM @ 4 core.plus @
+'__flm.scratchc @ @
+flm.mul
+
+'__flm.scratchM @ 12 core.plus @
+'__flm.scratchc @ 4 core.plus @
+flm.mul
+flm.add
+'__flm.scratchb 4 core.plus !
+;
+
+// 2:vec2A 1:vec2B 2:vec2C sets vec2C=vec2A+vec2
+::flm.vectorPlusVector
+	'__flm.p3 !
+	'__flm.p2 !
+	'__flm.p1 !
+	'__flm.p1 @ @ '__flm.p2 @ @ flm.add '__flm.p3 @ !
+	'__flm.p1 @ 4 core.plus @ '__flm.p2 @ 4 core.plus @ flm.add '__flm.p3 @ 4 core.plus !
+;
+
+// rotation matrix
+// https://en.wikipedia.org/wiki/Rotation_matrix
+// 1: angle (piX) 0: target address
+:flm.rot2DPiX
+	/*address*/core.pushR
+	/*angle*/dup flm.cosPiX /*cos*/dup
+	/*address*/core.fetchR /*m11*/! 
+	/*address*/core.fetchR /*m21*/8 core.plus !
+	flm.sinPiX /*sin*/dup /*address m12*/core.fetchR 4 core.plus ! 
+	/*sin*/flm.negate core.popR 12 core.plus !
+;
+
+::flm.sim.printMatrix
+	dup 0 core.plus @ flm.sim.printFlm system.ascii.tab system.emit
+	dup 4 core.plus @ flm.sim.printFlm system.ascii.tab system.emit
+	dup 8 core.plus @ flm.sim.printFlm system.ascii.tab system.emit
+	12 core.plus @ flm.sim.printFlm system.ascii.cr system.emit
+;
+
+::flm.sim.printVector2
+	dup 0 core.plus @ flm.sim.printFlm system.ascii.tab system.emit
+	4 core.plus @ flm.sim.printFlm system.ascii.cr system.emit
+;

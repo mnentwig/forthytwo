@@ -12,8 +12,9 @@ BRA:main // skip over code from included files
 #include(../libs/system.ASCII.txt)
 #include(../libs/math.txt)
 #include(../libs/flm.txt)
-#include(pointsImported.txt)
 #include(driver.txt)
+#include(../libs/flmMatrix.txt)
+#include(pointsImported.txt)
 VAR:dataEnd=0xdeadbeef
 VAR:dataPtrA=0xdeadbeef
 VAR:dataPtrB=0xdeadbeef
@@ -106,21 +107,70 @@ VAR:lastFrameNum=0xFFFFFFFF
 	dup @ flm.negate swap !
 ;
 
-:setX1X2Y1Y2
-	  'x1 @ flt2rtlFp 
-	  driver.fractal.setX
-	  
-	  'x2 @ 'x1 @ flm.negate flm.add 1919 flm.int2flt flm.div flt2rtlFp 
-	  driver.fractal.setDX
-	  
-	  'y1 @ flt2rtlFp
-	  driver.fractal.setY
+VAR:w=0
+VAR:h=0
+VAR:xCenter=0
+VAR:yCenter=0
 
-	  'y2 @ 'y1 @ flm.negate flm.add 1079 flm.int2flt flm.div flt2rtlFp 
-	  driver.fractal.setDY
+VAR:p[0]=0 // vector (brackets are just letters)
+VAR:p[1]=0
+
+VAR:q[0]=0 // vector
+VAR:q[1]=0
+
+VAR:rot[0_0]=0 // matrix
+VAR:rot[1_0]=0
+VAR:rot[0_1]=0
+VAR:rot[1_1]=0
+VAR:angle=0.2
+
+:setX1X2Y1Y2
+	// === init w, h, xCenter, yCenter ===
+	'x2 @ 'x1 @ flm.negate flm.add dup 'w !
+	'y2 @ 'y1 @ flm.negate flm.add dup 'h !
+	'x1 @ 'x2 @ flm.add 2.0 flm.div 'xCenter !
+	'y1 @ 'y2 @ flm.add 2.0 flm.div 'yCenter !
+
+	// === calculate rotation matrix in rot[] ===
+	'angle @ 'rot[0_0] flm.rot2DPiX
+
+	// === initialize start point vector [-w/2, -h/2] relative to center ===
+	'x1 @ 'xCenter @ flm.negate flm.add 'p[0] !
+	'y1 @ 'yCenter @ flm.negate flm.add 'p[1] !
+
+	// === rotate start point vector ===
+	'rot[0_0] 'p[0] 'q[0] flm.m2xv2
+
+	// === set start point ===
+	'q[0] @ 'xCenter @ flm.add driver.fractal.setX
+	'q[1] @ 'yCenter @ flm.add driver.fractal.setY
+
+	// === initialize first direction vector (pixel moves right) ===
+	'w @ 'p[0] ! 
+	0 'p[1] !
+
+	// === rotate q=rot*p ===
+	'rot[0_0] 'p[0] 'q[0] flm.m2xv2
+
+	// === set first dimension increment ===
+	'q[0] @ driver.fractal.setDxCol
+	'q[1] @ driver.fractal.setDyCol
+
+	// === initialize second direction vector (pixel moves down) ===
+	0 'p[0] ! 
+	'h @ 'p[1] !
+
+	// === rotate q=rot*p ===
+	'rot[0_0] 'p[0] 'q[0] flm.m2xv2
+
+	// === set second dimension increment ===
+	'q[0] @ driver.fractal.setDxRow 
+	'q[1] @ driver.fractal.setDyRow
+
 ;
 
 :main
+	// === send a letter to UART to give feedback on FW upload ===
 	system.ascii.1 system.uart.putChar system.emit.cr
 
 	1 driver.fractal.onOff
@@ -130,7 +180,6 @@ VAR:lastFrameNum=0xFFFFFFFF
 	'myData0 'dataPtrA !
 	'myData4 'dataPtrB !
 
-//	0 12 DO >r
 BEGIN
 	loadNextPointToInterpolators
 
@@ -138,12 +187,6 @@ BEGIN
 	0 'nHalfSteps @ DO >r
 	  waitForStartOfFrame
 	  setX1X2Y1Y2	
-
-	  // == DEBUG: log the screen corners ===
-	  //'x1 @ flm.emit system.emit.space
-	  //'y1 @ flm.emit system.emit.space
-	  //'x2 @ flm.emit system.emit.space
-	  //'y2 @ flm.emit system.emit.cr
 
 	  'dx1 'ddx1 varAddFltToVar
 	  'x1 'dx1 varAddFltToVar
@@ -156,6 +199,8 @@ BEGIN
 
 	  'dy2 'ddy2 varAddFltToVar
 	  'y2 'dy2 varAddFltToVar
+
+	  'angle @ 0.001 flm.add 'angle !
 	r> LOOP
 
 	// === change to deceleration ===
@@ -180,7 +225,7 @@ BEGIN
 
 	  'dy2 'ddy2 varAddFltToVar
 	  'y2 'dy2 varAddFltToVar
+
+	  'angle @ 0.001 flm.add 'angle !
 	r> LOOP
 AGAIN
-//r> LOOP
-//system.terminate

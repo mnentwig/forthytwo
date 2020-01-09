@@ -1,36 +1,39 @@
 // minimal firmware for simulation
 
 // reset vector (first instruction at address 0)
-BRA:mySimMain
+BRA:mySimMain2
 
 #include(../../../libs/core.txt)
 #include(../../../libs/flm.txt)
 #include(../../pointsImported.txt)
 #include(../../driver.txt)
+#include(../../../libs/flmMatrix.txt)
+#include(../../../libs/system.txt)
 
-:flt2Q29 1 29 core.lshift flm.int2flt flm.mul flm.flt2int ;
+//VAR:X1=-0.1306657
+//VAR:Y1=0.9873754
+//VAR:X2=-0.130124
+//VAR:Y2=0.9877024
 
-//VAR:myDataA=-0.1306657
-//VAR:myDataB=0.9873754
-//VAR:myDataC=-0.130124
-//VAR:myDataD=0.9877024
+VAR:X1=-2.0
+VAR:Y1=-2.0
+VAR:X2=2.0
+VAR:Y2=2.0
+VAR:angle=0.25
 
-VAR:myDataA=-2.0
-VAR:myDataB=-2.0
-VAR:myDataC=2.0
-VAR:myDataD=2.0
-
-
+// #################################################################
+// set up configuration and trigger a single frame generation
+// #################################################################
 :mySimMain
 
-'myDataA @ flt2Q29 driver.fractal.setX
-'myDataB @ flt2Q29 driver.fractal.setY
+'X1 @ driver.fractal.setX
+'Y1 @ driver.fractal.setY
 
-'myDataC @ 'myDataA @ flm.negate flm.add 1919 flm.int2flt flm.div flt2Q29
- driver.fractal.setDX 
+'X2 @ 'X1 @ flm.negate flm.add driver.fractal.setDxCol 
+0 driver.fractal.setDyRow
 
-'myDataD @ 'myDataB @ flm.negate flm.add 1079 flm.int2flt flm.div flt2Q29 
-driver.fractal.setDY
+0 driver.fractal.setDxCol
+'Y2 @ 'Y1 @ flm.negate flm.add driver.fractal.setDyRow
 
 50 driver.fractal.setMaxiter
 
@@ -41,3 +44,105 @@ driver.fractal.setDY
 2 driver.fractal.onOff
 
 :done BRA:done
+
+:ddd dup flm.sim.printFlm system.emit.cr ;
+
+VAR:w=0
+VAR:h=0
+VAR:xCenter=0
+VAR:yCenter=0
+
+:mySimMain2
+VAR:p[0]=0 // vector (brackets are just letters)
+VAR:p[1]=0
+
+VAR:q[0]=0 // vector
+VAR:q[1]=0
+
+VAR:rot[0_0]=0 // matrix
+VAR:rot[1_0]=0
+VAR:rot[0_1]=0
+VAR:rot[1_1]=0
+
+// init w
+'X2 @ 'X1 @ flm.negate flm.add dup 'w !
+// init h, halfh
+'Y2 @ 'Y1 @ flm.negate flm.add dup 'h !
+
+// init xCenter, yCenter
+'X1 @ 'X2 @ flm.add 2.0 flm.div 'xCenter !
+'Y1 @ 'Y2 @ flm.add 2.0 flm.div 'yCenter !
+
+// calculate rotation matrix in rot[]
+'angle @ 'rot[0_0] flm.rot2DPiX
+
+// initialize start point vector [-w/2, -h/2] relative to center
+'X1 @ 'xCenter @ flm.negate flm.add 'p[0] !
+'Y1 @ 'yCenter @ flm.negate flm.add 'p[1] !
+
+// rotate start point vector
+'rot[0_0] 'p[0] 'q[0] flm.m2xv2
+
+// set start point
+'q[0] @ 'xCenter @ flm.add driver.fractal.setX
+'q[1] @ 'yCenter @ flm.add driver.fractal.setY
+
+// initialize first direction vector
+// pixel moves right
+'w @ 'p[0] ! 
+0 'p[1] !
+
+// rotate q=rot*p
+'rot[0_0] 'p[0] 'q[0] flm.m2xv2
+'q[0] @ ddd driver.fractal.setDxCol
+'q[1] @ ddd driver.fractal.setDyCol
+
+// initialize second direction vector
+// pixel moves down
+0 'p[0] ! 
+'h @ 'p[1] !
+
+// rotate q=rot*p
+'rot[0_0] 'p[0] 'q[0] flm.m2xv2
+'q[0] @ ddd driver.fractal.setDxRow 
+'q[1] @ ddd driver.fractal.setDyRow
+
+50 driver.fractal.setMaxiter
+
+// trigger a single frame
+1 driver.fractal.onOff
+// stop VGA (not interesting for sim) and set simFlush bit to move the electron beam to the end of the video frame
+// to output the results as they become available.
+2 driver.fractal.onOff
+BRA:done
+
+
+
+
+
+
+
+
+
+
+/*
+0 'rot[0_0] !
+0 'rot[0_1] !
+1.0 'rot[1_0] !
+1.0 'rot[1_1] !
+
+2.0 'p[0] !
+3.0 'p[1] !
+
+123.0 'q[0] !
+123.0 'q[1] !
+
+'rot[0_0] 'p[0] 'q[0]
+flm.m2xv2
+
+
+'q[0] @ ddd drop
+'q[1] @ ddd drop
+system.panic
+*/
+

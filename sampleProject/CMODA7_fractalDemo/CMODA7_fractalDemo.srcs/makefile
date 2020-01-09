@@ -50,7 +50,9 @@ runSimVcd: ${SIMVCD} out/sim_main.hex
 	rm -f trace.vcd
 	${SIMVCD} out/sim_main.hex
 
-# run the minimal firmware on the generic simulator (prints IOWR:xyz)
+# ===================================================
+# run the minimal firmware on the generic simulator (no RTL, prints IOWR:xyz)
+# ===================================================
 fwTest: out/sim_main.hex
 	${SIM_GENERIC} out/sim_main.hex
 
