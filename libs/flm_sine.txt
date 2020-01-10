@@ -1,0 +1,29 @@
+#include_once // multiple inclusions of this file are omitted
+
+// ancient sine approximation from 0..1 equivalent to 0..pi. 
+// https://en.wikipedia.org/wiki/Bhaskara_I's_sine_approximation_formula
+// note: "piX" is used as label for this convention.
+
+:flm.__bhaskara_sinePiX // 0: x
+	dup // 0:x 1:x
+	flm.negate 1.0 flm.add // 0:1.0-x 1:x
+	flm.mul // 0: x*(1.0-x)
+	dup 720.0 flm.mul swap // 0: x*(1.0-x) 1: 720*x*(1.0-x)
+	-180.0 flm.mul 225.0 flm.add flm.div
+;
+
+:flm.sinPiX
+	// get integer part of angle
+	dup flm.flt2int core.pushR
+	// subtract (normalize phase to 0..1)
+	core.fetchR flm.int2flt flm.negate flm.add
+	// calculate sine halfwave
+	flm.__bhaskara_sinePiX
+	// if 2nd half wave, turn negative
+	core.popR 1 core.and IF flm.negate ENDIF
+;
+
+:flm.cosPiX
+	0.5 flm.add
+	flm.sinPiX
+;

@@ -66,6 +66,19 @@ clean:
 	rm -Rf libs/out
 	rm -f libs/*~
 	rm -Rf out
+	rm -f testMath.exe
+	rm -f testMathResult_C.txt
+	rm -f testMathResult_sim.txt
+	find . -name "*~" -exec rm {} \;
+	find . -name "*.jou" -exec rm {} \;
+	find . -name "*.log" -exec rm {} \;
+	rm -Rf src/bin src/obj
+	find . -name "*.dcp" -exec rm {} \;
+	rm -Rf refImpl/refImpl.ip_user_files/sim_scripts
+	rm -Rf sampleProject/CMODA7_fractalDemo/CMODA7_fractalDemo.ip_user_files/sim_scripts
+
+gitListUntracked:
+	git ls-files . --ignored --exclude-standard --others
 
 # removes also simulator binaries and the compiler binary
 realclean: clean
@@ -73,4 +86,4 @@ realclean: clean
 	rm -f ${SIMTRACE}
 	rm -f ${FORTHYTWO}
 
-.PHONY: clean sim testMath all testFlmMath testLibs
+.PHONY: clean sim testMath all testFlmMath testLibs gitListUntracked

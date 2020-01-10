@@ -8,6 +8,6 @@ all:
 	${SIM} out/bootloader.hex out/main.bootBin
 clean:
 	rm -Rf out
-	rm *~
+	find . -name "*~" -exec rm {} \;
 
 .PHONY: clean
