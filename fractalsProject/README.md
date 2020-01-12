@@ -70,7 +70,7 @@ This pattern is used to stop the calculation engine from running too far ahead o
 
 ### Clock domain
 There are three clock domains: 
-* The calculation engine (most of the design) at 200 MHz. This could be pushed higher but makes the design more difficult to work with.
+* The calculation engine (most of the design) at 200 MHz. This could be pushed higher but would make the design more difficult to work with. Right now, there is no reason for doing so, and the chip already runs quite hot.
 * The VGA monitor signals at a pixel frequency of 148.5 MHz
 * The J1B CPU at 100 MHz, because its critical path is too slow for 200 MHz operation.
 
