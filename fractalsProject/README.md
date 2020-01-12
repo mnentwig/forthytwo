@@ -8,8 +8,8 @@ _Note: the actual on-screen image is free of glitches and artifacts but camera r
 " target="_blank"><img src="http://img.youtube.com/vi/XnHhH9rjF9c/0.jpg" 
 alt="FPGA demo" width="240" height="180" border="10" /></a>
 
-Fractal generation is a popular FPGA design challenge. 
-For example, Stanford university used it as [lab exercise](https://web.stanford.edu/class/ee183/handouts/lect7.pdf) already in 2002. 
+Fractal generation is a popular FPGA design exercise. 
+For example, Stanford university used it as [lab assignment](https://web.stanford.edu/class/ee183/handouts/lect7.pdf) already in 2002. 
 It must have been around that time that I saw a similar demo on some trade fair, and had the itch to try my hands on it ever since.
 
 Well, I got around to it eventually. 
