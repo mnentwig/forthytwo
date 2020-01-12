@@ -4,7 +4,7 @@ Markus Nentwig, 20?? - 2020
 Fractal generation is a popular FPGA design challenge. 
 For example, Stanford university 
 https://web.stanford.edu/class/ee183/handouts/lect7.pdf
-used it as lab exercise in 2002. I also remember the demo from some trade fair around that time and had the itch since then try my hands on it.
+used it as lab exercise already in 2002. I also remember some fractals demo from some trade fair around that time, and had the itch to try my hands on it ever since.
 
 Well, I got around to it eventually. 
 
