@@ -98,11 +98,11 @@ The latter is necessary because results will need to be re-ordered.
 The pixel coordinates now move into a cyclic distribution queue **170**. Its purpose is to serve pixel coordinates to the parallel "julia" (fractal) calculation engines **180**.
 If one calculation engine is ready to accept a new job, the value will drop out of the queue, otherwise it will move right through slots **170** and eventually cycle back to the head of the queue.
 
-The queue **160** will only accept new input from FIFO_K **150** when no data is looping around. Use of the ready/valid protocol makes the implementation of this feature relatively straightforward.
+Queue **160** will only accept new input from FIFO_K **150** when no data is looping around. Use of the ready/valid protocol makes the implementation of this feature relatively straightforward.
 
 Calculation engines **180** will iterate the Mandelbrot set algorithm ("escape time" algorithm, see Wikipedia: https://en.wikipedia.org/wiki/Mandelbrot_set). 
 
-With default settings (easily changed), the implementation uses 15 "julia" engines **180**. Each of them uses 12 pipeline levels (that is, each engine cycles between 12 independent calculations).
+With default settings (easily changed), the implementation uses 15 "julia" engines **180**. Each of them is formed by 12 pipeline levels. In other words, each engine juggles up to 12 independent calculations at a time.
 
 The calculation engines **180** may not run too far ahead of the electron beam position, since there is only limited downstream buffer space (much less than a full frame).
 Therefore, a flow control mechanism **190** in the calculation engines checks each entry's pixel number against the electron beam and prevents it from leaving the calculation engine **180**.
