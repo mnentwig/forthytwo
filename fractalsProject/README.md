@@ -102,7 +102,8 @@ Queue **160** will only accept new input from FIFO_K **150** when no data is loo
 
 Calculation engines **180** will iterate the Mandelbrot set algorithm ("escape time" algorithm, see Wikipedia: https://en.wikipedia.org/wiki/Mandelbrot_set). 
 
-With default settings (easily changed), the implementation uses 15 "julia" engines **180**. Each of them is formed by 12 pipeline levels. In other words, each engine juggles up to 12 independent calculations at a time.
+With default settings (easily changed), the implementation uses 30 "julia" engines **180**. Each of them is formed by 12 pipeline levels. In other words, each engine juggles up to 12 independent calculations at a time.
+Each "julia" engine performs three parallel multiplications (xx, yy, xy), using 90 multipliers in total, with one operation per cycle each under full load.
 
 Since buffer space downstream is fairly limited - much less than a full frame - the calculation engines **180** must be prevented to run too far ahead of the electron beam position. 
 Therefore, a flow control mechanism **190** is built into the calculation engines. It checks each entry's pixel number against the electron beam and prevents it from leaving the calculation engine **180**.
