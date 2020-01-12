@@ -3,7 +3,7 @@ Markus Nentwig, 20?? - 2020
 
 ### Youtube video:
 
-_Note: the actual on-screen image is free of glitches and artifacts but the recording is not perfect_
+_Note: the actual on-screen image is free of glitches and artifacts but camera recording quality is limited_
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=XnHhH9rjF9c
 " target="_blank"><img src="http://img.youtube.com/vi/XnHhH9rjF9c/0.jpg" 
 alt="FPGA demo" width="240" height="180" border="10" /></a>
