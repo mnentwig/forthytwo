@@ -41,7 +41,8 @@ James Bowman's J1B fits the bill for me, and its 32 bit extension is used heavil
 And I've seen ad-hoc assemblers for large-volume ASIC microcontroller code via Excel spreadsheets - maybe spinning your own compiler is not _that_ absurd, after all.
 * Floating point math for the controls: Fixed point is great for raw throughput but gets tedious for performance-uncritical code.
 * CPU Bootloader on plain UART (meaning no proprietary Xilinx JTAG). The included bootloader implements robust synchronization and efficient binary upload.
-* No esoteric tools, not relying on Linux. On a clean Windows PC, the build system can be set up by installing MinGW (developer settings), Vivado and Verilator. See my install notes for the latter. Use e.g. Teraterm with the bootloader.
+* No esoteric tools, ability to run on Windows (Linux would be easier). 
+On a clean Windows PC, the build system can be set up by installing MinGW (developer settings), Vivado and Verilator. See my install notes for the latter. Use e.g. Teraterm with the bootloader.
 * Batteries-included project so you can pull it out of the hat and reuse it by deleting what is not needed (this more on the microcontroller side, as the fractals part is quite problem-specific)
 
 ## Ready/valid design pattern notes
