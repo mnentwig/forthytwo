@@ -87,13 +87,13 @@ This happens immediately after the last visible pixel has been sent to the displ
 
 Detection of a new frame start triggers the following "pixScanner" **130**. This block has already received fractal coordinates from CPU **140** and scans them row by row, using two pairs of increments: a first delta X/Y pair for the electron beam moving right (colums) and a second pair for moving down (rows). Using appropriate deltas, the picture can be rotated by any angle.
 
-The block keeps a frame counter which is polled by CPU **140** to start computing the next frame coordinates as soon as the previous ones have been stored.
+The block keeps a frame counter, which is polled by CPU **140** to start computing the next frame coordinates as soon as the previous ones have been stored.
 
 Generated pixel coordinates move forward into FIFO **150**. This is solely to decouple the combinational accept/ready paths. 
-It does not improve throughput since the pixel scanner is already capable of generating one value per clock cycle.
+It does not improve throughput since the pixel scanner is already capable of generating one output per clock cycle.
 
-"Pixel coordinates" comprise the X and Y parameter in fractal space and the pixel position, equivalent to its counterpart from vga block **100**. 
-The latter is necessary because data will need to be re-ordered later.
+"Pixel coordinates" are formed by the X and Y location in fractal space and the linear pixel position, equivalent to its counterpart from vga block **100**. 
+The latter is necessary because results will need to be re-ordered.
 
 The pixel coordinates now move into a cyclic distribution queue **170**. Its purpose is to serve pixel coordinates to the parallel "julia" (fractal) calculation engines **180**.
 If one calculation engine is ready to accept a new job, the value will drop out of the queue, otherwise it will move right through slots **170** and eventually cycle back to the head of the queue.
