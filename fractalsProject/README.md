@@ -20,7 +20,7 @@ It took a long time.
 An FPGA "fun" project adds a very unique design challenge: It needs to be sufficiently fun all along the way. 
 
 Sometimes, you are your own worst enemy. After a long, tedious climb, you finally see a straight, obvious, logical route all the way downhill to the finish. 
-And decide not to take it because it is, well, _dull_. Same as with hiking, it's not about getting from A to B in the most efficient manner. 
+And decide not to take it because it is, well, _dull_. The same as with hiking, it's the scenery that matters, not getting from A to B in the most efficient manner. 
 So you throw in some new ideas to make it more interesting. Repeat too many times.
 
 Chasing the "fun factor" eventually evolved into unwritten requirements somewhere along those lines:
