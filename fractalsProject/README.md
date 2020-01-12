@@ -9,9 +9,8 @@ _Note: the actual on-screen image is free of glitches and artifacts but camera r
 alt="FPGA demo" width="240" height="180" border="10" /></a>
 
 Fractal generation is a popular FPGA design challenge. 
-For example, Stanford university 
-https://web.stanford.edu/class/ee183/handouts/lect7.pdf
-used it as lab exercise already in 2002. I also remember some fractals demo from some trade fair around that time, and had the itch to try my hands on it ever since.
+For example, Stanford university used it as [lab exercise](https://web.stanford.edu/class/ee183/handouts/lect7.pdf) already in 2002. 
+It must have been around that time that I saw a similar demo demo on some trade fair, and had the itch to try my hands on it ever since.
 
 Well, I got around to it eventually. 
 
