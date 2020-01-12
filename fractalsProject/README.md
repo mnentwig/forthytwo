@@ -57,7 +57,7 @@ When cascading any number of such blocks via ready-/valid interfaces, the "ready
 The problem is clear to see when considering what happens when the end of the processing chain signals "not ready" (to accept data):
 The data over the whole length of the pipeline has nowhere to go, therefore the whole chain must be stopped within a single clock cycle.
 
-The solution is to break the chain into multiple segments using FIFOs (2 slots is enough).
+The solution is to divide the chain into multiple segments using FIFOs (2 slots is enough).
 There's a catch: I could design an "optimized" FIFO that will accept data even if full, as long as an element is taken from the output in the same clock cycle.
 This "optimization" would introduce exactly the combinational path the FIFO is supposed to break, thus it would be useless for decoupling the combinational chain.
 In other words, the input of the FIFO may not use the output-side "ready" signal combinationally.
