@@ -75,7 +75,7 @@ There are three clock domains:
 * The J1B CPU at 100 MHz, because its critical path is too slow for 200 MHz operation.
 
 ### Data flow
-__Note: Names in the picture correspond to the Verilog implementation__
+_Note: Names in the picture correspond to the Verilog implementation_
 
 ![Top level diagram](https://github.com/mnentwig/forthytwo/blob/master/fractalsProject/wwwSrc/systemDiagram.png "Top level diagram")
 
