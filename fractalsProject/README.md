@@ -52,7 +52,7 @@ The 200 MHz clock rate of the fractal generator is less than two times the VGA p
 
 ### Ready / valid combinational path problem
 In a typical processing block, data moves in lock-step through a sequence of registers. 
-When cascading any number of such blocks via ready-/valid interfaces, the "ready" signal forms a combinational path from the end to the beginning of the chain. This can cause problems with timing closure.
+When cascading any number of such blocks via ready-/valid interfaces, the "ready" signal forms a combinational path from the end to the beginning of the chain. This can make timing closure difficult or impossible.
 The problem is clear to see when considering what happens when the end of the processing chain signals "not ready" (to accept data). 
 The data over the whole length of the pipeline has nowhere to go, therefore the whole chain must be stopped within a single clock cycle.
 
