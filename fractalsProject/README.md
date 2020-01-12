@@ -63,7 +63,7 @@ This "optimization" would introduce exactly the combinational path the FIFO is s
 In other words, the input of the FIFO may not use the output-side "ready" signal combinationally.
 
 ### Ready / valid flow control
-The data flow in a ready-/valid chain can be interrupted at any point simply by inserting a block that forces both valid and ready signal to zero.
+Maybe this is obvious, but the data flow in a ready-/valid chain can be stalled at any point simply by inserting a block that forces both valid and ready signal to zero (inactive).
 This block may be combinational and may depend on an observed data value. 
 This pattern is used to stop the calculation engine from running too far ahead of the monitor's electron beam.
 
