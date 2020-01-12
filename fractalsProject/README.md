@@ -45,7 +45,7 @@ And I've seen ad-hoc assemblers for large-volume ASIC microcontroller code via E
 * Batteries-included project so you can pull it out of the hat and reuse it by deleting what is not needed (this more on the microcontroller side, as the fractals part is quite problem-specific)
 
 ## Ready/valid design pattern notes
-The calculation engine relies heavily on the valid/ready handshaking paradigm, which is used consistently throughout the chain.
+The calculation engine relies heavily on the [valid/ready handshaking paradigm](https://inst.eecs.berkeley.edu/~cs150/Documents/Interfaces.pdf), which is used consistently throughout the chain.
 
 Here, it is critical, for a simple reason: 
 The 200 MHz clock rate of the fractal generator is less than two times the VGA pixel rate. Therefore, any "sub-optimal" handshaking scheme that needs one idle clock cycle to recover would break the design.
