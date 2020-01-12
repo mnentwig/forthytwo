@@ -36,7 +36,7 @@ Chasing the "fun factor" eventually evolved into unwritten requirements somewher
 The calculation engine relies heavily on the valid/ready handshaking paradigm, which is used consistently throughout the chain.
 
 ### Ready / valid combinational path problem
-In a typical processing block, data moves in lock-step through a sequence of registers pipeline. 
+In a typical processing block, data moves in lock-step through a sequence of registers. 
 When cascading any number of such blocks, the "ready" signal forms a combinational path from the end to the beginning of the chain. This can cause problems with timing closure.
 The problem is clear to see when considering what happens when the end of the processing chain signals "not ready (to accept data)". 
 The data in the pipeline has nowhere to go, therefore the whole chain must be stopped within a single clock cycle.
