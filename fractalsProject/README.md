@@ -44,7 +44,7 @@ The data in the pipeline has nowhere to go, therefore the whole chain must be st
 The solution is to break the chain into multiple segments using FIFOs (2 slots is enough).
 There's a catch: I could design an "optimized" FIFO that will accept data even if full, when an element is taken from the output in the same clock cycle.
 This "optimization" would introduce exactly the combinational path the FIFO is supposed to break, thus it would be useless for decoupling the combinational chain.
-In other words, the input of the FIFO may not use the output ready signal combinationally.
+In other words, the input of the FIFO may not use the output-side "ready" signal combinationally.
 
 ### Ready / valid flow control
 The data flow in a ready-/valid chain can be interrupted at any point simply inserting a block that forces both valid and ready signal to zero.
