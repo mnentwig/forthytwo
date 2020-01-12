@@ -87,7 +87,7 @@ This happens immediately after the last visible pixel has been sent to the displ
 
 Detection of a new frame start triggers the following "pixScanner" **130**. This block has already received fractal coordinates from CPU **140** and scans them row by row, using two pairs of increments: a first delta X/Y pair for the electron beam moving right (colums) and a second pair for moving down (rows). Using appropriate deltas, the picture can be rotated by any angle.
 
-The block provides a frame counter which is polled by CPU **140** to start computing the next frame coordinates as soon as the previous ones have been stored.
+The block keeps a frame counter which is polled by CPU **140** to start computing the next frame coordinates as soon as the previous ones have been stored.
 
 Generated pixel coordinates move forward into FIFO **150**. This is solely to decouple the combinational accept/ready paths. 
 It does not improve throughput since the pixel scanner is already capable of generating one value per clock cycle.
