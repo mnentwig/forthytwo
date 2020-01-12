@@ -27,7 +27,7 @@ So you throw in some new ideas to keep it interesting.
 Repeat too many times.
 
 ## Overview
-Chasing the "fun factor" eventually evolved into unwritten requirements somewhere along those lines:
+The semi-eternal chase after the "fun factor" eventually evolved into unwritten requirements somewhere along those lines:
 
 * Real time calculation: The Stanford lab exercise demanded it already in 2002.
 * Full HD resolution (1920x1080) at 60 Hz. That's the monitor on my desk. Period.
