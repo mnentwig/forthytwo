@@ -85,7 +85,7 @@ The pixel position passes via Gray coding through a clock domain crossing **110*
 Here, the start of a new frame is detected when the pixel position returns to zero. 
 This happens immediately after the last visible pixel has been sent to the display so the front porch / VSYNC / back porch time intervals can be used to pre-compute image data, up to the capacity of the buffer RAM **220**.
 
-Detection of a new frame start triggers the following "pixScanner" **130**. This block has already received fractal coordinates from CPU **140** and scans them row by row, using two pairs of increments: one delta X/Y pair for the electron beam moving right and one such pair for moving down. Using appropriate deltas, the picture can be rotated by any angle.
+Detection of a new frame start triggers the following "pixScanner" **130**. This block has already received fractal coordinates from CPU **140** and scans them row by row, using two pairs of increments: a first delta X/Y pair for the electron beam moving right (colums) and a second pair for moving down (rows). Using appropriate deltas, the picture can be rotated by any angle.
 
 The block provides a frame counter which is polled by CPU **140** to start computing the next frame coordinates as soon as the previous ones have been stored.
 
