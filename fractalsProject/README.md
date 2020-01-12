@@ -1,6 +1,10 @@
 # FPGA fractal demo
 Markus Nentwig, 20?? - 2020
 
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=XnHhH9rjF9c
+" target="_blank"><img src="http://img.youtube.com/vi/XnHhH9rjF9c/0.jpg" 
+alt="FPGA demo" width="240" height="180" border="10" /></a>
+
 Fractal generation is a popular FPGA design challenge. 
 For example, Stanford university 
 https://web.stanford.edu/class/ee183/handouts/lect7.pdf
