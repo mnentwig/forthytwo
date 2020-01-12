@@ -35,6 +35,9 @@ Chasing the "fun factor" eventually evolved into unwritten requirements somewher
 ## Ready/valid design pattern notes
 The calculation engine relies heavily on the valid/ready handshaking paradigm, which is used consistently throughout the chain.
 
+Here, it is critical, for a simple reason: 
+The 200 MHz clock rate of the fractal generator is less than two times the VGA pixel rate. Therefore, any "sub-optimal" handshaking scheme that needs one idle clock cycle to recover would break the design.
+
 ### Ready / valid combinational path problem
 In a typical processing block, data moves in lock-step through a sequence of registers. 
 When cascading any number of such blocks, via ready-/valid interfaces, the "ready" signal forms a combinational path from the end to the beginning of the chain. This can cause problems with timing closure.
