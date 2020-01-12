@@ -38,12 +38,12 @@ The calculation engine relies heavily on the valid/ready handshaking paradigm, w
 ### Ready / valid combinational path problem
 In a typical processing block, data moves in lock-step through a sequence of registers. 
 When cascading any number of such blocks, the "ready" signal forms a combinational path from the end to the beginning of the chain. This can cause problems with timing closure.
-The problem is clear to see when considering what happens when the end of the processing chain signals "not ready (to accept data)". 
+The problem is clear to see when considering what happens when the end of the processing chain signals "not ready" (to accept data). 
 The data in the pipeline has nowhere to go, therefore the whole chain must be stopped within a single clock cycle.
 
 The solution is to break the chain into multiple segments using FIFOs (2 slots is enough).
 There's a catch: I could design an "optimized" FIFO that will accept data even if full, when an element is taken from the output in the same clock cycle.
-This "optimization" would introduce exactly the combination path the FIFO is supposed to break, thus it would be useless for decoupling the combinational chain.
+This "optimization" would introduce exactly the combinational path the FIFO is supposed to break, thus it would be useless for decoupling the combinational chain.
 In other words, the input of the FIFO may not use the output ready signal combinationally.
 
 ### Ready / valid flow control
