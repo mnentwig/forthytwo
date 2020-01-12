@@ -19,7 +19,7 @@ It took a long time.
 ## Motivation
 An FPGA "fun" project adds a very unique design challenge: It needs to be sufficiently _fun_ all along the way. 
 
-Sometimes, I can be my own worst enemy. The long and tedious climb finally opens up into a straight, obvious, logical route all the way downhill to the end.
+Sometimes, I can be my own worst enemy. The long and tedious climb finally opens up into an obvious, logical route downhill straight to the finish.
 And I decide not to take it because it is, well, _dull_. The same as with hiking, it's not just getting from A to B that matters. 
 
 So I throw in some new ideas to keep it interesting. 
