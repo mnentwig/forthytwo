@@ -10,14 +10,14 @@ alt="FPGA demo" width="240" height="180" border="10" /></a>
 
 Fractal generation is a popular FPGA design challenge. 
 For example, Stanford university used it as [lab exercise](https://web.stanford.edu/class/ee183/handouts/lect7.pdf) already in 2002. 
-It must have been around that time that I saw a similar demo demo on some trade fair, and had the itch to try my hands on it ever since.
+It must have been around that time that I saw a similar demo on some trade fair, and had the itch to try my hands on it ever since.
 
 Well, I got around to it eventually. 
 
 It took a long time.
 
 ## Motivation
-An FPGA "fun" project adds one very unique design challenge: It needs to be sufficiently fun all along the way. 
+An FPGA "fun" project adds a very unique design challenge: It needs to be sufficiently fun all along the way. 
 
 Sometimes, you are your own worst enemy. After a long, tedious climb, you finally see a straight, obvious, logical route all the way downhill to the finish. 
 And decide not to take it because it is, well, dull. Same as with hiking, it's not about getting from A to B in the most efficient manner. 
