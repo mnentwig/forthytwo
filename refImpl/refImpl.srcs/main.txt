@@ -4,7 +4,7 @@
 // We must include the boot loader bitwise identical as in ROM (it will redundantly overwrite itself)
 // There must not be any code before the following include statement.
 // For final deployment, comment out the include statement (or modify the 
-#include(bootloader.txt)
+#include(../../bootloader/bootloader.txt)
 
 
 // === user code starts here ===

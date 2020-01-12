@@ -12,10 +12,10 @@ BRA:bootloader.main
 // replace the above line with the following one
 // BRA:bootloader.startApplication
 
-#include(../../libs/core.txt)
-#include(../../libs/system.uart.txt)
-#include(../../libs/system.ascii.txt)
-//#include(../../libs/system.txt)
+#include(../libs/core.txt)
+#include(../libs/system.uart.txt)
+#include(../libs/system.ascii.txt)
+//#include(../libs/system.txt)
 
 // read word from UART (1:8 bit, 4: 32 bit)
 :bootloader.readNBytes

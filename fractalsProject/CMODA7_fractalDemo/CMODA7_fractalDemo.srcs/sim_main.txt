@@ -1,6 +1,7 @@
 // minimal firmware for simulation
 
 // reset vector (first instruction at address 0)
+BRA:mySimMain
 BRA:mySimMain2
 
 #include(../../../libs/core.txt)
@@ -115,34 +116,3 @@ VAR:rot[1_1]=0
 // to output the results as they become available.
 2 driver.fractal.onOff
 BRA:done
-
-
-
-
-
-
-
-
-
-
-/*
-0 'rot[0_0] !
-0 'rot[0_1] !
-1.0 'rot[1_0] !
-1.0 'rot[1_1] !
-
-2.0 'p[0] !
-3.0 'p[1] !
-
-123.0 'q[0] !
-123.0 'q[1] !
-
-'rot[0_0] 'p[0] 'q[0]
-flm.m2xv2
-
-
-'q[0] @ ddd drop
-'q[1] @ ddd drop
-system.panic
-*/
-

@@ -4,7 +4,7 @@
 //address 0 (reset vector)
 
 // this is a bootloader project:
-#include(../refImpl/refImpl.srcs/bootloader.txt)
+#include(../bootloader/bootloader.txt)
 
 BRA:main // skip over code from included files
 #include(../libs/core.txt)

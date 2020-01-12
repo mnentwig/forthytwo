@@ -38,7 +38,7 @@ module fpgatop(CLK12, uart_rxd_out, uart_txd_in);
    
    reg [31:0]  ram[0:8191];
    initial begin
-      `include "bootloader.v"
+      `include "main.v"
    end
    always @(posedge cpuClk) begin
       instrSelHighWord 	<= addrCodeCpu[0];

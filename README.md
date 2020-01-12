@@ -1,5 +1,5 @@
 # forthytwo
-J1 embedded processor with "batteries included": Compiler, simulator, reference design
+J1 embedded processor with "batteries included": Compiler, simulator, reference design, floating point math
 
 ## What is this?
 
@@ -168,82 +168,13 @@ Any number appearing in the code is loaded to the data stack (note, the number o
 ### single-quote "address-of"
 The single-quote built-in >>>'myLabel<<< pushes the address of myLabel (code or variable).
 
-# FLM floating point library
-- 32 bit (26 bits signed mantissa, 6 bits signed exponent)
-- custom float format ("flm format"), NOT compatible with IEEE 754 single precision even though both are 32 bit format
-- conceptually simplified over IEEE 754 (no implied "1" for mantissa, no NAN or INF, fewer special case rules required for denormal numbers)
-- may be considered 26 bit signed fixed point with a 6-bit signed attached exponent for the length of the fractional part
-- no internal rounding
--- flm.add: add two floats
--- flm.mul: multiply two floats
--- flm.div: divide two floats
--- flm.negate: change sign of a float
--- flm.int2flt: convert integer to float
--- flm.flt2int: convert float to integer
--- flm.sim.printFlm: prints float as %1.15 (using simulator printf, target code size is two instructions)
--- (advanced)flm.unpack and flm.pack: split (recombine) to exponent and mantissa. Mantissa is right-aligned (6 bits after sign bit are unused)
--- (advanced)flm.unpackUp6: like flm.unpack but the mantissa is left-aligned in 32 bits (shifted up 6 bits)
--- (helper function)flm.rshiftArith (on signed integer type argument): Like core.rshift but MSB is padded with sign
--- Example: 0x00000040 is 1 (the rightmost 6 exponent bits form the number 0, the leftmost 26 bits form the signed number +1)
--- 0 is by definition 0x00000000 (special case, since any exponent would be mathematically correct)
-
-Once the float library is included with >>>#include(myLibPath/flm.txt)<<<, the parser converts literal numbers with a decimal point as float e.g. 1.0 or 2.0e6 but not 2e6.
-This feature may be enabled manually with >>>#ENABLE_FLOAT_LITERALS<<<
-
 # known bugs
 - the forthytwo.exe exit code is not recognized by mingw "make", therefore the makefile will continue. Forthytwo.exe deletes all output files at startup, so the error should show later as a non-existing file.
 - obvious optimizations for smaller and faster code (single-opcode ALU+return, CALL+return => BRA) are not yet implemented
 
 # boot loader
 A minimal boot loader is included (164 bytes including UART get-/putChar)
-It is recommended to create a copy for each application, with possible modifications (e.g. debug output) in mind.
-
-## Boot loader concept
-The boot loader is built into FPGA BRAM initial contents via the bitstream. For the verilator simulator, it is loaded as application.
-The application binary is then sent via UART using forthytwo.exe's out/*.bootBin output file.
-To reload the application binary, the system needs to be reset externally (reprogram the FPGA or assert the J1 reset input, restart the simulator).
-The application MUST include a replica of the bootloader IDENTICAL TO ROM at address zero0.
-During application upload, the bootloader will simply overwrite itself redundantly with bitwise-identical data. The redundant copy of the bootloader effectively sets the address offset for the user application.
-The bitstream upload contains a "magic" synchronization sequence. Any unexpected characters echo back an "x". This can be used to check the presence of the bootloader, simply hit any key in the terminal window.
-
-## Boot loader workflow (FPGA)
-- Compile bootloader.txt with forthytwo.exe, independently of the application
-- Put the resulting bootloader.v file into FPGA BRAM (see sampleImpl)
-- Program the FPGA. The bootloader is listening
-- Open (e.g.) Teraterm, Menu:File/send File, check "binary" option, select myApplication.bootBin file.
-- For design iteration, reprogram the FPGA (or use e.g. a button tó reset the J1 core) and repeat
-- A convenient hack is to manually edit the first line of the generated Verilog file to turn a deployed binary in FPGA block ram back into the bootloader: Look up the address of bootloader.main and put it into the low word of ram[0] (a valid code address used as instruction is an unconditional branch to the same address). Switching back to bootloader.startApplication restores the application.
-- The sample project (not the bootloader!) will print "ok" on successful upload and echo any characters from UART "plus 1".
-
-## Boot loader workflow (Verilator simulator in refImpl)
-- invoke sim.exe bootloader.hex myApplication.bootBin
-- the simulator will internally create UART input reading from the .bootBin file and switch UART IO back to console at end of file.
-
-## Simulator
-- arg1: out/myProject.hex
-- for bootloader project: arg1: out/myStandaloneBootloader.hex and arg2: out/myApplicationStartingWithTheBootloader.bootBin
-- use simVcd.exe to create trace.vcd for review with gtkwave. By default, tracing is enabled but files tend to grow large quickly
-- >>>system.sim.tracing.disable<<< and >>>system.sim.tracing.enable<<< disable and re-enable tracing, respectively.
-- Unsurprisingly, sim.exe is considerably faster than simVcd.exe
-
-# Verilator install
-Verilator is needed to rebuild the simulator executable (e.g. if modifying the CPU or adding peripherals). 
-These notes are for a Windows installation and are only relevant if Verilator standard install does not run through smoothly.
-- Download MinGW installer
-- select mingw-developer-toolkit-bin, mingw32-base-bin, mingw32-gcc-g++.bin, msys-base.bin. "Apply scheduled changes"
-- (optional) edit c:/MinGW/msys/1.0/etc/profile, remove the last "cd $HOME"
-- (optional) add "open msys here" shortcut: https://codeplea.com/open-msys-here
-- edit include/verilatedos.h: comment out # define __USE_MINGW_ANSI_STDIO 1  // Force old MinGW (GCC 5 and older) to use C99 formats
-- git checkout stable (maybe setup git user name and email at this time)
-- autoconf
-- ./configure --prefix /usr
-- edit c:/mingw/include/stdio.h and temporarily comment out the implementation of vsnprintf (avoids duplicate symbol linker error) 
-- make -j then make (it might require several attempts)
-- make install
-- (optional, suppresses warnings) edit c:/mingw/include/mingw.h, disable # warning "Direct definition of __USE_MINGW_ANSI_STDIO is deprecated."
-- (optional, suppresses warnings) edit c:/MinGW/msys/1.0/share/verilator/include/vltstd/ and remove dllimport attribute
-- (optional, suppresses warnings) edit respective verilatorxy.h files to first #undef MINGW_XYZ that would later cause a redefinition warning
-- with those modifications, the simulator build should not show any warnings.
+It is recommended to use a project-specific copy, with possible modifications (e.g. debug output) in mind and to freeze the version.
 
 # J1 native opcodes
 Compiler names for native J1B opcodes (see lib/core.txt). Those are visible e.g. in a generated out/mySource.lst file

@@ -5,15 +5,17 @@ FIRMWAREPATH=./out
 FORTHYTWO=../../../bin/forthytwo.exe 
 
 # this is the generic refImpl simulator
-SIM_GENERIC=../../../bin/sim.exe
+SIMZERO=../../../bin/sim.exe
+
 # custom simulators with RTL included
 SIM=sim.exe
 SIMVCD=simVcd.exe
 
 VOPTS=--x-assign 1 --x-initial 0
 
-IVERILOG=/c/users/gk/Dropbox/bin/iverilog10/bin/iverilog.exe
-VVP=/c/users/gk/Dropbox/bin/iverilog10/bin/vvp.exe
+BIN_IVERILOG=/c/users/gk/Dropbox/bin/iverilog10/bin
+IVERILOG=${BIN_IVERILOG}/iverilog.exe
+VVP=${BIN_IVERILOG}/vvp.exe
 
 all: ${SIM} ${SIMVCD}
 
@@ -27,7 +29,7 @@ out/sim_main.hex: sim_main.txt
 	cp out/sim_main.v out/main.v
 
 # ===================================================
-# Build the Verilator simulator
+# Build the Verilator simulators
 # ===================================================
 # Note: compiles in the minimal firmware
 ${SIM}: sim_main.cpp out/sim_main.hex fpgatop.v mandel.v
@@ -44,6 +46,7 @@ ${SIMVCD}: sim_main.cpp out/sim_main.hex fpgatop.v mandel.v
 # run simulations with RTL and minimal firmware
 # ===================================================
 # Note: The .hex file overwrites the memory contents that were compiled into the simulator
+# Collect the output into a file (delete first line) and open in Octave with "plotResult.m"
 runSim: ${SIM} out/sim_main.hex
 	${SIM} out/sim_main.hex
 runSimVcd: ${SIMVCD} out/sim_main.hex
@@ -53,26 +56,31 @@ runSimVcd: ${SIMVCD} out/sim_main.hex
 # ===================================================
 # run the minimal firmware on the generic simulator (no RTL, prints IOWR:xyz)
 # ===================================================
+# note: does not return (use Ctrl-C) as it waits for RTL to compute one frame
 fwTest: out/sim_main.hex
-	${SIM_GENERIC} out/sim_main.hex
+	${SIMZERO} out/sim_main.hex
 
+# ===================================================
+# simulates a single frame using iverilog
+# ===================================================
 simPipeline:
 	${IVERILOG} -Wall simPipeline.v
 	${VVP} a.out -lxt2
 
+# ===================================================
+# unit test for pixScanner
+# ===================================================
 simPixScanner:
 	${IVERILOG} -Wall -DSIM_PIXSCANNER pixScanner.v
 	${VVP} a.out -lxt2 | tee simOut.txt
 	diff simOut.txt simOutRef_pixScanner.txt
-	@echo "result as expected"
+	@echo "[ok] result is as expected"
 clean: 
 # Remove Verilator build directory
 	rm -Rf obj_dir
 # Remove forthytwo build directory
 	rm -Rf out
-# (Emacs backup files)
-	find . -name "*~" -exec rm {} \;
-# copied simulator
+# custom simulator
 	rm -f sim.exe
 	rm -f simVcd.exe
 # iverilog compilation result

@@ -1,41 +1,52 @@
+# build tools
 FORTHYTWO=../../bin/forthytwo.exe 
 GCC=gcc
-SIM=../../bin/sim.exe
-all: buildLib testLib
-buildLib: flm.c flm_test.c flm_testAlg.c
+SIMZERO=../../bin/simZero.exe
+
+# build target
+FLM=../flm.txt
+FLMTESTEXE=flm_test.exe
+
+all: ${FLM}
+${FLM}: flm.c flm_test.c flm_testAlg.c
 	@echo "=== separate the FORTH code in flm.c from its reference implementation ==="
-	cat flm.c | perl extractor.pl > ../flm.txt
+	cat flm.c | perl extractor.pl > ${FLM}
+
+
+test: ${FLM}  flm_test.c
+	@echo "=== build the reference implementation flm.exe ==="
+	${GCC} -Wall -O -o flm_test.exe flm_test.c
+
+	@echo "=== run reference implementation ==="
+	rm -Rf out
+	mkdir out
+	./flm_test.exe > out/refOutput.txt
+
 	@echo "=== separate the FORTH code in flm_test.c from its reference implementation ==="
 	cat flm_test.c | perl extractor.pl > flm_test.txt
 
-testLib: buildLib
-	@echo "=== build the reference implementation flm.exe ==="
-	${GCC} -Wall -O -o flm_test.exe flm_test.c
-	@echo "=== build the simulation ==="
+	@echo "=== compile test ==="
 	${FORTHYTWO} flm_test.txt
-	@echo "=== run reference implementation ==="
-	./flm_test.exe > out/refOutput.txt
+
 	@echo "=== run simulation ==="
-	${SIM} out/flm_test.hex > out/simOutput.txt
+	${SIMZERO} out/flm_test.hex > out/simOutput.txt
+
 	@echo "=== compare the results ==="
 	diff -w out/simOutput.txt out/refOutput.txt
 	@echo "=== output identical - test passed ==="
 
-# run simulator with console output after manually editing flm.txt
+# run simulator with console output
 debug:
 	${FORTHYTWO} flm_test.txt
 	${SIM} out/flm_test.hex
 
-clean:
-# output product
-	rm -f ../flm.txt
-#forthytwo-generated output directory
+clean:	
 	rm -Rf out/
-#emacs backup files
-	rm -f *~
-#own generated files
 	rm -f flm_test.txt
 	rm -f flm_test.exe
 
-.PHONY: buildLib testLib clean debug
+# extracted library is checked in on git
+forceclean: clean
+	rm -f ${FLMTXT}
 
+.PHONY: test debug clean realclean 

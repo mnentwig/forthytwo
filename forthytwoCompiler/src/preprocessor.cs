@@ -199,7 +199,7 @@ public static class preprocessor {
                             // === read file contents ===
                             string includeFile = System.IO.Path.GetFullPath(System.IO.Path.Combine(newSearchPath, filename));
                             if(!includeOnce.Contains(includeFile.ToUpper())) {
-                                Console.WriteLine("include "+System.IO.Path.GetFullPath(includeFile));
+                                //Console.WriteLine("include "+System.IO.Path.GetFullPath(includeFile));
                                 List<string> filerefInc = new List<string>(filerefs);
                                 filerefInc.Add(includeFile);
                                 string incContent;

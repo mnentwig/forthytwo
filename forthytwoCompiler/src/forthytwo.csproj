@@ -50,6 +50,6 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy /y "$(TargetDir)forthytwo.exe" "$(SolutionDir)\bin"</PostBuildEvent>
+    <PostBuildEvent>xcopy /y "$(TargetDir)forthytwo.exe" "$(SolutionDir)\..\bin"</PostBuildEvent>
   </PropertyGroup>
 </Project>

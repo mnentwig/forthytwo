@@ -7,6 +7,8 @@ set_property BITSTREAM.GENERAL.COMPRESS FALSE [current_design]
 
 set_property -dict { PACKAGE_PIN J18 IOSTANDARD LVCMOS33 } [get_ports { uart_rxd_out }]; #IO_L7N_T1_D10_14 Sch=uart_rxd_out
 set_property -dict { PACKAGE_PIN J17 IOSTANDARD LVCMOS33 } [get_ports { uart_txd_in  }]; #IO_L7P_T1_D09_14 Sch=uart_txd_in
+
+# UART signals are not timing critical on an FPGA nanosecond time scale => exclude
 set_false_path -to [get_ports uart_rxd_out]
 set_false_path -from [get_ports uart_txd_in]
 
@@ -219,25 +221,6 @@ set_property CONFIG_VOLTAGE 3.3 [current_design]
 #set_false_path -to [get_ports {ja[*]}]
 #set_false_path -to [get_ports {pioA[*]}]
 #set_false_path -to [get_ports {PMOD[*]}]
-
-#create_clock -period 8.000 -name VIRTUAL_clk_out1_clkMul -waveform {0.000 4.000}
-#set_input_delay -clock [get_clocks VIRTUAL_clk_out1_clkMul] -min -add_delay 0.200 [get_ports {BTN[*]}]
-#set_input_delay -clock [get_clocks VIRTUAL_clk_out1_clkMul] -max -add_delay 1.200 [get_ports {BTN[*]}]
-#set_input_delay -clock [get_clocks VIRTUAL_clk_out1_clkMul] -min -add_delay 0.200 [get_ports {ja[*]}]
-#set_input_delay -clock [get_clocks VIRTUAL_clk_out1_clkMul] -max -add_delay 1.200 [get_ports {ja[*]}]
-#set_input_delay -clock [get_clocks VIRTUAL_clk_out1_clkMul] -min -add_delay 0.200 [get_ports {pioA[*]}]
-#set_input_delay -clock [get_clocks VIRTUAL_clk_out1_clkMul] -max -add_delay 1.200 [get_ports {pioA[*]}]
-#set_input_delay -clock [get_clocks VIRTUAL_clk_out1_clkMul] -min -add_delay 0.200 [get_ports {pioB[*]}]
-#set_input_delay -clock [get_clocks VIRTUAL_clk_out1_clkMul] -max -add_delay 1.200 [get_ports {pioB[*]}]
-#set_input_delay -clock [get_clocks VIRTUAL_clk_out1_clkMul] -min -add_delay 0.200 [get_ports {pioC[*]}]
-#set_input_delay -clock [get_clocks VIRTUAL_clk_out1_clkMul] -max -add_delay 1.200 [get_ports {pioC[*]}]
-
-set_false_path -from [get_clocks -of_objects [get_nets clk200]] -to [get_clocks -of_objects [get_nets vgaClk]]
-set_false_path -from [get_clocks -of_objects [get_nets vgaClk]] -to [get_clocks -of_objects [get_nets clk200]]
-
-# clk100 is the CPU, which accesses the clk200 domain with many cycles margin
-set_false_path -from [get_clocks -of_objects [get_nets clk100]] -to [get_clocks -of_objects [get_nets clk200]]
-set_false_path -from [get_clocks -of_objects [get_nets clk200]] -to [get_clocks -of_objects [get_nets clk100]]
 
 set_property BITSTREAM.GENERAL.CRC DISABLE [current_design]
 set_property CONFIG_MODE SPIx4 [current_design]

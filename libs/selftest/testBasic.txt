@@ -2,10 +2,10 @@
 BRA:main // skip over function definitions
 #CODEADDR:0x0200
 #DATAADDR:0x1000
-#include(core.txt)
-#include(system.txt)
-#include(system.ASCII.txt)
-#include(math.txt)
+#include(../core.txt)
+#include(../system.txt)
+#include(../system.ASCII.txt)
+#include(../math.txt)
 system.sim.tracing.disable
 VAR:offset=0
 

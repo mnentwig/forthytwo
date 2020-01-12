@@ -79,8 +79,8 @@ int main(void){
   //|12345 flm.int2flt flm.sim.printFlm system.emit.cr
   printf("%1.15f\n", 12345.0);
 
-  exit(EXIT_SUCCESS);
-  //|system.sim.terminate
+  // exit(EXIT_SUCCESS);
+  // xxxx |system.sim.terminate
 
   //|// ====================================================
   //|// flm.rshiftArith
@@ -96,8 +96,8 @@ int main(void){
   //|r> LOOP
   
   // === random pattern test ===
-  for (ix = 0; ix < 100; ++ix){
-    //|0 100 DO >r
+  for (ix = 0; ix < 10000; ++ix){
+    //|0 10000 DO >r
     
     printf("%08x %08x ", arg1, arg2);
     //|// ====================================================
