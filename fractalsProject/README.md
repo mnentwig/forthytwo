@@ -51,4 +51,57 @@ The data flow in a ready-/valid chain can be interrupted at any point simply by 
 This block may be combinational and may depend on an observed data value. 
 This pattern is used to stop the calculation engine from running too far ahead of the monitor's electron beam.
 
-(to be continued)
+## RTL implementation
+
+### Clock domain
+There are three clock domains: 
+* The calculation engine (most of the design) at 200 MHz. This could be pushed higher but makes the design more difficult to work with.
+* The VGA monitor signals at a pixel frequency of 148.5 MHz
+* The J1B CPU at 100 MHz, because its critical path is too slow for 200 MHz operation.
+
+### Data flow
+__Note: Names in the picture correspond to the Verilog implementation__
+
+![Top level diagram](../wwwSrc/systemDiagram.png "Top level diagram")
+
+Block "vga" **100** creates the VGA monitor timing. One of its outputs is the number of the pixel currently under the electron beam.
+
+The pixel position passes via Gray coding through a clock domain crossing **110** into the "trigger" block **120**.
+Here, the start of a new frame is detected when the pixel position returns to zero. 
+This happens immediately after the last visible pixel has been shown so the VSYNC interval is available to pre-compute image data to the capacity of the buffer RAM **???**.
+
+Detection of a new frame start triggers the following "pixScanner" **130**. This block has received fractal coordinates from CPU **140** and scans them row by row.
+
+Pixels are scanned by two pairs of increments, one for the electron beam moving right and one for moving down. This allows rotating the picture by any angle.
+
+The block provides a frame counter which is polled by CPU **140** to start computing the next frame coordinates as soon as the previous ones have been stored.
+
+Generated pixel coordinates move forward into FIFO **150**. This is solely to decouple the combinational accept/ready paths. 
+It does not improve throughput since the pixel scanner is already capable of generating one value per clock cycle.
+
+"Pixel coordinates" comprise the X and Y parameter in fractal space and the pixel position, equivalent to its counterpart from vga block **100**. 
+The latter is necessary because data will need to be re-ordered later.
+
+The pixel coordinates now move into a cyclic distribution queue **170**. Its purpose is to serve pixel coordinates to the parallel "julia" (fractal) calculation engines **180**.
+If one calculation engine is ready to accept a new job, the value will drop out of the queue, otherwise it will move right through slots **170** and eventually cycle back to the head of the queue.
+
+The queue **160** will only accept new input from FIFO_K **150** when no data is looping around. Use of the ready/valid protocol makes the implementation of this feature relatively straightforward.
+
+Calculation engines **180** will iterate the Mandelbrot set algorithm ("escape time" algorithm, see Wikipedia: https://en.wikipedia.org/wiki/Mandelbrot_set). 
+
+With default settings (easily changed), the implementation uses 15 "julia" engines **180**. Each of them uses 12 pipeline levels (that is, each engine cycles between 12 independent calculations).
+
+The calculation engines **180** may not run too far ahead of the electron beam position, since there is only limited downstream buffer space (much less than a full frame).
+Therefore, a flow control mechanism **190** in the calculation engines checks each entry's pixel number against the electron beam and prevents it from leaving the calculation engine **180**.
+If denied exit, the value will continue dummy iterations through the calculation engine.
+
+Similar to the circular distribution queue **160**, results are collected into circular collection queue **190**. If a slot **200** is empty, it will accept a result from calculation engine **180**, otherwise the calculation engine will continue dummy iterations on the result.
+
+Exiting data from collection queue **190** move into FIFO_E **210** and then into dual port memory **220**. This FIFO exists for historical reasons and could be removed from the design.
+
+Dual port memory **220** is indexed on its second port by the electron beam position from "vga" block **100**. The dp-memory implements the crossing for data into the VGA pixel clock domain. 
+Output from the RAM, together with HSYNC and VSYNC signals, is forwarded to the monitor output.
+
+### The "julia" calculation engine
+To be continued
+
