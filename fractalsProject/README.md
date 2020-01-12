@@ -1,7 +1,7 @@
 # FPGA fractal demo
 Markus Nentwig, 20?? - 2020
 
-###Youtube video:
+### Youtube video:
 
 _Note: the actual on-screen image is free of glitches and artifacts but the recording is not perfect_
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=XnHhH9rjF9c
