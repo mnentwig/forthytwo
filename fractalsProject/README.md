@@ -17,7 +17,7 @@ Well, I got around to it eventually.
 It took a long time.
 
 ## Motivation
-An FPGA "fun" project adds a very unique design challenge: It needs to be sufficiently fun all along the way. 
+An FPGA "fun" project adds a very unique design challenge: It needs to be sufficiently _fun_ all along the way. 
 
 Sometimes, you are your own worst enemy. After a long, tedious climb, you finally see a straight, obvious, logical route all the way downhill to the finish. 
 And decide not to take it because it is, well, _dull_. The same as with hiking, it's not just getting from A to B that matters. 
