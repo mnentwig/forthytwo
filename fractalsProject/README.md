@@ -83,7 +83,7 @@ Block "vga" **100** creates the VGA monitor timing. One of its outputs is the nu
 
 The pixel position passes via Gray coding through a clock domain crossing **110** into the "trigger" block **120**.
 Here, the start of a new frame is detected when the pixel position returns to zero. 
-This happens immediately after the last visible pixel has been shown so the VSYNC interval is available to pre-compute image data to the capacity of the buffer RAM **220**.
+This happens immediately after the last visible pixel has been sent to the display so the front porch / VSYNC / back porch time intervals can be used to pre-compute image data, up to the capacity of the buffer RAM **220**.
 
 Detection of a new frame start triggers the following "pixScanner" **130**. This block has received fractal coordinates from CPU **140** and scans them row by row.
 
