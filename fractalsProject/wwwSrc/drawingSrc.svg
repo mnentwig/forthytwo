@@ -701,9 +701,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.98994949"
-     inkscape:cx="314.56038"
-     inkscape:cy="225.85267"
+     inkscape:zoom="0.49497475"
+     inkscape:cx="192.4977"
+     inkscape:cy="98.912102"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -1226,7 +1226,7 @@
          id="tspan8342"
          sodipodi:role="line">circular queue (collect)</tspan></text>
     <g
-       transform="matrix(1,0,0,-1,2.3623512,343.7933)"
+       transform="translate(2.3623512,37.857006)"
        id="g8350"
        inkscape:export-xdpi="140.53412"
        inkscape:export-ydpi="140.53412">
@@ -1255,7 +1255,7 @@
        inkscape:export-ydpi="140.53412" />
     <g
        id="g8358"
-       transform="matrix(1,0,0,-1,15.308036,343.7933)"
+       transform="translate(15.308036,37.857006)"
        inkscape:export-xdpi="140.53412"
        inkscape:export-ydpi="140.53412">
       <rect
@@ -1282,7 +1282,7 @@
        inkscape:export-xdpi="140.53412"
        inkscape:export-ydpi="140.53412" />
     <g
-       transform="matrix(1,0,0,-1,28.300968,343.7933)"
+       transform="translate(28.300968,37.857006)"
        id="g8366"
        inkscape:export-xdpi="140.53412"
        inkscape:export-ydpi="140.53412">
@@ -1311,7 +1311,7 @@
        inkscape:export-ydpi="140.53412" />
     <g
        id="g8374"
-       transform="matrix(1,0,0,-1,41.2939,343.7933)"
+       transform="translate(41.2939,37.857006)"
        inkscape:export-xdpi="140.53412"
        inkscape:export-ydpi="140.53412">
       <rect
@@ -1338,7 +1338,7 @@
        inkscape:export-xdpi="140.53412"
        inkscape:export-ydpi="140.53412" />
     <g
-       transform="matrix(1,0,0,-1,54.189655,343.7933)"
+       transform="translate(54.189655,37.857006)"
        id="g8382"
        inkscape:export-xdpi="140.53412"
        inkscape:export-ydpi="140.53412">
@@ -1367,7 +1367,7 @@
        inkscape:export-ydpi="140.53412" />
     <g
        id="g8390"
-       transform="matrix(1,0,0,-1,67.040845,343.7933)"
+       transform="translate(67.040845,37.857006)"
        inkscape:export-xdpi="140.53412"
        inkscape:export-ydpi="140.53412">
       <rect
