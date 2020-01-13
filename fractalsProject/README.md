@@ -19,7 +19,7 @@ It took a long time.
 ## Motivation
 An FPGA free-time project adds one unique design challenge: It needs to be fun all along the way. 
 
-Sometimes, the way ahead to the finish line is obvious but boring. Like hiking versus commuting, it's not just about getting from A to B in the most efficient manner. Throwing in some new idea makes it interesting again. Repeat many times.
+Sometimes, the way to the finish line gets straight, obvious and _boring_. Like hiking versus commuting, it's not just about getting from A to B in the most efficient manner. We're not getting paid for this so rather throw in some new idea to make it interesting again. Repeat too many times.
 
 ## Overview
 My "fun factor driven requirements management" eventually evolved into something along those lines:
