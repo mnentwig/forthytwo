@@ -31,7 +31,7 @@ My "fun factor driven requirements management" eventually evolved into something
 * Limit to 18-bit multiplications because it is the native width for Xilinx 6/7 series DSP48 blocks. It is straightforward to increase the internal bitwidth for higher resolution, but resource usage skyrockets.
 * Be (reasonably) vendor-independent. I decided to use an open-source J1B soft-core CPU instead of e.g. Microblaze MCS, which would have been very straightforward.
 * Instead of the original "gforth" toolchain for J1B, I decided to use my own simple compiler / assembler "forthytwo.exe" which got cleaned up along the way.
-* The CPU needed floating point math for the controls, because fixed point tedious for performance-uncritical code. When you're staring into the rabbit hole, the rabbit hole stares back at you (not Nietzsche)... My own "minimal" float implementation doesn't try to be as refined or safe as IEEE 754, but is _small_ and does a great job so far.
+* Floating point math - fixed point is tedious for performance-uncritical code. When you're staring into the rabbit hole, the rabbit hole stares back at you (not Nietzsche)... My own "minimal" float implementation doesn't try to be as refined or safe as IEEE 754, but is _small_ and does a great job so far.
 * A CPU Bootloader on plain UART (meaning no proprietary Xilinx JTAG). The included bootloader implements robust synchronization and efficient binary upload.
 * No esoteric tools, ability to run on Windows (Linux would be easier). 
 On a clean Windows PC, the build system can be set up by installing MinGW (developer settings), Vivado and Verilator. See my install notes for the latter. Use e.g. Teraterm with the bootloader.
