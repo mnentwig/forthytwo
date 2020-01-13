@@ -33,7 +33,7 @@ My "fun factor driven requirements management" eventually evolved along those li
 * Instead of the original "gforth" toolchain for J1B, I decided to use my own simple compiler / assembler "forthytwo.exe" which got cleaned up along the way.
 * Floating point math - fixed point is tedious for performance-uncritical code. When you're staring into the rabbit hole, the rabbit hole stares back at you (not Nietzsche)... My own "minimal" float implementation doesn't try to be as refined or safe as IEEE 754, but is _small_ and does a great job so far.
 * A CPU Bootloader on plain UART (meaning no proprietary Xilinx JTAG). The included bootloader implements robust synchronization and efficient binary upload.
-* No esoteric tools, ability to run on Windows (Linux would be easier). 
+* No esoteric tools, be able to run on Windows (again, Linux would be easier).
 On a clean Windows PC, the build system can be set up by installing MinGW (developer settings), Vivado and Verilator. See my install notes for the latter. Use e.g. Teraterm with the bootloader.
 * Batteries-included project, intended for reuse by deleting what is not needed (maybe this is more on the microcontroller side, as the fractals part is quite problem-specific)
 
