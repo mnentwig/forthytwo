@@ -30,7 +30,7 @@ My "fun factor driven requirements management" eventually evolved into something
 * Perform dynamic resource allocation. The fractals algorithm is somewhat unusual as the required number of iterations varies between points. Compared to simply setting a fixed number of iterations, complexity increases substantially (a random number of results may appear in one clock cycle, results are unordered) but so does performance.
 * Limit to 18-bit multiplications because it is the native width for Xilinx 6/7 series DSP48 blocks. It is straightforward to increase the internal bitwidth for higher resolution, but resource usage skyrockets.
 * Be (reasonably) vendor-independent. I decided to use an open-source J1B soft-core CPU instead of e.g. Microblaze MCS, which would have been very straightforward.
-* I decided to use my own simple compiler / assembler "forthytwo.exe" instead of the original "gforth" toolchain, which got cleaned up along the way.
+* Instead of the original "gforth" toolchain for J1B, I decided to use my own simple compiler / assembler "forthytwo.exe" which got cleaned up along the way.
 * The CPU needed floating point math for the controls, because fixed point tedious for performance-uncritical code. When you're staring into the rabbit hole, the rabbit hole stares back at you (not Nietzsche)... My own "minimal" float implementation doesn't try to be as refined or safe as IEEE 754, but is _small_ and does a great job so far.
 * A CPU Bootloader on plain UART (meaning no proprietary Xilinx JTAG). The included bootloader implements robust synchronization and efficient binary upload.
 * No esoteric tools, ability to run on Windows (Linux would be easier). 
