@@ -98,8 +98,8 @@ Calculation engines **180** will iterate the Mandelbrot set algorithm ("escape t
 With default settings (easily changed), the implementation uses 30 "julia" engines **180**. Each of them is formed by 12 pipeline levels. In other words, each engine juggles up to 12 independent calculations at a time.
 Each "julia" engine performs three parallel multiplications (xx, yy, xy), using 90 multipliers in total, with one operation per cycle each under full load.
 
-Since buffer space downstream is fairly limited - much less than a full frame - the calculation engines **180** must be prevented from running too far ahead of the electron beam position. 
-Therefore, a flow control mechanism **190** is built into the calculation engines. It checks each entry's pixel number against the electron beam and prevents it from leaving calculation engine **180**.
+Since buffer space in RAM **220** downstream is fairly limited - much less than a full frame - the calculation engines **180** must be prevented from running too far ahead of the electron beam position. 
+Therefore, a flow control mechanism **190** is built into the calculation engines. It checks each entry's pixel number against the electron beam and prevents it from leaving calculation engine **180** if it would cause cyclic overflow in RAM **220**.
 If denied exit, the value will continue dummy iterations through the calculation engine. The clock domain crossing **110** delays the pixel position by a few clock cycles relative to the actual image generation, therefore flow control will always (conservatively) lag behind a few pixels.
 
 Similar to the circular distribution queue **160**, results are collected into circular collection queue **190**. If a slot **200** is empty, it will accept a result from calculation engine **180**, otherwise the calculation engine will continue dummy iterations on the result.
