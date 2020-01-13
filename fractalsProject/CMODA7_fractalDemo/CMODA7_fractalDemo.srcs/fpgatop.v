@@ -19,11 +19,29 @@ module fpgatop(CLK12, pioA, PMOD, uart_rxd_out, uart_txd_in, RGBLED, LED, BTN);
    //parameter vgaX = 640; parameter vgaY = 480;
    parameter vgaX = 1920; parameter vgaY = 1080;
 
-   wire 			unused;   
-   clk12_200 iClk1(.in12(CLK12), .out100(clk100), .out200(clk200), .out300(unused));
-   clk100_148p5 iClk2(.in100(clk100), .out148p5(vgaClk));   
+   wire 			unused;
+   wire 			locked1;
+   wire 			locked2;   
+   clk12_200 iClk1(.in12(CLK12), .out100(clk100), .out200(clk200), .out300(unused), .locked(locked1));
+   clk100_148p5 iClk2(.in100(clk100), .out148p5(vgaClk), .locked(locked2));   
    wire cpuClk = clk100;   
 
+   // ===========================================================
+   // reset
+   // ===========================================================
+   // Note: It is essential to wait for lock, otherwise the design may work on board #1 and fail on board #2.
+   // Specifically, it was observed that the bootloader was still functional on board #2 (both via JTAG upload and flash)
+   // but the complete design failed to run on the same board (again, via JTAG and flash)
+   // After PLL lock was enforced, board #2 worked as expected.
+   // Note, there is a bitstream option BITSTREAM.STARTUP.LCK_CYCLE that might achieve the same (UG908)
+   reg [7:0] resetGen = 8'hFF;
+   always @(posedge clk100)
+      if (~(locked1 & locked2))
+	resetGen <= 8'hFF;
+      else
+	resetGen <= (resetGen == 8'h0) ? resetGen : resetGen-8'h1;      
+   wire reset = resetGen != 8'h0;   
+   
    // === import asynchronous button signal ===
    /*ASYNC_REG="true"*/reg [1:0] 			btna;
    /*ASYNC_REG="true"*/reg [1:0] 			btnb;
@@ -112,7 +130,7 @@ module fpgatop(CLK12, pioA, PMOD, uart_rxd_out, uart_txd_in, RGBLED, LED, BTN);
 
    j1 #(.WIDTH(32)) ij1
      (.clk(cpuClk),
-      .reset(1'b0),
+      .reset(reset),
       .io_rd(io_rd),
       .io_wr(io_wr),
       .mem_wr(mem_wr),
