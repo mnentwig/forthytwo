@@ -26,7 +26,7 @@ My "fun factor driven requirements management" eventually evolved along those li
 
 * Real time calculation: The Stanford lab exercise demanded it already in 2002.
 * Full HD resolution (1920x1080) at 60 Hz. That's the monitor on my desk. No excuses.
-* Use the FPGA in a sensible manner. The resulting implementation can achieve multiplier utilization close to 100 %, that's 18 billion multiplications per second (on 35-size Artix and an USB bus power budget of ~2 Watts).	
+* Use the FPGA in a sensible manner. The resulting implementation can achieve multiplier utilization close to 100 %, that's 18 billion multiplications per second, on a 35-size Artix using a USB bus power budget of ~2 Watts.	
 * Perform dynamic resource allocation. The fractals algorithm is somewhat unusual as the required number of iterations varies between points. Compared to simply setting a fixed number of iterations, complexity increases substantially (a random number of results may appear in one clock cycle, results are unordered) but so does performance.
 * Limit to 18-bit multiplications because it is the native width for Xilinx 6/7 series DSP48 blocks. It is straightforward to increase the internal bitwidth for higher resolution, but resource usage skyrockets.
 * Be (reasonably) vendor-independent. I decided to use an open-source J1B soft-core CPU instead of e.g. Microblaze MCS, which would have been very straightforward.
