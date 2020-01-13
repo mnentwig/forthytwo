@@ -17,27 +17,22 @@ Well, I got around to it eventually.
 It took a long time.
 
 ## Motivation
-An FPGA "fun" project adds a very unique design challenge: It needs to be sufficiently _fun_ all along the way. 
+An FPGA free-time project adds one unique design challenge: It needs to be fun all along the way. 
 
-Sometimes, I can be my own worst enemy. The long and tedious climb finally opens up into an obvious, logical route downhill straight to the finish.
-And I decide not to take it because it is, well, _dull_. The same as with hiking, it's not just getting from A to B that matters. 
-
-So I throw in some new ideas to keep it interesting. 
-
-Repeat too many times.
+Sometimes, the way ahead to the finish line is obvious but boring. Like hiking versus commuting, it's not just about getting from A to B in the most efficient manner. Throwing in some new idea makes it interesting again. Repeat many times.
 
 ## Overview
-The semi-eternal chase after the "fun factor" eventually evolved into unwritten requirements somewhere along those lines:
+My "fun factor driven requirements management" eventually evolved into something along those lines:
 
 * Real time calculation: The Stanford lab exercise demanded it already in 2002.
 * Full HD resolution (1920x1080) at 60 Hz. That's the monitor on my desk. No excuses.
 * Use the FPGA in a sensible manner. The resulting implementation can achieve multiplier utilization close to 100 %, that's 18 billion multiplications per second (on 35-size Artix and an USB bus power budget of ~2 Watts).	
 * Perform dynamic resource allocation. The fractals algorithm is somewhat unusual as the required number of iterations varies between points. Compared to simply setting a fixed number of iterations, complexity increases substantially (a random number of results may appear in one clock cycle, results are unordered) but so does performance.
 * Limit to 18-bit multiplications because it is the native width for Xilinx 6/7 series DSP48 blocks. It is straightforward to increase the internal bitwidth for higher resolution, but resource usage skyrockets.
-* Be (reasonably) vendor-independent. Being halfway through a microblaze MCS implementation for the controls, the fun factor dropped below threshold so I abandoned it.
+* Be (reasonably) vendor-independent. I decided to use an open-source J1B soft-core CPU instead of e.g. Microblaze MCS, which would have been very straightforward.
 * Realistic CPU size: For a CPU-centric industrial (as opposed to "for-fun") design I see no alternative to the vendor's proprietary CPU offerings e.g. Microblaze or Zynq ARM. However, for a minimal _free_ softcore controller I expect fairly small size even if it makes no real difference on the relatively large Xilinx FPGA (since I may want to reuse all the work on cheaper FPGAs e.g. Lattice. Suddenly, CPU size and efficiency become an issue). 
-James Bowman's J1B fits the bill for me, and its 32 bit extension is used heavily in this project. But I'm not a big fan of its native "gforth" toolchain, so I use my own simple compiler / assembler "forthytwo.exe", which had started as a separate project.
-* Floating point math for the controls: Fixed point is great for raw throughput but gets tedious for performance-uncritical code.
+* I decided to use my own simple compiler / assembler "forthytwo.exe" instead of the original "gforth" toolchain, which got cleaned up along the way.
+* The CPU needed floating point math for the controls, because fixed point tedious for performance-uncritical code. When you're staring into the rabbit hole, the rabbit hole stares back at you (not Nietzsche)... My own "minimal" float implementation doesn't try to be as refined or safe as IEEE 754, but is _small_ and does a great job so far.
 * A CPU Bootloader on plain UART (meaning no proprietary Xilinx JTAG). The included bootloader implements robust synchronization and efficient binary upload.
 * No esoteric tools, ability to run on Windows (Linux would be easier). 
 On a clean Windows PC, the build system can be set up by installing MinGW (developer settings), Vivado and Verilator. See my install notes for the latter. Use e.g. Teraterm with the bootloader.
