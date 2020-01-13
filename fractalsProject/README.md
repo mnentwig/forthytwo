@@ -40,8 +40,8 @@ On a clean Windows PC, the build system can be set up by installing MinGW (devel
 ## Ready/valid design pattern notes
 The calculation engine relies heavily on the [valid/ready handshaking paradigm](https://inst.eecs.berkeley.edu/~cs150/Documents/Interfaces.pdf), which is used consistently throughout the chain.
 
-Here, it is essential, for a simple reason: 
-The 200 MHz clock rate of the fractal generator is less than two times the VGA pixel rate. Any "sub-optimal" handshaking scheme that requires an idle clock cycle to recover would break the architecture.
+Here, it is quite essential, for a simple reason: 
+The 200 MHz clock rate of the fractal generator is less than two times the VGA pixel rate. Any "sub-optimal" handshaking scheme that required an idle clock cycle to recover would break the architecture.
 
 ### Ready / valid combinational path problem
 In a typical processing block, data moves in lock-step through a sequence of registers. 
