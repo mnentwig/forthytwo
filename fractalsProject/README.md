@@ -22,7 +22,7 @@ An FPGA free-time project adds one unique design challenge: It needs to be fun a
 Sometimes, the way to the finish line gets straight, obvious and _boring_. Like hiking versus commuting, it's not just about getting from A to B in the most efficient manner. We're not being paid to chase milestones ... rather, throw in a new idea to make it interesting again. Repeat too many times.
 
 ## Overview
-My "fun factor driven requirements management" eventually evolved into something along those lines:
+My "fun factor driven requirements management" eventually evolved along those lines:
 
 * Real time calculation: The Stanford lab exercise demanded it already in 2002.
 * Full HD resolution (1920x1080) at 60 Hz. That's the monitor on my desk. No excuses.
