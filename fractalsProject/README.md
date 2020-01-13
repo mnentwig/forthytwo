@@ -104,7 +104,7 @@ If denied exit, the value will continue dummy iterations through the calculation
 
 Similar to the circular distribution queue **160**, results are collected into circular collection queue **190**. If a slot **200** is empty, it will accept a result from calculation engine **180**, otherwise the calculation engine will continue dummy iterations on the result.
 
-Exiting data from collection queue **190** move into FIFO_E **210** and then into dual port memory **220**. This FIFO is not strictly necessary anymore: Since dual port ram **220** will always be ready to accept data, it could be replaced with a cheaper register.
+Exiting data items from collection queue **190** move into FIFO_E **210** and then into dual port memory **220**. This FIFO is not strictly necessary anymore: Since dual port ram **220** will always be ready to accept data, it could be replaced with a cheaper register.
 
 Dual port memory **220** is indexed on its second port by the electron beam position from "vga" block **100**. The dp-memory implements the crossing for data into the VGA pixel clock domain. 
 Output from the RAM, together with HSYNC and VSYNC signals, is finally forwarded to the monitor output.
