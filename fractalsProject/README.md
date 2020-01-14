@@ -127,6 +127,7 @@ To be continued
 * pin 4: HSYNC
 * pin 5: VSYNC
 * pin 25 (or PMOD header): common ´GND
+Please note: 3.3 V is out-of-spec for VGA analog signals. I've never run into issues with jumper cable wiring on quite a few monitors but please use common sense.
 
 To rebuild the bitstream, run from the top level directory 
 - make forthytwo: builds the compiler

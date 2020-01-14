@@ -11,6 +11,9 @@ module fpgatop(CLK12, uart_rxd_out, uart_txd_in);
    wire 			vgaClk;   
    clk12_200 iClk1(.in12(CLK12), .out100(clk100), .out200(clk200), .out300());   
 
+   // TBD: Should add the .locked signal and use it for CPU reset (see fractals parallel project)
+   // Otherwise, the design will not work reliably.
+   
    // ===========================================================
    // CPU
    // ===========================================================      
