@@ -30,5 +30,5 @@ The bitstream upload contains a "magic" synchronization sequence. Any unexpected
 - arg1: out/myProject.hex
 - for bootloader project: arg1: out/myStandaloneBootloader.hex and arg2: out/myApplicationStartingWithTheBootloader.bootBin
 - use simVcd.exe to create trace.vcd for review with gtkwave. By default, tracing is enabled but files tend to grow large quickly
-- >>>system.sim.tracing.disable<<< and >>>system.sim.tracing.enable<<< disable and re-enable tracing, respectively.
+- \>>>system.sim.tracing.disable<<< and >>>system.sim.tracing.enable<<< disable and re-enable tracing, respectively.
 - Unsurprisingly, sim.exe is considerably faster than simVcd.exe
