@@ -119,12 +119,13 @@ To be continued
 * upload the prebuilt "final" bitstream
 * With the CPU running, the two buttons will switch the red and green LED, respectively.
 * Wire up a monitor with jumper cables to the DIL48 socket
--- pin 1: RED
--- pin 2: GREEN
--- pin 3: BLUE
--- pin 4: HSYNV
--- pin 5: VSYNC
--- pin 25: common ´GND
+
+* pin 1: RED
+* pin 2: GREEN
+* pin 3: BLUE
+* pin 4: HSYNC
+* pin 5: VSYNC
+* pin 25 (or PMOD header): common ´GND
 
 To rebuild the bitstream, run from the top level directory 
 - make forthytwo: builds the compiler
