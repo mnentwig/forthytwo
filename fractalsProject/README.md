@@ -19,14 +19,14 @@ It took a long time.
 ## Motivation
 An FPGA free-time project adds one unique design challenge: It needs to be fun all along the way. 
 
-Sometimes, the way to the finish line gets straight, obvious and _boring_. Like hiking versus commuting, it's not just about getting from A to B in the most efficient manner. We're not being paid to chase milestones ... rather, throw in a new idea to make it interesting again. Repeat too many times.
+Sometimes, the way to the finish line gets straight, obvious and _boring_. Like hiking versus commuting, it's not just about getting from A to B in the most efficient manner... So you throw in a new idea to make it interesting again. Rinse and repeat.
 
 ## Overview
-My "fun factor driven requirements management" eventually evolved along those lines:
+The "fun factor driven requirements management" eventually evolved along those lines:
 
 * Real time calculation: The Stanford lab exercise demanded it already in 2002.
-* Full HD resolution (1920x1080) at 60 Hz. That's the monitor on my desk. No excuses.
-* Use the FPGA in a sensible manner. The resulting implementation can achieve multiplier utilization close to 100 %, that's 18 billion multiplications per second, on a 35-size Artix using a USB bus power budget of ~2 Watts.	
+* Full HD resolution (1920x1080) at 60 Hz
+* Use the FPGA  sensibly. The resulting implementation comes close to one operation per multiplier per clock cycle. That's 18 billion multiplications per second on the 35-size Artix with a USB bus power budget of ~2 Watts.	
 * Perform dynamic resource allocation. The fractals algorithm is somewhat unusual as the required number of iterations varies between points. Compared to simply setting a fixed number of iterations, complexity increases substantially (a random number of results may appear in one clock cycle, results are unordered) but so does performance.
 * Limit to 18-bit multiplications because it is the native width for Xilinx 6/7 series DSP48 blocks. It is straightforward to increase the internal bitwidth for higher resolution, but resource usage skyrockets.
 * Be (reasonably) vendor-independent. I decided to go for the open-source "J1B" soft-core CPU instead of e.g. Microblaze MCS, which would have been very straightforward.
@@ -113,4 +113,33 @@ While not shown in the picture, buttons and LEDs are accessible via a register a
 
 ### The "julia" calculation engine
 To be continued
+
+# Running the demo
+* Get CMOD A7-35 board (or modify the project). The design is too large for the 15-size variant.
+* upload the prebuilt "final" bitstream
+* With the CPU running, the two buttons will switch the red and green LED, respectively.
+* Wire up a monitor with jumper cables to the DIL48 socket
+-- pin 1: RED
+-- pin 2: GREEN
+-- pin 3: BLUE
+-- pin 4: HSYNV
+-- pin 5: VSYNC
+-- pin 25: common ´GND
+
+To rebuild the bitstream, run from the top level directory 
+- make forthytwo: builds the compiler
+### For a "bootloader" version: 
+* make fractals (still from the top level directory). This creates the main.v file with J1B rom contents
+* open the Vivado project in fractalsProject/CMODA7_fractalDemo
+* generate bitstream
+* upload bitstream
+* connect teraterm to the serial port. Test that a key press echos back an "x" => bootloader is functional
+* send "fractalsProject/out/main.bootBin" via Teraterm's "send file" function in binary mode (!!). Note, it does not matter whether "main.bootBin" was compiled with bootloader enabled or disabled.
+* correct upload prints one letter "1" and the buttons will light the LEDs. Only now the VGA signal is present
+
+### For the "final" version
+* edit bootloader/bootloader.txt according to the instructions in the first line (comment out first BRA: and uncomment second BRA:)
+* from toplevel: make fractals
+* Build bitstream from Vivado
+* program bitstream (or write to flash). Once the yellow "prog ready" LED lights up, red/green LEDs should respond to button presses and the VGA signal is present.
 
