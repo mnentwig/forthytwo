@@ -130,7 +130,7 @@ To be continued
 
 To rebuild the bitstream, run from the top level directory 
 - make forthytwo: builds the compiler
-### For a "bootloader" version: 
+### For a "bootloader" version (to edit the microcontroller code)
 * make fractals (still from the top level directory). This creates the main.v file with J1B rom contents
 * open the Vivado project in fractalsProject/CMODA7_fractalDemo
 * generate bitstream
