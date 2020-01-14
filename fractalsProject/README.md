@@ -120,6 +120,7 @@ To be continued
 * With the CPU running, the two buttons will switch the red and green LED, respectively.
 * Wire up a monitor with jumper cables to the DIL48 socket
 
+# Default pinout
 * pin 1: RED
 * pin 2: GREEN
 * pin 3: BLUE
