@@ -58,7 +58,7 @@ Output is generated at the location of the first input file in a (possibly new) 
 * mySource.bootBin: UART binary upload for optional boot loader
 
 ### Note on whitespace characters (space, tab, newline)
-* forthytwo uses compound keywords such as >>>var:myVariable=1234<<< that may _not_ contain whitespace characters for formatting.
+* forthytwo uses compound keywords such as >>>VAR:myVariable=1234<<< that may _not_ contain whitespace characters for formatting.
 * Filenames in >>>#include(...)<<< _may_ contain space characters (use the exact operating system file name without "escaping" spaces). 
 * There are no special rules for punctuation characters, e.g. >>>;<<< is no different from any other token and therefore must be separated by whitespace
 * In code, whitespace characters serve no other role than token separation
@@ -105,7 +105,7 @@ Within the code:
 
 Continues code / data generation at the given address. Note, the code address is in units of 16-bit instruction words, the data address in units of 8-bit bytes. For the latter, only multiples of four are supported.
 
-__no overlap checks are performed___
+Note: no overlap checks are performed.
 
 ### Processor opcodes
 The compiler defines all opcodes with a >>>core.<<< prefix e.g. >>>core.drop<<<, >>>core.swap<<<.
@@ -169,7 +169,7 @@ Any number appearing in the code is loaded to the data stack (note, the number o
 The single-quote built-in >>>'myLabel<<< pushes the address of myLabel (code or variable).
 
 # known bugs
-- the forthytwo.exe exit code is not recognized by mingw "make", therefore the makefile will continue. Forthytwo.exe deletes all output files at startup, so the error should show later as a non-existing file.
+- the forthytwo.exe exit code is not recognized by mingw "make", therefore the makefile will continue even with a compilation error. Forthytwo.exe deletes all output files at startup, so the error should show later as a non-existing file.
 - obvious optimizations for smaller and faster code (single-opcode ALU+return, CALL+return => BRA) are not yet implemented
 
 # boot loader
@@ -225,5 +225,5 @@ Explicit conditional branch:
 Explicit call:
 * core.call0xabcd
 
-Generic 16-bit opcode (e.g. for optimized ALU variants with combined return):
+Generic 16-bit opcode (e.g. to manually insert some optimized ALU operation with combined return):
 * core.opcode0xabcd
