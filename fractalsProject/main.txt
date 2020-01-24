@@ -172,23 +172,135 @@ VAR:angle=0.2
 :setMaxiterAndEndOfColMap
 	core.dup 
 	driver.fractal.setMaxiter
+	// === end is always black ===
 	1 core.plus // highest possible alg output is maxiter+1
 	0x0 // rgb value
-	driver.fractal.setColMap	
+	driver.fractal.setColMap
+	// === start is always black ===
+	0x0 0x0	driver.fractal.setColMap		
+;
+
+VAR:colMapCycle=0
+VAR:colMapCycleCount=0
+
+:setColMapMulti
+	1 64 DO core.pushR
+	  // n Iterations
+	  core.fetchR
+	  // value
+	  core.fetchR
+	  'colMapCycle @ core.plus
+	  driver.fractal.setColMap  
+	core.popR LOOP
+;
+
+:setColMapWhite1
+	1 64 DO core.pushR
+	  // n Iterations
+	  core.fetchR
+	  // value
+	  core.fetchR 7 core.and
+	  'colMapCycle @ core.invert 7 core.and core.equals
+	  driver.fractal.setColMap  
+	core.popR LOOP
+;
+
+:setColMapRgbZebra
+	// === set all black ===
+	1 64 DO 
+	  // n Iterations
+	  dup
+	  // value
+	  0
+	  driver.fractal.setColMap  
+	LOOP
+
+	// === retrieve colMapCycle ===
+	'colMapCycle @ core.invert
+	// === set one red stripe ===
+	dup 0 core.plus 63 core.and /*RGB: red*/1 driver.fractal.setColMap
+	// === set one green stripe ===
+	dup 11 core.plus 63 core.and /*RGB: green*/2 driver.fractal.setColMap
+	// === set one blue stripe ===
+	dup 21 core.plus 63 core.and /*RGB: blue*/4 driver.fractal.setColMap
+	// === set one red stripe ===
+	dup 32 core.plus 63 core.and /*RGB: red*/1 driver.fractal.setColMap
+	// === set one green stripe ===
+	dup 42 core.plus 63 core.and /*RGB: green*/2 driver.fractal.setColMap
+	// === set one blue stripe ===
+	53 core.plus 63 core.and /*RGB: blue*/4 driver.fractal.setColMap
+;
+
+VAR:colormode=0
+:nextColormode
+	'colormode @
+	core.dup 3 core.equals IF
+		 core.drop 0
+	ELSE
+		1 core.plus
+	ENDIF
+	'colormode !
+;
+
+:cycleColMap
+	'colMapCycle @ 0 core.invert core.plus 'colMapCycle !
+;
+
+:resetColMap
+	0 'colMapCycle !
+;
+
+:advanceAnimationColMap
+	  'colMapCycleCount @
+	  12 core.equals IF
+	     0 'colMapCycleCount !
+
+	     'colormode @
+	     core.dup 0 core.equals IF
+		     cycleColMap
+		     setColMapMulti
+		     45 setMaxiterAndEndOfColMap
+	     ENDIF
+	     core.dup 1 core.equals IF
+		     resetColMap
+	      	     setColMapMulti
+		     45 setMaxiterAndEndOfColMap
+             ENDIF
+	     core.dup 2 core.equals IF
+		     cycleColMap
+	      	     setColMapRgbZebra
+		     45 setMaxiterAndEndOfColMap
+             ENDIF
+	     3 core.equals IF
+		     cycleColMap
+	      	     setColMapWhite1
+		     45 setMaxiterAndEndOfColMap
+             ENDIF
+
+	  ELSE
+	    'colMapCycleCount dup @ 1 core.plus swap !
+	  ENDIF	  
+;
+
+::nextAngle
+	  'angle @ 0.001 flm.add 'angle !
+;
+
+:advanceAnimation
+	nextAngle
+	advanceAnimationColMap
+
+	driver.buttons.getEvt
+	IF
+		nextColormode
+	ENDIF
 ;
 
 :main
 	// === send a letter to UART to give feedback on FW upload ===
 	system.ascii.1 system.uart.putChar system.emit.cr
 
-	// === initialize colormap ===
-	0 64 DO core.pushR
-	  // n Iterations
-	  core.fetchR
-	  // value
-	  core.fetchR
-	  driver.fractal.setColMap  
-	core.popR LOOP
+	setColMapMulti
 
 	1 driver.fractal.onOff // TBD move this later
 	42 setMaxiterAndEndOfColMap
@@ -203,6 +315,7 @@ BEGIN
 	// === accelerating half ===
 	0 'nHalfSteps @ DO >r
 	  waitForStartOfFrame
+	  advanceAnimation // during HSYNC period to avoid tearing (no shadow registers)
 	  setX1X2Y1Y2	
 
 	  'dx1 'ddx1 varAddFltToVar
@@ -216,8 +329,6 @@ BEGIN
 
 	  'dy2 'ddy2 varAddFltToVar
 	  'y2 'dy2 varAddFltToVar
-
-	  'angle @ 0.001 flm.add 'angle !
 	r> LOOP
 
 	// === change to deceleration ===
@@ -229,6 +340,7 @@ BEGIN
 	// === decelerating part ===
 	0 'nHalfSteps @ DO >r
 	  waitForStartOfFrame
+	  advanceAnimation // during HSYNC period to avoid tearing (no shadow registers)
 	  setX1X2Y1Y2	
 
 	  'dx1 'ddx1 varAddFltToVar
@@ -242,7 +354,5 @@ BEGIN
 
 	  'dy2 'ddy2 varAddFltToVar
 	  'y2 'dy2 varAddFltToVar
-
-	  'angle @ 0.001 flm.add 'angle !
 	r> LOOP
 AGAIN

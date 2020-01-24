@@ -17,6 +17,13 @@ VAR:__driver.pixHeightMinusOne=1079.0
 	0x3004 io@
 ;
 
+VAR:__driver.buttons.lastState=0
+:driver.buttons.getEvt
+	driver.getButtons core.dup
+	'__driver.buttons.lastState @ core.invert core.and 
+	core.swap '__driver.buttons.lastState !
+;
+
 // sets start point in fractal space (flt)
 ::driver.fractal.setX
 	__driver.flt2fix 0x2000 io!

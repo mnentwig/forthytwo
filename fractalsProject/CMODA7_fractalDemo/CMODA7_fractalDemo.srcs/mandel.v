@@ -687,7 +687,7 @@ module top(clk, vgaClk, o_frameCount, i_run, i_simFlush,
       
    localparam nResBits = 6;
    localparam nRefBits = 24;
-   localparam nMemBits = 12;
+   localparam nMemBits = 14;
    
    // ================================================================================
    // fractal image generation
