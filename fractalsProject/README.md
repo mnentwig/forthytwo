@@ -107,7 +107,12 @@ Similar to the circular distribution queue **160**, results are collected into c
 Exiting data items from collection queue **190** move into FIFO_E **210** and then into dual port memory **220**. This FIFO is not strictly necessary anymore: Since dual port ram **220** will always be ready to accept data, it could be replaced with a cheaper register.
 
 Dual port memory **220** is indexed on its second port by the electron beam position from "vga" block **100**. The dp-memory implements the crossing for data into the VGA pixel clock domain. 
-Output from the RAM, together with HSYNC and VSYNC signals, is finally forwarded to the monitor output.
+
+RAM output values **230** represent a pixel's iteration count and are converted to RGB color signal **250** by color map RAM **240**. 
+
+Its contents are configurable by CPU **140**. For color cycle animation, color map RAM **240** must be updated during the HSYNC period to not cause artifacts in a running frame (since there are no shadow registers).
+
+The RGB color signal **250** is finally forwarded, together with HSYNC and VSYNC signals from vga generator **100** to the monitor output..
 
 While not shown in the picture, buttons and LEDs are accessible via a register attached to the CPU's IO port.
 
