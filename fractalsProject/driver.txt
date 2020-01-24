@@ -48,6 +48,11 @@ VAR:__driver.pixHeightMinusOne=1079.0
 	0x2004 io!
 ;
 
+// 0: nIter 1: rgb (3 bit value)
+:driver.fractal.setColMap
+	swap 0x4000 core.plus io!
+;
+
 // starts VGA scan and fractal calculation
 // mainly needed for efficient simulation to give the FW time to set up, then start the first video frame
 ::driver.fractal.onOff 		0x2005 io! ;

@@ -69,12 +69,23 @@ module fpgatop(CLK12, pioA, PMOD, uart_rxd_out, uart_txd_in, RGBLED, LED, BTN);
    initial cpuReg[5] = 0;
    initial cpuReg[6] = 0;
    initial cpuReg[7] = 0;
+
+   // ===========================================================
+   // CPU signals
+   // ===========================================================      
+   wire 			io_rd, io_wr;
+   wire [15:0] 			mem_addr;
+   wire 			mem_wr;
+   reg [31:0] 			mem_din = 32'd0;
+   wire [31:0] 			dout;
+   reg [31:0] 			io_din;
    
    top #(.vgaX(vgaX), .vgaY(vgaY)) iTop
      (.clk(clk200), .o_frameCount(frameCount),
       .i_run(cpuReg[5][0]), .i_simFlush(cpuReg[5][1]),
       .vgaClk(vgaClk), .o_RED(vgaRed), .o_GREEN(vgaGreen), .o_BLUE(vgaBlue), .o_HSYNC(vgaHsync), .o_VSYNC(vgaVsync), 
-      .i_x0(cpuReg[0]), .i_y0(cpuReg[2]), .i_dxCol(cpuReg[1]), .i_dyCol(cpuReg[7]), .i_dxRow(cpuReg[6]), .i_dyRow(cpuReg[3]), .i_maxiter(cpuReg[4][7:0]));   
+      .i_x0(cpuReg[0]), .i_y0(cpuReg[2]), .i_dxCol(cpuReg[1]), .i_dyCol(cpuReg[7]), .i_dxRow(cpuReg[6]), .i_dyRow(cpuReg[3]), .i_maxiter(cpuReg[4][7:0]),
+      .i_wrColMap(io_wr & (mem_addr & 16'hFF00) == 16'h4000), .i_addrColMap(mem_addr[5:0]), .i_valColMap(dout));   
    
    // === register VGA signals to suppress combinational hazards, especially on HSYNC/VSYNC ===
    always @(posedge vgaClk) begin
@@ -96,12 +107,6 @@ module fpgatop(CLK12, pioA, PMOD, uart_rxd_out, uart_txd_in, RGBLED, LED, BTN);
    // ===========================================================
    // CPU
    // ===========================================================      
-   wire io_rd, io_wr;
-   wire [15:0] mem_addr;
-   wire        mem_wr;
-   reg [31:0]  mem_din = 32'd0;
-   wire [31:0] dout;
-   reg [31:0]  io_din;
    
    wire [12:0] addrCodeCpu; // CPU instruction pointer in units of 16 bit words
 

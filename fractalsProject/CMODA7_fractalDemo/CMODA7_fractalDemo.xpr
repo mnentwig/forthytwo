@@ -3,7 +3,7 @@
 <!--                                                         -->
 <!-- Copyright 1986-2019 Xilinx, Inc. All Rights Reserved.   -->
 
-<Project Version="7" Minor="44" Path="C:/temp/gittest/forthytwo/fractalsProject/CMODA7_fractalDemo/CMODA7_fractalDemo.xpr">
+<Project Version="7" Minor="44" Path="C:/temp/forthytwo_/fractalsProject/CMODA7_fractalDemo/CMODA7_fractalDemo.xpr">
   <DefaultLaunch Dir="$PRUNDIR"/>
   <Configuration>
     <Option Name="Id" Val="25e470da9bb64c1f8d37928c4a1d9ec7"/>
@@ -22,7 +22,7 @@
     <Option Name="ActiveSimSet" Val="sim_1"/>
     <Option Name="DefaultLib" Val="xil_defaultlib"/>
     <Option Name="ProjectType" Val="Default"/>
-    <Option Name="IPOutputRepo" Val="$PCACHEDIR/ip"/>
+    <Option Name="IPOutputRepo" Val="C:/temp/gittest/forthytwo/fractalsProject/CMODA7_fractalDemo/CMODA7_fractalDemo.cache/ip"/>
     <Option Name="IPCachePermission" Val="read"/>
     <Option Name="IPCachePermission" Val="write"/>
     <Option Name="EnableCoreContainer" Val="FALSE"/>

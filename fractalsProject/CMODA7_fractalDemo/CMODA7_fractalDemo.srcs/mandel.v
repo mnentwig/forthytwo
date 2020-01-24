@@ -653,7 +653,8 @@ endmodule
 
 module top(clk, vgaClk, o_frameCount, i_run, i_simFlush,
 	   o_RED, o_GREEN, o_BLUE, o_HSYNC, o_VSYNC, 
-	   i_x0, i_y0, i_dxCol, i_dxRow, i_dyCol, i_dyRow, i_maxiter);   
+	   i_x0, i_y0, i_dxCol, i_dxRow, i_dyCol, i_dyRow, i_maxiter, 
+	   i_wrColMap, i_addrColMap, i_valColMap);   
    
    parameter vgaX = 640;
    parameter vgaY = 480;
@@ -678,8 +679,12 @@ module top(clk, vgaClk, o_frameCount, i_run, i_simFlush,
    input wire signed [31:0] i_dyCol;
    input wire signed [31:0] i_dxRow;
    input wire signed [31:0] i_dyRow;
-   input wire [7:0] 	    i_maxiter;   
-   
+   input wire [7:0] 	    i_maxiter;
+
+   input wire 		    i_wrColMap;
+   input wire [31:0] 	    i_valColMap;
+   input wire [5:0] 	    i_addrColMap;
+      
    localparam nResBits = 6;
    localparam nRefBits = 24;
    localparam nMemBits = 12;
@@ -736,18 +741,17 @@ module top(clk, vgaClk, o_frameCount, i_run, i_simFlush,
    // ================================================================================
    // vga color mapping and blanking
    // ================================================================================
-   reg 			    lastVsync = 0;   
-   reg [7:0] 		    cycle = 40; // offset color map to make maxiter black
-   wire [2:0] 		    vgaRes3 = vgaRes2 + cycle[5:3];   
-   wire [2:0] 		    vgaRes4 = {vgaRes3[2], vgaRes3[2] ^ vgaRes3[1], vgaRes3[1] ^ vgaRes3[0]};   
-   always @(posedge vgaClk) begin
-      lastVsync <= vgaVsync2;
-      if (0 & {lastVsync, vgaVsync2} == 2'b01)
-	cycle <= cycle - 1;
-      
-      o_RED 	<= vgaBlank2 ? 0 : vgaRes4[0];
-      o_GREEN 	<= vgaBlank2 ? 0 : vgaRes4[1];
-      o_BLUE 	<= vgaBlank2 ? 0 : vgaRes4[2];
+   reg [2:0] 		    colMap[0:63];
+   always @(posedge clk)
+     if (i_wrColMap)
+       colMap[i_addrColMap] <= i_valColMap;   
+
+   wire [2:0] 		    vgaRes3 = colMap[vgaRes2];
+   //wire [2:0] 		    vgaRes4 = {vgaRes3[2], vgaRes3[2] ^ vgaRes3[1], vgaRes3[1] ^ vgaRes3[0]};   
+   always @(posedge vgaClk) begin      
+      o_RED 	<= vgaBlank2 ? 0 : vgaRes3[0];
+      o_GREEN 	<= vgaBlank2 ? 0 : vgaRes3[1];
+      o_BLUE 	<= vgaBlank2 ? 0 : vgaRes3[2];
       o_HSYNC 	<= vgaHsync2;
       o_VSYNC 	<= vgaVsync2;      
    end   

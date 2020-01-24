@@ -169,12 +169,29 @@ VAR:angle=0.2
 
 ;
 
+:setMaxiterAndEndOfColMap
+	core.dup 
+	driver.fractal.setMaxiter
+	1 core.plus // highest possible alg output is maxiter+1
+	0x0 // rgb value
+	driver.fractal.setColMap	
+;
+
 :main
 	// === send a letter to UART to give feedback on FW upload ===
 	system.ascii.1 system.uart.putChar system.emit.cr
 
-	1 driver.fractal.onOff
-	42 driver.fractal.setMaxiter
+	// === initialize colormap ===
+	0 64 DO core.pushR
+	  // n Iterations
+	  core.fetchR
+	  // value
+	  core.fetchR
+	  driver.fractal.setColMap  
+	core.popR LOOP
+
+	1 driver.fractal.onOff // TBD move this later
+	42 setMaxiterAndEndOfColMap
 
 	// === init data pointers to first and second point in list ===
 	'myData0 'dataPtrA !
