@@ -3,7 +3,7 @@ Markus Nentwig, 20?? - 2020
 
 ### Youtube video:
 
-_Note: the actual on-screen image is free of glitches and artifacts but camera recording quality is limited_
+_Note: Note: blurring and artifacts are phone camera artifacts not present in the generated electrical VGA signal_
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=XnHhH9rjF9c
 " target="_blank"><img src="http://img.youtube.com/vi/XnHhH9rjF9c/0.jpg" 
 alt="FPGA demo" width="240" height="180" border="10" /></a>
@@ -26,12 +26,12 @@ The "fun factor driven requirements management" eventually evolved along those l
 
 * Real time calculation: The Stanford lab exercise demanded it already in 2002.
 * Full HD resolution (1920x1080) at 60 Hz
-* Use the FPGA  sensibly. The resulting implementation comes close to one operation per multiplier per clock cycle. That's 18 billion multiplications per second on the 35-size Artix with a USB bus power budget of ~2 Watts.	
+* Use the FPGA sensibly. The resulting implementation comes close to one operation per multiplier per clock cycle. That's 18 billion multiplications per second on the 35-size Artix with a USB bus power budget of ~2 Watts.	
 * Perform dynamic resource allocation. The fractals algorithm is somewhat unusual as the required number of iterations varies between points. Compared to simply setting a fixed number of iterations, complexity increases substantially (a random number of results may appear in one clock cycle, results are unordered) but so does performance.
 * Limit to 18-bit multiplications because it is the native width for Xilinx 6/7 series DSP48 blocks. It is straightforward to increase the internal bitwidth for higher resolution, but resource usage skyrockets.
 * Be (reasonably) vendor-independent. I decided to go for the open-source "J1B" soft-core CPU instead of e.g. Microblaze MCS, which would have been very straightforward.
 * Instead of the original "gforth" toolchain for J1B, I decided to use my own simple compiler / assembler "forthytwo.exe" which got cleaned up along the way.
-* Floating point math - fixed point is tedious for performance-uncritical code. When you're staring into the rabbit hole, the rabbit hole stares back at you (not Nietzsche)... My own "minimal" float implementation doesn't try to be as refined or safe as IEEE 754, but is _small_ and does a great job so far.
+* Floating point math - fixed point is tedious for performance-uncritical code _"For when you gaze long into the rabbit hole, the rabbit hole gazes back into you"_ My own "minimal" float implementation doesn't try to be as refined or safe as IEEE 754, but is _small_ and does a great job so far.
 * A CPU Bootloader on plain UART (meaning no proprietary Xilinx JTAG). The included bootloader implements robust synchronization and efficient binary upload.
 * No esoteric tools, be able to run on Windows (again, Linux would be easier).
 On a clean Windows PC, the build system can be set up by installing MinGW (developer settings), Vivado and Verilator. See my install notes for the latter. Use e.g. Teraterm with the bootloader.
@@ -126,13 +126,21 @@ To be continued
 * Wire up a monitor with jumper cables to the DIL48 socket
 
 # Default pinout
-* pin 1: RED
-* pin 2: GREEN
-* pin 3: BLUE
-* pin 4: HSYNC
-* pin 5: VSYNC
-* pin 25 (or PMOD header): common ´GND
-Please note: 3.3 V is out-of-spec for VGA analog signals. I've never run into issues with jumper cable wiring on quite a few monitors but please use common sense.
+*pin 1: RED (red wire in photos)
+*pin 2: GREEN (green wire in photos)
+*pin 3: BLUE (blue wire in photos)
+*pin 4: HSYNC (yellow wire in photos)
+*pin 5: VSYNC (orange wire in photos)
+*pin 25 or PMOD header: common GND (black wire in photos)
+
+Please note: 3.3 V is out-of-spec for VGA analog signals.
+I've never run into issues with direct wiring on quite a few monitors / beamers but please do use common sense.
+
+![Jumper wires to off-the-shelf VGA monitor cable](https://github.com/mnentwig/forthytwo/blob/master/fractalsProject/wwwSrc/pinout1.jpg "Jumper wires to off-the-shelf VGA monitor cable")
+![Jumper wires (different view)](https://github.com/mnentwig/forthytwo/blob/master/fractalsProject/wwwSrc/pinout2.jpg "Jumper wires  (different view)")
+![Jumper wire cabling, FPGA end](https://github.com/mnentwig/forthytwo/blob/master/fractalsProject/wwwSrc/pinout2.jpg "Jumper wire cabling, FPGA end")
+
+If in doubt, please use a [standard VGA connector chart](http://www.hardwarebook.info/VGA_(15)) for reference ("at the monitor cable", not "at the video card").
 
 To rebuild the bitstream, run from the top level directory 
 - make forthytwo: builds the compiler
