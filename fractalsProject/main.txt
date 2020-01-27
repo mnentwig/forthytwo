@@ -58,7 +58,7 @@ VAR:lastFrameNum=0xFFFFFFFF
 	flm.add
 	
 	// 4*nSteps^2
-	'nHalfSteps @ 0 core.lshift
+	'nHalfSteps @
 	dup
 	math.u32*u32
 	flm.int2flt
