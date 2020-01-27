@@ -35,11 +35,8 @@ VAR:lastFrameNum=0xFFFFFFFF
 
 // note: frameCount is updated by the hardware immediately after the fractal parameters have been copied.
 :waitForStartOfFrame
+	// control LEDs with buttons (use to check that code is still running)
 	driver.getButtons driver.setLEDs
-
-	BEGIN
-		//driver.getButtons
-	UNTIL
 
 	BEGIN
 		'lastFrameNum @
