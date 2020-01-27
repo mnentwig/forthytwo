@@ -87,8 +87,6 @@ VAR:lastFrameNum=0xFFFFFFFF
 	calcAcceleration
 ;
 
-:flt2rtlFp 1 29 core.lshift flm.int2flt flm.mul flm.flt2int ;
-
 :loadNextPointToInterpolators
 	loadNextPoint_fetchAndCalc
 	'ddx1 ! 'x1 ! 0 'dx1 !
