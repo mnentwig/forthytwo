@@ -66,6 +66,9 @@ VAR:lastFrameNum=0xFFFFFFFF
 	flm.div	
 ;
 
+// in 1:v1 0:v2
+// out: -- 
+// v1 += v2 for both of type flt
 :varAddFltToVar
 	@ over @ flm.add swap !
 ;
@@ -278,7 +281,23 @@ VAR:colormode=0
 ;
 
 ::nextAngle
-	  'angle @ 0.001 flm.add 'angle !
+	  // retrieve angle...
+	  'angle @ 
+	  // add per-frame rotation
+	  0.001 flm.add 
+
+	  // create replica of angle with -2.0 offset
+	  dup -2.0 flm.add
+	  dup 0 core.lessThanSigned IF
+	      // negative - do not keep the modified angle
+	  ELSE
+	      // keep the modified angle
+	      core.swap
+	  ENDIF
+	  core.drop
+	  
+	  // store angle
+	  'angle !
 ;
 
 :advanceAnimation
