@@ -428,7 +428,7 @@ void flm_div(int32_t packedA, int32_t packedB, int32_t* result){
   flm_unpackUp6(packedB, &mantissaB, &exponentB);
   //printf("flm_div mA:%08x(%i) eA:%08x(%i) mB:%08x(%i) eB:%08x(%i)\n", mantissaA, mantissaA, exponentA, exponentA, mantissaB, mantissaB, exponentB, exponentB);
 
-  // === convert to signed ===
+  // === convert to unsigned ===
   int negate = 0;
   if (mantissaA < 0){
     mantissaA = -mantissaA;

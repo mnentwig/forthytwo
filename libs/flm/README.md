@@ -23,8 +23,10 @@ The file ../flm.txt is built from here.
 
 Example: 0x00000040 is 1 (the rightmost 6 exponent bits form the number 0, the leftmost 26 bits form the signed number +1)
 
+However, this representation of "1" is not normalized and may cause loss of precision e.g. in multiplication. Normalization moves the highest active bit (meaning "1" for a positive number and "0" for a negative number to the position below the sign bit and adjusts the exponent accordingly.
+
 Special case:
-0 is by definition 0x00000000 (special case, since any exponent would be mathematically correct)
+0 is by definition 0x00000000. This special case needs to be agreed, since any exponent would be mathematically correct.
 
 Once the float library is included with >>>#include(myLibPath/flm.txt)<<<, the parser converts literal numbers with a decimal point as float e.g. 1.0 or 2.0e6 but not 2e6.
 This feature may be enabled manually with >>>#ENABLE_FLOAT_LITERALS<<<
