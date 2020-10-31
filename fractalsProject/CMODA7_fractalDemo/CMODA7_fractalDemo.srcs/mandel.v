@@ -651,7 +651,7 @@ module generator(clk,
    //assign o_res = EF_DEBUG_res;   
 endmodule
 
-module top(clk, vgaClk, o_frameCount, i_run, i_simFlush,
+module top(clk, vgaClk, cpuClk, o_frameCount, i_run, i_simFlush,
 	   o_RED, o_GREEN, o_BLUE, o_HSYNC, o_VSYNC, 
 	   i_x0, i_y0, i_dxCol, i_dxRow, i_dyCol, i_dyRow, i_maxiter, 
 	   i_wrColMap, i_addrColMap, i_valColMap);   
@@ -661,6 +661,7 @@ module top(clk, vgaClk, o_frameCount, i_run, i_simFlush,
    
    input wire clk;
    input wire vgaClk;
+   input wire cpuClk;
 
    output wire [3:0] o_frameCount;
    input wire 	     i_run;   
@@ -742,7 +743,7 @@ module top(clk, vgaClk, o_frameCount, i_run, i_simFlush,
    // vga color mapping and blanking
    // ================================================================================
    reg [2:0] 		    colMap[0:63];
-   always @(posedge clk)
+   always @(posedge cpuClk)
      if (i_wrColMap)
        colMap[i_addrColMap] <= i_valColMap;   
 
