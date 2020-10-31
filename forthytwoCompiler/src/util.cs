@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 
 static class util {
 
@@ -45,7 +46,7 @@ static class util {
 
         if(enableFloat && text.Contains(".")) {
             double vDouble;
-            if(Double.TryParse(text, out vDouble)) {
+            if(Double.TryParse(text, NumberStyles.Number, CultureInfo.CreateSpecificCulture("en-US"), out vDouble)) {
                 val = double2flm(vDouble);
                 return true;
             }
